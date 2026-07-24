@@ -10,19 +10,19 @@ declare module 'virtual:flowkit/config' {
 declare module 'virtual:flowkit/pages' {
   import type { PageMeta } from '@flowkit/types/index'
   import type React from 'react'
-  /** Lazy screen loaders keyed by "flow/pageId" */
-  export const screens: Record<
+  /** Lazy page loaders keyed by "chapter/pageId" */
+  export const pages: Record<
     string,
     () => Promise<{ default: React.ComponentType; pageMeta?: PageMeta }>
   >
-  /** Pre-wrapped React.lazy() components keyed by "flow/pageId" */
-  export const lazyScreens: Record<string, React.LazyExoticComponent<React.ComponentType>>
-  /** Eagerly imported pageMeta per screen, keyed by "flow/pageId" */
+  /** Pre-wrapped React.lazy() components keyed by "chapter/pageId" */
+  export const lazyPages: Record<string, React.LazyExoticComponent<React.ComponentType>>
+  /** Eagerly imported pageMeta per page, keyed by "chapter/pageId" */
   export const pageMeta: Record<string, PageMeta | undefined>
-  /** Structured screen list for hierarchy building */
+  /** Structured page list for hierarchy building */
   export const pageList: Array<{
     key: string
-    flow: string
+    chapter: string
     pageId: string
     loader: () => Promise<{ default: React.ComponentType; pageMeta?: PageMeta }>
     /** '__'-prefixed entries are filtered out before reaching this list entirely. */

@@ -6,7 +6,7 @@ export function prompt(rl, question) {
   return new Promise(resolve => rl.question(question, resolve))
 }
 
-export function selectFromList(items, _onSelect) {
+export function selectFromList(items) {
   if (!process.stdin.isTTY) {
     // Non-TTY fallback (VS Code terminal, piped input, CI): numbered list via readline
     return new Promise(resolve => {

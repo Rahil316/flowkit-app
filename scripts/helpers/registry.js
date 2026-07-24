@@ -1,4 +1,4 @@
-// Helper: workspace registry read/write/sync, plus backward-compat re-exports.
+// Helper: workspace registry (src/workspaces.json) read/write/sync.
 import fs from 'fs'
 import path from 'path'
 import {
@@ -27,9 +27,9 @@ function readConfigDescription(name) {
   }
 }
 
-// Re-export for backward compat — callers that import these from registry.js keep working.
-export { toSlug, toId } from './strings.js'
-export { parseStringFlag } from './args.js'
+// Re-export so flowkit-engine.js can pull the scaffold entry point + registry
+// helpers from a single import line — scaffold.js itself is out of scope for
+// this file's own naming/cleanup pass.
 export { workspaceScaffold } from './scaffold.js'
 
 export function readWorkspaceRegistry() {

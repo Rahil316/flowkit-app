@@ -8,7 +8,7 @@
 // directly, since both must stay independently publishable with zero runtime
 // deps on this repo.
 //
-// Demo content (config chapters/pages, flowStories, screens, db, game-logic,
+// Demo content (config chapters/pages, flowStories, db, game-logic,
 // components) comes from the shared scripts/helpers/game-demo-scaffold.js
 // module — the same one scripts/helpers/scaffold.js (repo mode) uses. There is
 // only one copy of the demo content to maintain; this file's own job is just

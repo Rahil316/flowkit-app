@@ -5,7 +5,7 @@ export const bold = s => `\x1b[1m${s}\x1b[0m`
 export const dim = s => `\x1b[2m${s}\x1b[0m`
 export const cyan = s => `\x1b[36m${s}\x1b[0m`
 
-// Short aliases (kept for backward compat during migration)
+// Short aliases — the form most call sites actually import.
 export const g = green
 export const r = red
 export const b = bold

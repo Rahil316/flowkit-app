@@ -4,6 +4,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { readFlowkitManifest, isMultiMode, workspaceEntryPath } from './flowkit-manifest.js'
 import { FLOW_BOOK_DIRNAME } from './config-filenames.js'
+import { readJson, writeJson } from './json.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 export const ROOT = path.resolve(__dirname, '../..')
@@ -12,15 +13,11 @@ export const PLATFORM_WORKSPACES_FILE = path.join(ROOT, 'src', 'workspaces.ts')
 export const WORKSPACES_JSON = path.join(ROOT, 'src', 'workspaces.json')
 
 export function readWorkspacesJson() {
-  try {
-    return JSON.parse(fs.readFileSync(WORKSPACES_JSON, 'utf8'))
-  } catch {
-    return { workspaces: [], active: null }
-  }
+  return readJson(WORKSPACES_JSON, { workspaces: [], active: null })
 }
 
 export function writeWorkspacesJson(data) {
-  fs.writeFileSync(WORKSPACES_JSON, JSON.stringify(data, null, 2) + '\n')
+  writeJson(WORKSPACES_JSON, data)
 }
 
 export function listWorkspaceDirs() {
@@ -233,33 +230,6 @@ export function assertScopedWorkspaceDir(wsDir, name) {
         `isRepoMode()/workspacePath() may be misresolving — investigate before retrying.`
     )
   }
-}
-
-/**
- * Resolve the active workspace name.
- * Flat mode: read from the workspace config file's workspace.name, or use dirname.
- */
-export function activeWorkspaceDir() {
-  if (isRepoMode()) {
-    const name = getActiveWorkspaceName()
-    return path.join(ROOT, 'workspaces', name)
-  }
-  return process.cwd()
-}
-
-const STATE_FILE = path.join(ROOT, 'scripts', '.flowkit-state.json')
-
-export function readState() {
-  try {
-    return JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'))
-  } catch {
-    return {}
-  }
-}
-
-export function writeState(patch) {
-  const current = readState()
-  fs.writeFileSync(STATE_FILE, JSON.stringify({ ...current, ...patch }, null, 2))
 }
 
 /**

@@ -4,13 +4,13 @@
  * Workspace reader — supports two layouts:
  *
  *   New (flat):  workspaces/<ws>/flowStories/<Name>.ts
- *                workspaces/<ws>/flowBook/<flow>/.../<screen>/<File>.tsx (variable depth)
+ *                workspaces/<ws>/flowBook/<chapter>/.../<screen>/<File>.tsx (variable depth)
  *
  *   Old (nested): workspaces/<ws>/projects/<proj>/flowStories/<Name>.ts
- *                 workspaces/<ws>/projects/<proj>/flowBook/<flow>/.../<screen>/<File>.tsx
+ *                 workspaces/<ws>/projects/<proj>/flowBook/<chapter>/.../<screen>/<File>.tsx
  *
  * Both layouts are detected automatically. Existing workspaces keep working unchanged.
- * Page identity (flow/screen/variant/visibility) is derived by the shared,
+ * Page identity (chapter/screen/variant/visibility) is derived by the shared,
  * mode-agnostic pagePathIdentity module — see that file for the folder-depth rules.
  *
  * WHY a separate file: import.meta.glob patterns MUST be string literals (Vite
@@ -23,7 +23,7 @@ import type {
   FlowkitConfig,
   FlowStoryDef,
   PageMeta,
-  WireframeView,
+  PageView,
   WorkspaceHierarchyNode,
 } from '@flowkit/types/index'
 import {
@@ -45,7 +45,7 @@ const isSingle = import.meta.env.VITE_SINGLE_WORKSPACE === 'true'
 // ─── Flat mode: virtual module imports ────────────────────────────────────────
 
 import { flowStories as _virtualFlowStories } from 'virtual:flowkit/flowStories'
-import { pageList as _virtualPageList,pageMeta as _virtualPageMeta } from 'virtual:flowkit/pages'
+import { pageList as _virtualPageList, pageMeta as _virtualPageMeta } from 'virtual:flowkit/pages'
 
 // ─── Repo mode: Vite glob maps (string literals only) ────────────────────────
 //
@@ -166,8 +166,8 @@ export interface WorkspaceHierarchyResult {
   /** Flow library: one Chapter per FlowStory (with a `-play` runner child). */
   stories: Chapter[]
   /** All screens as flat views (merged into ALL_VIEWS by App). */
-  views: WireframeView[]
-  /** Project → flow → screen tree for the Screens tab. */
+  views: PageView[]
+  /** Project → chapter → screen tree for the Screens tab. */
   tree: WorkspaceHierarchyNode[]
   /** id → raw FlowStoryDef (for the Flow Library + ref resolution). */
   registry: Map<string, FlowStoryDef>
@@ -215,32 +215,32 @@ function resolveConfigDefaults(
 function buildFlatHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
   const config = getWorkspaceConfig(activeWorkspace)
 
-  // 1. Build pages from virtual:flowkit/pages pageList. genScreens() (flat-mode's
-  //    vite-plugin.js) already derives flow/pageId via the same shared pagePathIdentity
+  // 1. Build pages from virtual:flowkit/pages pageList. genPages() (flat-mode's
+  //    vite-plugin.js) already derives chapter/pageId via the same shared pagePathIdentity
   //    module used here, and pre-filters '__' (non-existent) entries before they ever reach
   //    this list — so no visibility check needed here, only the id/path construction.
   const pagesById = new Map<string, PageRec>()
   for (const entry of _virtualPageList) {
-    const { flow, pageId, loader } = entry
+    const { chapter, pageId, loader } = entry
     const meta = _virtualPageMeta[entry.key]
     const label = meta?.label ?? derivePageLabel(pageId)
     const component = buildLazyComponent(loader)
-    const id = makePageId(flow, pageId)
-    const filePath = `flowBook/${flow}/${pageId}`
-    const view: WireframeView = {
+    const id = makePageId(chapter, pageId)
+    const filePath = `flowBook/${chapter}/${pageId}`
+    const view: PageView = {
       id,
       label,
       component,
       filePath,
       variants: [{ serial: 'default', label, component, filePath }],
-      chapter: flow,
+      chapter,
       project: activeWorkspace,
     }
     pagesById.set(id, {
       id,
       label,
       project: activeWorkspace,
-      flow,
+      chapter,
       component,
       view,
       visibility: entry.visibility ?? 'normal',
@@ -273,7 +273,7 @@ function buildFlatHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
   ]
   const stories: Chapter[] = []
   for (const def of orderedDefs) {
-    const playNode: WireframeView = {
+    const playNode: PageView = {
       id: `${def.id}-play`,
       label: 'Play Flow ➔',
       component: makeFlowStoryRunner(def, resolve, registry),
@@ -282,7 +282,7 @@ function buildFlatHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
   }
 
   // 5. Views
-  const views: WireframeView[] = [
+  const views: PageView[] = [
     ...[...pagesById.values()].map(r => r.view),
     ...stories.flatMap(f => f.children ?? []),
   ]
@@ -293,7 +293,7 @@ function buildFlatHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
   // 7. Tags — sourced directly from each screen's own pageMeta.annotations.
   const metaByPageId = new Map<string, PageMeta | undefined>()
   for (const entry of _virtualPageList) {
-    metaByPageId.set(makePageId(entry.flow, entry.pageId), _virtualPageMeta[entry.key])
+    metaByPageId.set(makePageId(entry.chapter, entry.pageId), _virtualPageMeta[entry.key])
   }
   const tagsByPage = buildTagsMap(metaByPageId)
 
@@ -311,12 +311,12 @@ function buildFlatHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
 // ─── Builder (pure given the globs) ─────────────────────────────────────────────
 
 interface PageRec {
-  id: string // = `${flow}-${screen}` — collision-proof across stories
+  id: string // = `${chapter}-${screen}` — collision-proof across stories
   label: string
   project: string
-  flow: string
+  chapter: string
   component: React.ComponentType // default variant
-  view: WireframeView // includes variants[]
+  view: PageView // includes variants[]
   visibility: 'normal' | 'hidden' | 'non-existent'
 }
 
@@ -334,7 +334,7 @@ function buildHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
     component: React.ComponentType
     filePath: string
     project: string
-    flow: string
+    chapter: string
     screen: string
     componentName: string
     fileName: string
@@ -353,7 +353,7 @@ function buildHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
       component: buildLazyComponent(loader),
       filePath: path.slice(wsPrefix.length),
       project: info.project,
-      flow: info.chapter,
+      chapter: info.chapter,
       screen: info.page,
       componentName: info.componentName,
       fileName: info.fileName,
@@ -371,8 +371,8 @@ function buildHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
   for (const [key, candidates] of variantsByScreenKey) {
     const { chosen } = pickPageFile(candidates.map(c => c.fileName))
     const winner = candidates.find(c => c.fileName === chosen) ?? candidates[0]
-    const [flow, screen] = key.split('::')
-    const screenKey = `${flow}::${screen}`
+    const [chapter, screen] = key.split('::')
+    const screenKey = `${chapter}::${screen}`
     const list = variantsByScreen.get(screenKey) ?? []
     list.push(winner)
     variantsByScreen.set(screenKey, list)
@@ -381,8 +381,8 @@ function buildHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
   // 2. Build a PageRec per (chapter, page) pair.
   const pagesById = new Map<string, PageRec>()
   for (const [screenKey, files] of variantsByScreen) {
-    const [flow, screen] = screenKey.split('::')
-    const pageId = makePageId(flow, screen)
+    const [chapter, screen] = screenKey.split('::')
+    const pageId = makePageId(chapter, screen)
     const def = files.find(f => f.serial === 'default') ?? files[0]
     const label = derivePageLabel(screen)
     const variants = files
@@ -407,20 +407,20 @@ function buildHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
           filePath: f.filePath,
         }
       })
-    const view: WireframeView = {
+    const view: PageView = {
       id: pageId,
       label,
       component: def.component,
       filePath: def.filePath,
       variants,
-      chapter: def.flow,
+      chapter: def.chapter,
       project: def.project,
     }
     pagesById.set(pageId, {
       id: pageId,
       label,
       project: def.project,
-      flow: def.flow,
+      chapter: def.chapter,
       component: def.component,
       view,
       visibility: def.visibility,
@@ -456,7 +456,7 @@ function buildHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
   ]
   const stories: Chapter[] = []
   for (const def of orderedDefs) {
-    const playNode: WireframeView = {
+    const playNode: PageView = {
       id: `${def.id}-play`,
       label: 'Play Flow ➔',
       component: makeFlowStoryRunner(def, resolve, registry),
@@ -465,22 +465,22 @@ function buildHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
   }
 
   // 6. Flat views = all screens + every flow's play node.
-  const views: WireframeView[] = [
+  const views: PageView[] = [
     ...[...pagesById.values()].map(r => r.view),
     ...stories.flatMap(f => f.children ?? []),
   ]
 
-  // 7. Tree: project → flow → screen.
+  // 7. Tree: project → chapter → screen.
   const tree = buildTree([...pagesById.values()], config, activeWorkspace)
 
   // 8. Tags — sourced directly from each screen's own pageMeta.annotations
   //    (pageMetaModules is already eagerly globbed above, keyed by full workspace path).
   const metaByPageId = new Map<string, PageMeta | undefined>()
   for (const [screenKey, files] of variantsByScreen) {
-    const [flow, screen] = screenKey.split('::')
+    const [chapter, screen] = screenKey.split('::')
     const def = files.find(f => f.serial === 'default') ?? files[0]
     const metaKey = `${wsPrefix}${def.filePath}`
-    metaByPageId.set(makePageId(flow, screen), pageMetaModules[metaKey])
+    metaByPageId.set(makePageId(chapter, screen), pageMetaModules[metaKey])
   }
   const tagsByPage = buildTagsMap(metaByPageId)
 
@@ -496,16 +496,16 @@ function buildHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
 }
 
 function buildTree(
-  screens: PageRec[],
+  pages: PageRec[],
   config: FlowkitConfig,
   wsName: string
 ): WorkspaceHierarchyNode[] {
-  const projects = new Map<string, Map<string, WireframeView[]>>()
-  for (const s of screens) {
+  const projects = new Map<string, Map<string, PageView[]>>()
+  for (const s of pages) {
     if (!projects.has(s.project)) projects.set(s.project, new Map())
     const storiesMap = projects.get(s.project)!
-    if (!storiesMap.has(s.flow)) storiesMap.set(s.flow, [])
-    storiesMap.get(s.flow)!.push(s.view)
+    if (!storiesMap.has(s.chapter)) storiesMap.set(s.chapter, [])
+    storiesMap.get(s.chapter)!.push(s.view)
   }
 
   const projectNodes: WorkspaceHierarchyNode[] = []
@@ -518,34 +518,34 @@ function buildTree(
       projCfg?.chapters ??
       projCfg?.modules ??
       []
-    const flowEntries = [...storiesMap.entries()]
-    const orderedFlows: [string, WireframeView[]][] = [
+    const chapterEntries = [...storiesMap.entries()]
+    const orderedChapters: [string, PageView[]][] = [
       ...declaredOrder
-        .filter(f => storiesMap.has(f))
-        .map(f => [f, storiesMap.get(f)!] as [string, WireframeView[]]),
-      ...flowEntries.filter(([f]) => !declaredOrder.includes(f)),
+        .filter(c => storiesMap.has(c))
+        .map(c => [c, storiesMap.get(c)!] as [string, PageView[]]),
+      ...chapterEntries.filter(([c]) => !declaredOrder.includes(c)),
     ]
-    const flowNodes: WorkspaceHierarchyNode[] = []
-    for (const [flow, flowViews] of orderedFlows) {
+    const chapterNodes: WorkspaceHierarchyNode[] = []
+    for (const [chapter, chapterViews] of orderedChapters) {
       const declaredPages: string[] =
-        (project === wsName ? config.pageOrder?.[flow] : undefined) ??
-        projCfg?.pageOrder?.[flow] ??
+        (project === wsName ? config.pageOrder?.[chapter] : undefined) ??
+        projCfg?.pageOrder?.[chapter] ??
         []
       const sortedViews =
         declaredPages.length === 0
-          ? flowViews
+          ? chapterViews
           : [
               ...declaredPages
-                .filter(slug => flowViews.some(v => v.id.endsWith(slug)))
-                .map(slug => flowViews.find(v => v.id.endsWith(slug))!),
-              ...flowViews
+                .filter(slug => chapterViews.some(v => v.id.endsWith(slug)))
+                .map(slug => chapterViews.find(v => v.id.endsWith(slug))!),
+              ...chapterViews
                 .filter(v => !declaredPages.some(slug => v.id.endsWith(slug)))
                 .sort((a, b) => a.label.localeCompare(b.label)),
             ]
-      flowNodes.push({
+      chapterNodes.push({
         kind: 'chapter',
-        id: flow,
-        label: titleCase(flow),
+        id: chapter,
+        label: titleCase(chapter),
         children: sortedViews.map(v => ({
           kind: 'page' as const,
           id: v.id,
@@ -558,7 +558,7 @@ function buildTree(
       kind: 'project',
       id: project,
       label: titleCase(project),
-      children: flowNodes,
+      children: chapterNodes,
     })
   }
   return projectNodes

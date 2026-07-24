@@ -309,7 +309,7 @@ into `{ componentName: 'WelcomePage', variant: 'red-theme' }` (no suffix → `va
 This is real, working parsing logic, unit-tested, and it genuinely does more than just parse:
 
 - **Repo mode**: `useWorkspaceHierarchy.ts` groups every file in a page folder by variant, attaches
-  them as a `variants[]` array on the page's `WireframeView`, and the Screens-tab UI
+  them as a `variants[]` array on the page's `PageView`, and the Screens-tab UI
   (`PagesHierarchy.tsx`) shows a real variant picker (an "Nᵥ" badge + expandable list) when more
   than one exists. `pageMeta.variantLabel`/`variantOrder` control the picker's display label/order.
   Switching variants in the picker actually re-renders `PreviewCanvas` with the chosen component.

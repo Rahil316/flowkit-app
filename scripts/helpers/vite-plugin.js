@@ -9,7 +9,7 @@
  *
  * Virtual modules produced:
  *   virtual:flowkit/config      — parsed FlowkitConfig object
- *   virtual:flowkit/pages       — lazy screen import map, pageList, pageMeta
+ *   virtual:flowkit/pages       — lazy page import map, pageList, pageMeta
  *   virtual:flowkit/flowStories   — eager flowStory import map
  *   virtual:flowkit/workspace   — db, simulator, tokens, logos, tags, sessions
  */
@@ -112,7 +112,7 @@ function genConfig(config) {
   return `export const config = ${JSON.stringify(config, null, 2)}`
 }
 
-async function genScreens(config, cwd) {
+async function genPages(config, cwd) {
   const pageOrder = config.pageOrder ?? {}
 
   // Scan the whole flowBook/ tree — chapter id is now derived from path position
@@ -141,20 +141,20 @@ async function genScreens(config, cwd) {
   }
 
   // Collect structured page entries — one per resolved (chapter, page, variant) slot.
-  const entries = [] // { key, flow, pageId, abs, visibility }
+  const entries = [] // { key, chapter, pageId, abs, visibility }
   for (const [, candidates] of bySlot) {
     const { chosen } = pickPageFile(candidates.map(c => c.fileName))
     const winner = candidates.find(c => c.fileName === chosen) ?? candidates[0]
     const { chapter, page, visibility } = winner.info
     const key = makePageId(chapter, page)
-    entries.push({ key, flow: chapter, pageId: page, abs: winner.abs, visibility })
+    entries.push({ key, chapter, pageId: page, abs: winner.abs, visibility })
   }
 
-  // Apply declared pageOrder (per flow) as a display-order hint, same convention
-  // as before — screens not mentioned keep their discovery order, appended after.
+  // Apply declared pageOrder (per chapter) as a display-order hint, same convention
+  // as before — pages not mentioned keep their discovery order, appended after.
   entries.sort((a, b) => {
-    if (a.flow !== b.flow) return 0
-    const order = pageOrder[a.flow] ?? []
+    if (a.chapter !== b.chapter) return 0
+    const order = pageOrder[a.chapter] ?? []
     const ai = order.indexOf(a.pageId)
     const bi = order.indexOf(b.pageId)
     if (ai === -1 && bi === -1) return 0
@@ -172,18 +172,18 @@ async function genScreens(config, cwd) {
   const metaLines = entries.map((e, i) => `  ${JSON.stringify(e.key)}: _meta${i}`)
   const listLines = entries.map(
     e =>
-      `  { key: ${JSON.stringify(e.key)}, flow: ${JSON.stringify(e.flow)}, pageId: ${JSON.stringify(e.pageId)}, loader: screens[${JSON.stringify(e.key)}]${e.visibility === 'hidden' ? `, visibility: 'hidden'` : ''} }`
+      `  { key: ${JSON.stringify(e.key)}, chapter: ${JSON.stringify(e.chapter)}, pageId: ${JSON.stringify(e.pageId)}, loader: pages[${JSON.stringify(e.key)}]${e.visibility === 'hidden' ? `, visibility: 'hidden'` : ''} }`
   )
 
   return `import { lazy } from 'react'
 ${metaImports.join('\n')}
 
-export const screens = {
+export const pages = {
 ${loaderLines.join(',\n')}
 }
 
-export const lazyScreens = Object.fromEntries(
-  Object.entries(screens).map(([k, loader]) => [k, lazy(loader)])
+export const lazyPages = Object.fromEntries(
+  Object.entries(pages).map(([k, loader]) => [k, lazy(loader)])
 )
 
 export const pageMeta = {
@@ -199,7 +199,7 @@ async function genFlowStories(cwd) {
   const files = await globFiles(`${FLOW_STORIES_DIRNAME}/*.ts`, cwd)
   const lines = files.map((rel, i) => {
     const abs = path.resolve(cwd, rel)
-    return `import _fp${i} from ${JSON.stringify(abs)}\nexports.push(_fp${i})`
+    return `import _story${i} from ${JSON.stringify(abs)}\nexports.push(_story${i})`
   })
   return `const exports = []
 ${lines.join('\n')}
@@ -323,7 +323,7 @@ export function flowkit(options = {}) {
     if (id === VIRTUALS.config) {
       code = genConfig(cfg)
     } else if (id === VIRTUALS.pages) {
-      code = await genScreens(cfg, cwd)
+      code = await genPages(cfg, cwd)
     } else if (id === VIRTUALS.flowStories) {
       code = await genFlowStories(cwd)
     } else if (id === VIRTUALS.workspace) {

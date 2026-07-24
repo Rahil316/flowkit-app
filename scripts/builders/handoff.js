@@ -41,7 +41,7 @@ export async function cmdHandoff(val) {
   let wsName = val
   if (!wsName) {
     console.log(c('? ') + 'Select workspace for developer handoff (↑↓ Enter):')
-    wsName = await selectFromList(existing, null)
+    wsName = await selectFromList(existing)
     console.log('\n')
   }
 

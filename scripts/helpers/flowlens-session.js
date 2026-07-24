@@ -1,5 +1,5 @@
 // Shared implementation for the `/__flowlens/save-session` dev-server middleware.
-// Both vite.config.ts (repo mode, workspace-scoped) and scripts/vite-plugin.js
+// Both vite.config.ts (repo mode, workspace-scoped) and scripts/helpers/vite-plugin.js
 // (flat mode, cwd-scoped) mount this same handler — the only thing that legitimately
 // differs between them is where flowLensDir resolves to, and what extra fields (if
 // any) get merged into a freshly-bootstrapped studies.json.

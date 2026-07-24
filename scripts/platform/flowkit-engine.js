@@ -19,8 +19,8 @@ import {
   writeWorkspaceRegistry,
   syncWorkspaceRegistry,
   workspaceScaffold,
-  parseStringFlag,
 } from '../helpers/registry.js'
+import { parseStringFlag } from '../helpers/args.js'
 import { prompt, selectFromList } from '../helpers/prompt.js'
 import { assertKebab, ValidationError } from '../helpers/validate.js'
 import { FLOW_BOOK_DIRNAME } from '../helpers/config-filenames.js'
@@ -129,7 +129,7 @@ export async function cmdNewWorkspace(val) {
     }
   } else {
     console.log(c('? ') + 'Design kit (↑↓ Enter):')
-    const selection = await selectFromList(kitOptions, null)
+    const selection = await selectFromList(kitOptions)
     console.log('\n')
     selectedKit = selection.split(' —')[0].trim()
   }
@@ -266,7 +266,7 @@ export async function cmdRemoveWorkspace(val) {
       return
     }
     console.log(c('? ') + 'Select workspace to remove (↑↓ Enter):')
-    wsName = await selectFromList(existing, null)
+    wsName = await selectFromList(existing)
     console.log('\n')
   }
 
@@ -314,7 +314,7 @@ export async function cmdWatch(val) {
     }
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
     console.log(c('? ') + 'Select workspace to watch (↑↓ Enter):')
-    wsName = await selectFromList(existing, null)
+    wsName = await selectFromList(existing)
     rl.close()
     console.log('\n')
   }
