@@ -1,4 +1,4 @@
-import type { DevicePreset, WireframeView } from '@flowkit/types/index'
+import type { DevicePreset, PageView } from '@flowkit/types/index'
 import { DashboardProvider } from '@flowkit-shared/contexts/DashboardContext'
 
 import type { GroupBy, LabelField } from './FigmaExportSidebar'
@@ -8,7 +8,7 @@ import type { GroupBy, LabelField } from './FigmaExportSidebar'
 export interface GroupedSection {
   key: string
   label: string
-  pages: WireframeView[]
+  pages: PageView[]
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -19,11 +19,11 @@ const LABEL_H = 36
 
 // ─── Grouping ─────────────────────────────────────────────────────────────────
 
-export function groupPages(screens: WireframeView[], groupBy: GroupBy): GroupedSection[] {
+export function groupPages(screens: PageView[], groupBy: GroupBy): GroupedSection[] {
   if (groupBy === 'flat') return [{ key: '__flat__', label: '', pages: screens }]
 
   const UNGROUPED = '(Ungrouped)'
-  const map = new Map<string, WireframeView[]>()
+  const map = new Map<string, PageView[]>()
 
   for (const view of screens) {
     let key: string
@@ -79,7 +79,7 @@ function GroupHeader({
 // ─── PageCell ─────────────────────────────────────────────────────────────────
 
 interface PageCellProps {
-  view: WireframeView
+  view: PageView
   W: number
   H: number
   scaledW: number

@@ -1,4 +1,4 @@
-import type { WireframeView } from '@flowkit/types/index'
+import type { PageView } from '@flowkit/types/index'
 import type { PanelDragHandle } from '@flowkit-core/layout/hooks/usePanelDrag'
 import PanelFrame from '@flowkit-core/layout/PanelFrame'
 import { useFlowLensPanelShortcuts } from '@flowkit-core/shortcuts/useKeyboardShortcuts'
@@ -20,7 +20,7 @@ import ReplayController from './ReplayController'
 import ReportsOverlay from './reports/ReportsOverlay'
 
 interface Props {
-  views: WireframeView[]
+  views: PageView[]
   effectiveLeftW: number
   effectiveRightW: number
   leftOpen: boolean

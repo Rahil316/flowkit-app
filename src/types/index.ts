@@ -107,7 +107,7 @@ export interface PageVariant {
   filePath?: string
 }
 
-export interface WireframeView {
+export interface PageView {
   id: string
   label: string
   component: React.ComponentType
@@ -128,7 +128,7 @@ export interface WireframeView {
 export interface Chapter {
   id: string
   label: string
-  children?: WireframeView[]
+  children?: PageView[]
   config?: ChapterConfig
 }
 
@@ -699,7 +699,7 @@ export interface WorkspaceHierarchyNode {
   label: string
   children?: WorkspaceHierarchyNode[]
   /** Present on leaf screen nodes. */
-  view?: WireframeView
+  view?: PageView
 }
 
 // ─── Annotation Tags ─────────────────────────────────────────────────────────

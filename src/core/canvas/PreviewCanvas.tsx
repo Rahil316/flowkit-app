@@ -1,4 +1,4 @@
-import type { Chapter, WireframeView } from '@flowkit/types/index'
+import type { Chapter, PageView } from '@flowkit/types/index'
 import { useFeedback } from '@flowkit-features/feedback/context/FeedbackContext'
 import { useFlowPlaybackOptional } from '@flowkit-features/flowStory/FlowPlaybackContext'
 import { useSessionSettings } from '@flowkit-features/flowTracer/components/useSessionSettings'
@@ -96,7 +96,7 @@ const FlowLensMode = flowlensLoader
 
 interface Props {
   chapters: Chapter[]
-  views: WireframeView[]
+  views: PageView[]
 }
 export default function PreviewCanvas({ chapters, views }: Props) {
   const isMobile = useIsMobile()

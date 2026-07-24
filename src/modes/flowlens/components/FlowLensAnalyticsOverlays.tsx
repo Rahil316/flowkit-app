@@ -1,4 +1,4 @@
-import type { WireframeView } from '@flowkit/types/index'
+import type { PageView } from '@flowkit/types/index'
 import type { SessionExport } from '@flowkit-features/flowTracer/types'
 import { useMemo } from 'react'
 
@@ -14,7 +14,7 @@ export type FlowLensOverlay = 'metrics' | 'paths' | 'funnel' | 'heatmap' | null
 
 interface Props {
   session: SessionExport
-  views: WireframeView[]
+  views: PageView[]
   overlay: FlowLensOverlay
   currentSequenceId: number
   onClose: () => void

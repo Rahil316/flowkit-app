@@ -1,4 +1,4 @@
-import type { DevicePreset, WireframeView } from '@flowkit/types/index'
+import type { DevicePreset, PageView } from '@flowkit/types/index'
 import { DEVICE_PRESETS } from '@flowkit-shared/components/devices'
 import { Z } from '@flowkit-shared/constants/zIndex'
 import { PanelLeft } from 'lucide-react'
@@ -54,7 +54,7 @@ function FigmaIcon({ size = 16 }: { size?: number }) {
 
 // ─── FigmaExportView ──────────────────────────────────────────────────────────
 
-export default function FigmaExportView({ views }: { views: WireframeView[] }) {
+export default function FigmaExportView({ views }: { views: PageView[] }) {
   const pages = useMemo(() => views.filter(v => !v.id.endsWith('-play')), [views])
 
   // ── Device ──────────────────────────────────────────────────────────────────

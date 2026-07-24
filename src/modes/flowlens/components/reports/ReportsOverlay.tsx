@@ -1,4 +1,4 @@
-import type { WireframeView } from '@flowkit/types/index'
+import type { PageView } from '@flowkit/types/index'
 import { useEffect, useMemo, useState } from 'react'
 
 import { exportMarkdownSummary, exportMetricsCsv } from '../../exportUtils'
@@ -18,7 +18,7 @@ import {
 
 interface Props {
   entries: LibraryEntry[]
-  views: WireframeView[]
+  views: PageView[]
   onClose: () => void
 }
 

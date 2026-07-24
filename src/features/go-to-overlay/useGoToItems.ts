@@ -1,4 +1,4 @@
-import type { Chapter, WireframeView } from '@flowkit/types/index'
+import type { Chapter, PageView } from '@flowkit/types/index'
 import type { PaletteGroup, PaletteItem } from '@flowkit-features/command-palette'
 import { PALETTE_ACCENT_COLORS } from '@flowkit-features/command-palette'
 import { useFlowLibrary } from '@flowkit-features/flow-library'
@@ -74,7 +74,7 @@ export function useGoToItems({ chapters, activeViewId, query }: Options): Palett
       }
     } else {
       for (const chapter of chapters) {
-        const pages = (chapter.children ?? []).filter((v: WireframeView) => !v.id.endsWith('-play'))
+        const pages = (chapter.children ?? []).filter((v: PageView) => !v.id.endsWith('-play'))
 
         if (!q || chapter.label.toLowerCase().includes(q)) {
           const meta: GoToItemMeta = {
@@ -94,7 +94,7 @@ export function useGoToItems({ chapters, activeViewId, query }: Options): Palett
 
         const matched = q
           ? pages.filter(
-              (s: WireframeView) =>
+              (s: PageView) =>
                 s.label.toLowerCase().includes(q) || chapter.label.toLowerCase().includes(q)
             )
           : pages

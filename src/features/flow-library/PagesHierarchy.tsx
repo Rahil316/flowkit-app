@@ -1,4 +1,4 @@
-import type { AnnotationTag, WireframeView, WorkspaceHierarchyNode } from '@flowkit/types/index'
+import type { AnnotationTag, PageView, WorkspaceHierarchyNode } from '@flowkit/types/index'
 import { useFeedback } from '@flowkit-features/feedback'
 import Tooltip from '@flowkit-shared/components/ui/Tooltip'
 import { useActiveWorkspace } from '@flowkit-shared/contexts/ActiveWorkspaceContext'
@@ -92,7 +92,7 @@ export default function PagesHierarchy({
   }
 
   const q = search.toLowerCase()
-  function pageMatches(v: WireframeView): boolean {
+  function pageMatches(v: PageView): boolean {
     if (q && !v.label.toLowerCase().includes(q) && !v.id.toLowerCase().includes(q)) return false
     const tags = v.meta?.tags ?? []
     // Inclusive-OR; untagged always shown.
@@ -167,7 +167,7 @@ function TreeNode({
   toggle: (id: string) => void
   activeViewId: string
   navigateTo: (id: string) => void
-  screenMatches: (v: WireframeView) => boolean
+  screenMatches: (v: PageView) => boolean
   commentedScreens: Set<string>
   tagsByPage: Map<string, AnnotationTag[]>
   onFindInLibrary: (pageId: string) => void
@@ -269,7 +269,7 @@ function PageRow({
   onNavigate,
   onFindInLibrary,
 }: {
-  view: WireframeView
+  view: PageView
   active: boolean
   hasComments: boolean
   annotationTags: AnnotationTag[]
@@ -404,10 +404,7 @@ function collectExpandableIds(nodes: WorkspaceHierarchyNode[]): string[] {
   return ids
 }
 
-function hasVisiblePage(
-  node: WorkspaceHierarchyNode,
-  matches: (v: WireframeView) => boolean
-): boolean {
+function hasVisiblePage(node: WorkspaceHierarchyNode, matches: (v: PageView) => boolean): boolean {
   if (node.kind === 'page' && node.view) return matches(node.view)
   return (node.children ?? []).some(c => hasVisiblePage(c, matches))
 }

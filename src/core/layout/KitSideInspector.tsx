@@ -1,4 +1,4 @@
-import type { WireframeView } from '@flowkit/types/index'
+import type { PageView } from '@flowkit/types/index'
 import {
   FeedbackPanel,
   FeedbackTabProvider,
@@ -199,7 +199,7 @@ export function ScreenInfoContent({
   views,
   touch = false,
 }: {
-  views: WireframeView[]
+  views: PageView[]
   /** Renders explicit copy-filename/copy-path buttons with inline feedback instead of the hover tooltip (mobile has no hover). */
   touch?: boolean
 }) {
@@ -765,7 +765,7 @@ function FlowDeclaredControls({
   )
 }
 
-export function FeedbackContent({ views }: { views: WireframeView[] }) {
+export function FeedbackContent({ views }: { views: PageView[] }) {
   const recorder = useSessionRecorderOptional()
 
   return (
@@ -822,7 +822,7 @@ export function SessionsContent() {
 export { RAIL_W } from './sidebarConfig'
 
 interface KitSideInspectorProps {
-  views: WireframeView[]
+  views: PageView[]
   /** Controlled open state — owned by the parent (DesktopCanvas via usePanelLayout). */
   isOpen: boolean
   onOpenChange: (isOpen: boolean) => void

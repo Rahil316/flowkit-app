@@ -1,4 +1,4 @@
-import { FeedbackComment, FeedbackTag, WireframeView } from '@flowkit/types/index'
+import { FeedbackComment, FeedbackTag, PageView } from '@flowkit/types/index'
 import { useFeedback } from '@flowkit-features/feedback/context/FeedbackContext'
 import { useNavigation } from '@flowkit-shared/contexts/DashboardContext'
 import type { Dispatch, ReactNode, SetStateAction } from 'react'
@@ -117,7 +117,7 @@ interface FeedbackTabContextType {
   filteredGroupedComments: Record<string, FeedbackComment[]>
   allTags: Set<FeedbackTag>
   hasActiveFilters: boolean
-  views: WireframeView[]
+  views: PageView[]
 
   // Export states
   exportReviewerName: string
@@ -157,7 +157,7 @@ export function FeedbackTabProvider({
   views,
 }: {
   children: ReactNode
-  views: WireframeView[]
+  views: PageView[]
 }) {
   const {
     comments,

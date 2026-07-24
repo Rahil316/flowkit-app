@@ -14,5 +14,5 @@ export const LS_JSONBIN_READ_KEY = 'flowkit-jsonbin-read-key'
 // Leave as "" to push bins without a collection.
 export const JSONBIN_CONFIG = {
   providedKey: '',
-  collectionName: 'Wireframes Feedback',
+  collectionName: 'Page Feedback',
 } as const

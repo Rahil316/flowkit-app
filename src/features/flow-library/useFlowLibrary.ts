@@ -3,7 +3,7 @@ import {
   type FlowStoryDef,
   type Fork,
   isFlowStoryRef,
-  type WireframeView,
+  type PageView,
 } from '@flowkit/types/index'
 import { useActiveWorkspace } from '@flowkit-shared/contexts/ActiveWorkspaceContext'
 import { useWorkspaceHierarchy } from '@flowkit-shared/utils/useWorkspaceHierarchy'
@@ -81,7 +81,7 @@ export interface FlowLibraryData {
    */
   coveredPageIds: Set<string>
   /** O(1) page lookup by id. Derived from views. */
-  pageById: Map<string, WireframeView>
+  pageById: Map<string, PageView>
 }
 
 export function useFlowLibrary(): FlowLibraryData {
@@ -123,7 +123,7 @@ export function useFlowLibrary(): FlowLibraryData {
       return a.name.localeCompare(b.name)
     })
 
-    const pageById = new Map<string, WireframeView>(views.map(v => [v.id, v]))
+    const pageById = new Map<string, PageView>(views.map(v => [v.id, v]))
 
     return { summaries, allTags: [...tagSet].sort(), coveredPageIds, pageById }
   }, [registry, views, activeWorkspace])

@@ -1,4 +1,4 @@
-import type { Chapter, WireframeView } from '@flowkit/types/index'
+import type { Chapter, PageView } from '@flowkit/types/index'
 import KitSideExplorer from '@flowkit-core/layout/KitSideExplorer'
 import { COLOR_BLIND_FILTERS, ColorBlindSVGDefs } from '@flowkit-core/layout/KitSideInspector'
 import {
@@ -119,7 +119,7 @@ function RailShell({ tabs, activeId, onSelect, children, badgeMap = {} }: RailSh
 
 interface MobileCanvasProps {
   chapters: Chapter[]
-  views: WireframeView[]
+  views: PageView[]
 }
 
 export default function MobileCanvas({ chapters, views }: MobileCanvasProps) {

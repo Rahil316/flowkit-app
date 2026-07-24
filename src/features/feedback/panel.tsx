@@ -1,4 +1,4 @@
-import type { WireframeView } from '@flowkit/types/index'
+import type { PageView } from '@flowkit/types/index'
 import { useFeedback } from '@flowkit-features/feedback/context/FeedbackContext'
 import { useNavigation } from '@flowkit-shared/contexts/DashboardContext'
 import { useTheme } from '@flowkit-shared/contexts/ThemeContext'
@@ -225,7 +225,7 @@ function FeedbackTabContent() {
   return <AddCommentForm />
 }
 
-export default function FeedbackPanel({ views }: { views: WireframeView[] }) {
+export default function FeedbackPanel({ views }: { views: PageView[] }) {
   const existingCtx = React.useContext(FeedbackTabContext)
   if (existingCtx) {
     return <FeedbackTabContent />
