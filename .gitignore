@@ -3,20 +3,12 @@ dist
 handoff/
 .DS_Store
 .vite
-*.tsbuildinfo
-.env.local
-.env.*.local
-handoff
 dist-standalone/
 *.zip
-*-handoff-*/
-scripts/.flowkit-state.json
 .vscode
-tests
-# FlowLens generated reports (per-workspace, gitignored)
-workspaces/*/lib/flowLens/reports/
 
-# Canary scope-toggle transient state (scripts/dev/scope-toggle.js)
-scripts/dev/.pre-canary-snapshot.json
 docs/api/
 foamy-brewing-quasar.md
+
+workspaces/test/
+workspaces/game-zone/
