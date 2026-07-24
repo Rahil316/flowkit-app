@@ -1,4 +1,7 @@
-// Platform command: workspace lifecycle (new/remove/watch).
+// Platform command: workspace lifecycle (new/remove/watch) for developing this monorepo's own
+// FlowKit engine — i.e. this checkout's own internal workspaces/ dir. Distinct from
+// flowkit-app.js/flowkit-mono.js, which handle the equivalent lifecycle for consumer projects
+// that install the published `flowkit` package.
 import fs from 'fs'
 import path from 'path'
 import readline from 'readline'

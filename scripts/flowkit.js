@@ -1,17 +1,17 @@
 #!/usr/bin/env node
-// Bootstrap: the npm bin entry point — hands off to the platform router immediately.
+// Bootstrap: the npm bin entry point — hands off to the platform dispatcher immediately.
 //
 // One deliberate exception: `flowkit check`/`check:<domain>` is intercepted HERE, before
-// router.js ever sees it, in every mode (repo, flat, multi-workspace) — the rule modules
+// dispatcher.js ever sees it, in every mode (repo, flat, multi-workspace) — the rule modules
 // under scripts/checks/ are mode-agnostic (they take a resolved wsDir), so there's no reason
-// to gate this repo's own checkout out of dogfooding its own check rules. router.js itself
+// to gate this repo's own checkout out of dogfooding its own check rules. dispatcher.js itself
 // has zero knowledge of `check` — no import, no dispatch branch — so this repo's own command
 // surface elsewhere is unaffected.
 //
-// This mirrors router.js's own colon-parsing convention (`check:pages` → cmd 'check',
-// val 'pages') in miniature, rather than importing router.js's internal parseCmd() — small,
-// deliberate duplication so router.js never needs to export anything check-specific.
-import { route } from './platform/router.js'
+// This mirrors dispatcher.js's own colon-parsing convention (`check:pages` → cmd 'check',
+// val 'pages') in miniature, rather than importing dispatcher.js's internal parseCmd() — small,
+// deliberate duplication so dispatcher.js never needs to export anything check-specific.
+import { route } from './platform/dispatcher.js'
 
 const argv = process.argv.slice(2)
 const firstArg = argv[0] ?? ''

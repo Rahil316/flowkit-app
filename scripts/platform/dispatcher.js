@@ -1,6 +1,6 @@
 // Platform: the CLI's central command dispatcher — parses argv and routes to every subcommand.
 import { r, d } from '../helpers/colors.js'
-import { cmdNewWorkspace, cmdRemoveWorkspace, cmdWatch } from './workspace.js'
+import { cmdNewWorkspace, cmdRemoveWorkspace, cmdWatch } from './flowkit-engine.js'
 import { cmdExport } from '../builders/export.js'
 import { cmdHandoff } from '../builders/handoff.js'
 import {
@@ -21,7 +21,7 @@ import {
   cmdStudyActive,
 } from './sessions/index.js'
 import { cmdAgentSync } from './agent-sync.js'
-import { cmdPlanLs, cmdProjectLs } from './plans.js'
+import { cmdFlowStoryLs, cmdProjectLs } from './flowStoryDiscovery.js'
 import { cmdFeedbackImport, cmdFeedbackDump, cmdFeedbackLs } from './feedback.js'
 import { cmdHelp } from './help.js'
 import { cmdVersion } from './version.js'
@@ -53,13 +53,13 @@ import {
   cmdListExports,
 } from '../authoring/components.js'
 import { cmdPromoteChapter } from '../authoring/promote-chapter.js'
+import { cmdConvertFlat } from './flowkit-app.js'
 import {
   cmdConvertMulti,
-  cmdConvertFlat,
   cmdAddWorkspace,
   cmdRemoveWorkspace as cmdRemoveWorkspaceFlat,
   cmdRenameWorkspace,
-} from './workspace-flat.js'
+} from './flowkit-mono.js'
 
 // Parse both bare ("nw:name") and dashed ("-nw:name") forms.
 function parseCmd(arg) {
@@ -177,22 +177,10 @@ export async function route(argv) {
     const subColon = p.val.indexOf(':')
     const sub = subColon === -1 ? p.val : p.val.slice(0, subColon)
     const nameVal = subColon === -1 ? '' : p.val.slice(subColon + 1)
-    if (sub === 'ls' || sub === 'list' || sub === '') cmdProjectLs(nameVal)
+    if (sub === 'ls' || sub === 'list' || sub === '') cmdProjectLs(nameVal, rest)
     else {
       console.error(r(`✗ Unknown project command: project:${p.val}`))
       console.log(d('  Try: project:ls'))
-      process.exit(1)
-    }
-
-    // ── FlowStory ──
-  } else if (p.cmd === 'plan' || p.cmd === 'fp') {
-    const subColon = p.val.indexOf(':')
-    const sub = subColon === -1 ? p.val : p.val.slice(0, subColon)
-    const nameVal = subColon === -1 ? '' : p.val.slice(subColon + 1)
-    if (sub === 'ls' || sub === 'list') cmdPlanLs(nameVal, rest)
-    else {
-      console.error(r(`✗ Unknown plan command: plan:${p.val}`))
-      console.log(d('  Try: plan:ls  ·  for validation, use: flowkit check:flowStories'))
       process.exit(1)
     }
 
@@ -306,10 +294,16 @@ export async function route(argv) {
       console.error(r(`✗ Unknown: page:${p.val}`))
       process.exit(1)
     }
-  } else if (p.cmd === 'flowStory') {
+  } else if (p.cmd === 'flowStory' || p.cmd === 'fs') {
     if (p.val === 'info') await cmdFlowStoryInfo('', rest)
+    else if (p.val === 'ls' || p.val === 'list' || p.val === '') cmdFlowStoryLs('', rest)
     else {
       console.error(r(`✗ Unknown: flowStory:${p.val}`))
+      console.log(
+        d(
+          '  Try: flowStory:ls  ·  flowStory:info  ·  for validation, use: flowkit check:flowStories'
+        )
+      )
       process.exit(1)
     }
   } else if (p.cmd === 'components') {

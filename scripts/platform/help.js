@@ -21,8 +21,8 @@ ${b('Syntax:')} short alias or long-form, both always work
 ${b('Workspaces (repo mode only')} ${d('— not available in flat/multi consumer projects, see below')}${b('):')}
   ${c('nw')} / ${c('new-workspace')}           Create workspace (guided or express)
   ${c('rw')} / ${c('remove-workspace')}        Remove workspace (requires confirmation)
-  ${c('watch:flows')}                      Watch for file changes
-  ${c('status')}                           Health snapshot: flows, router, sessions, feedback, agent
+  ${c('watch')} / ${c('watch:<workspace-name>')}   Watch for file changes (guided if name omitted)
+  ${c('status')}                           Health snapshot: flows, flowStories, sessions, feedback, agent
 
 ${b('Workspaces (flat consumer projects):')}
   ${c('convert:multi')} ${d('[--name:<id>]')}       Convert a flat project to multi-workspace mode
@@ -61,14 +61,14 @@ ${b('Scaffold (authoring):')}
   ${d('pageOrder in workspace.ts controls display order; scaffold commands keep it in sync.')}
 
 ${b('Projects:')}
-  ${c('project:ls')} / ${c('pj:ls')}          List projects + plan counts
+  ${c('project:ls')} / ${c('pj:ls')}          List projects + flowStory counts
 
 ${b('FlowStories:')}
-  ${c('plan:ls')} / ${c('fp:ls')}             List flowStories  ${d('[--project:<slug>]')}
+  ${c('flowStory:ls')} / ${c('fs:ls')}        List flowStories  ${d('[--project:<slug>]')}
 
 ${b('Check (domain-specific linter for authored content):')}
   ${c('check')}                            Run all 5 domain checkers, combined report
-  ${c('check:screens')} / ${c('check:config')} / ${c('check:components')} / ${c('check:db')} / ${c('check:flowStories')}
+  ${c('check:pages')} / ${c('check:config')} / ${c('check:components')} / ${c('check:db')} / ${c('check:flowStories')}
                                        Run just one domain  ${d('[--json]')}
 
 ${b('Sessions (FlowTracer / FlowLens library):')}
@@ -87,8 +87,8 @@ ${b('Sessions (FlowTracer / FlowLens library):')}
                                        Unified report — ${c('lens:report')}/${c('sessions:brief')} are presets of this.
                                        ${d('--agent appends to .agent/project.md instead of stdout.')}
   ${c('lens:report')} / ${c('lr')}             Export FlowLens analytics JSON  ${d('[--dest <path>]')}
-  ${c('sessions:study:new')} ${d('<name> [--desc "<text>"]')} / ${c('study:ls')} / ${c('study:archive')} ${d('[--force]')} / ${c('study:active')}
-                                       Manage FlowLens studies (named session cohorts)
+  ${c('sessions:study:new')} ${d('<name> [--desc "<text>"]')} / ${c('sessions:study:ls')} / ${c('sessions:study:archive')} ${d('[--force]')} / ${c('sessions:study:active')}
+                                       Manage FlowLens studies (named session cohorts) ${d('— always the full sessions:study:<action> form')}
 
 ${b('Feedback:')}
   ${c('feedback:import <file>')} / ${c('fi')}   Commit feedback from an exported JSON file
@@ -98,14 +98,11 @@ ${b('Feedback:')}
 ${b('Export & handoff:')}
   ${c('export')} ${d('[--workspace:<name>] [--profile:<name>]')}   Standalone HTML export — guided flow, works in every mode
   ${c('handoff')} ${d('[<workspace>]')}             Developer handoff zip  ${d('— repo mode only, guided prompt if omitted')}
-${
-  isRepoMode()
-    ? `
-${b('Agent onboarding (repo mode only):')}
+
+${b('Agent onboarding:')}
   ${c('agent:sync')}                       Regenerate .agent/* and AGENTS.md from spec
-`
-    : ''
-}
+                                       ${d('(known gap: assumes repo mode — Documentation/ links break in consumer mode)')}
+
   ${c('flowkit -h')} / ${c('flowkit help')}     — show this help
   ${c('flowkit -v')} / ${c('flowkit version')}  — show installed version
 `)
