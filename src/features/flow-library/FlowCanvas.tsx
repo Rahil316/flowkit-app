@@ -1,4 +1,4 @@
-import { type FlowStoryDef, type FlowStep, type Fork, isFlowStoryRef } from '@flowkit/types/index'
+import { type FlowStep, type FlowStoryDef, type Fork, isFlowStoryRef } from '@flowkit/types/index'
 import { useTheme } from '@flowkit-shared/contexts/ThemeContext'
 import { GitFork } from 'lucide-react'
 import { useEffect, useRef } from 'react'

@@ -80,7 +80,7 @@ describe('Suite F — flowkit add:step / remove:step', () => {
     const result = await spawnCLI([
       'add:step',
       '--flowStory:forked-plan',
-      '--screen:ready-screen',
+      '--page:ready-screen',
       `--workspace:${WS}`,
     ])
     assert.notEqual(result.code, 0)
@@ -107,7 +107,7 @@ describe('Suite F — flowkit add:step / remove:step', () => {
     const result = await spawnCLI([
       'add:step',
       '--flowStory:forkfree-plan',
-      '--screen:ready-screen',
+      '--page:ready-screen',
       '--action:test step',
       `--workspace:${WS}`,
     ])

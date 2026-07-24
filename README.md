@@ -40,7 +40,7 @@ flowkit nw:my-app    # create workspace
 
 Switch active workspace from the browser UI — select a workspace in the canvas shell and your choice is saved automatically.
 
-Flowplans live at `workspaces/<name>/flowStories/`. Add a new `.ts` file there and it is picked up automatically on next dev server hot reload.
+FlowStories live at `workspaces/<name>/flowStories/`. Add a new `.ts` file there and it is picked up automatically on next dev server hot reload.
 
 ---
 
@@ -102,7 +102,7 @@ export default function WelcomePage({ onNext, onBack, db }: PageProps) {
 export const pageMeta = { id: 'welcome', label: 'Welcome' }
 ```
 
-`PageProps` is one of two navigation conventions and only populated during active flowplan
+`PageProps` is one of two navigation conventions and only populated during active flowStory
 playback. For a page that should also be freely explorable in the Screens tab (no chapter active),
 navigate by page id via `useAppNav()` instead — no `isChapter` prop, no manual guard needed:
 
@@ -122,7 +122,7 @@ or inside a chapter — safe to call unconditionally, unlike wiring `useDashboar
 
 ## Flow config
 
-Chapters are defined as **flowplans** under `workspaces/<name>/flowStories/` (repo mode) or `flowStories/` at the workspace root (consumer mode) — directory renamed from `flowplans/`; the CLI verb `check:flowplans` keeps its existing spelling regardless. Each flowplan is a `FlowplanDef` — a typed, ordered sequence of steps with optional db patches, forks, and entry guards. Step `pageId` values use the composite `${flowId}-${pageId}` form:
+Chapters are defined as **flowStories** under `workspaces/<name>/flowStories/` (repo mode) or `flowStories/` at the workspace root (consumer mode). Each flowStory is a `FlowStoryDef` — a typed, ordered sequence of steps with optional db patches, forks, and entry guards. Step `pageId` values use the composite `${flowId}-${pageId}` form:
 
 ```ts
 // this repo (repo mode)
@@ -143,26 +143,26 @@ export default defineFlow({
 })
 ```
 
-The flowplan compiler (`compileFlowplan.ts`) converts this at runtime into a `ChapterConfig` with gating, step sequencing, and db patch application. Press **F4** to enter flowplan playback mode, **F5** to restart.
+The flowStory compiler (`compileFlowStory.ts`) converts this at runtime into a `ChapterConfig` with gating, step sequencing, and db patch application. Playback starts from the UI (no dedicated shortcut to enter it); press **R** to restart while gating is active.
 
 ---
 
 ## CLI reference
 
-| Command                                    | Description                                                                                                      |
-| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| `flowkit nw:<name>`                        | Create workspace (repo mode only)                                                                                |
-| `flowkit rw:<name>`                        | Remove workspace (repo mode only)                                                                                |
-| `flowkit watch:flows`                      | Watch workspace for file changes (repo mode only)                                                                |
-| `flowkit status`                           | Workspace health snapshot                                                                                        |
-| `flowkit export`                           | Export as standalone HTML viewer (guided flow; always ships full codebase)                                       |
-| `flowkit handoff`                          | Build developer handoff zip                                                                                      |
-| `flowkit check` / `flowkit check:<domain>` | Validate authored content — pages/config/components/db/flowplans (`check:flowplans` runs automatically on build) |
-| `flowkit sessions:brief`                   | Agent analytics brief from committed sessions                                                                    |
-| `flowkit convert:multi`                    | Convert a flat consumer project to multi-workspace mode                                                          |
-| `flowkit convert:flat`                     | Collapse a multi-workspace consumer project back to flat                                                         |
-| `flowkit create/remove/rename:workspace`   | Add/remove/rename a workspace (multi-workspace consumer mode only)                                               |
-| `flowkit help`                             | Full help                                                                                                        |
+| Command                                    | Description                                                                                                          |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| `flowkit nw:<name>`                        | Create workspace (repo mode only)                                                                                    |
+| `flowkit rw:<name>`                        | Remove workspace (repo mode only)                                                                                    |
+| `flowkit watch:flows`                      | Watch workspace for file changes (repo mode only)                                                                    |
+| `flowkit status`                           | Workspace health snapshot                                                                                            |
+| `flowkit export`                           | Export as standalone HTML viewer (guided flow; always ships full codebase)                                           |
+| `flowkit handoff`                          | Build developer handoff zip                                                                                          |
+| `flowkit check` / `flowkit check:<domain>` | Validate authored content — pages/config/components/db/flowStories (`check:flowStories` runs automatically on build) |
+| `flowkit sessions:brief`                   | Agent analytics brief from committed sessions                                                                        |
+| `flowkit convert:multi`                    | Convert a flat consumer project to multi-workspace mode                                                              |
+| `flowkit convert:flat`                     | Collapse a multi-workspace consumer project back to flat                                                             |
+| `flowkit create/remove/rename:workspace`   | Add/remove/rename a workspace (multi-workspace consumer mode only)                                                   |
+| `flowkit help`                             | Full help                                                                                                            |
 
 Full reference: [docs/CLI.md](docs/CLI.md)
 
@@ -247,7 +247,8 @@ src/
     feedback/                  # comment wall, cloud push via JSONBin, export/import
     figma-export/              # FigmaExportView — multi-screen canvas grid (Cmd+Alt+Shift+P)
     flow-debugger/             # db inspector, flow state viewer
-    flow-library/              # chapter/page hierarchy, flow canvas, compileFlowplan
+    flow-library/              # chapter/page hierarchy, flow canvas
+    flowStory/                 # compileFlowStory, playback context, settings, element-check diagnostic
     flowTracer/                # session recorder, IndexedDB storage, FlowLens bridge
       context/                 # SessionRecorderProvider — state machine, event hooks
       components/              # SessionCard, SessionInspect, CountdownOverlay, overlays, settings
@@ -266,7 +267,7 @@ src/
       mobile/                  # MobileCanvas, BottomSheet — touch-first layout
       overlays/                # ActionCenter, Settings, GoTo, Help
       ui/                      # design system: Button, Input, Modal, Tooltip, …
-    contexts/                  # Dashboard, Theme, FlowNav, FlowPlayback, FlowLens
+    contexts/                  # Dashboard, Theme, FlowNav, Navigation, Simulator, FlowLensMode, DevMode
                                # ActiveWorkspaceContext — runtime workspace switching
     utils/
       workspaceModules.ts      # glob-based db/simulator/config loaders (runtime workspace switch)

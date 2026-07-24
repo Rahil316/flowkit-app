@@ -54,7 +54,7 @@ The platform's core vocabulary has changed. A **Flow** (a grouping of screens) i
   | `list:flows`    | `list:chapters`   |
   | `promote:flow`  | `promote:chapter` |
 
-  Flowplan-domain verbs are **unaffected**: `create:flowplan`, `remove:flowplan`, `add:step`, `remove:step`, `list:steps`, `flowplan:info`, `check:flowplans`, `plan:ls`.
+  Flowplan-domain verbs were unaffected **by this phase** of the rename: `create:flowplan`, `remove:flowplan`, `add:step`, `remove:step`, `list:steps`, `flowplan:info`, `check:flowplans`, `plan:ls` all kept their pre-rename names at this point. They were renamed in a later pass — see [Unreleased] further down for `create:flowStory`/`remove:flowStory`/`flowStory:info`/`check:flowStories`.
 
 - **Check domains and rule ids:**
 
@@ -105,7 +105,7 @@ The following were deliberately excluded, as brand/product names or as a separat
 
 - `FlowMaster`, `FlowLens`, `Flowkit`/`flowkit` (package name)
 - `flowBook`, `flowStories` (directory names)
-- The entire **Flowplan** domain: `FlowplanDef`, `FlowplanRef`, `FlowplanStepEntry`, `Fork`, `defineFlow`, and all `flowplan/*` check rule ids and CLI verbs — a flowplan (the authored playback script) is a distinct concept from a chapter (the grouping of pages), and is not renamed
+- The entire **Flowplan** domain **as of this phase**: `FlowplanDef`, `FlowplanRef`, `FlowplanStepEntry`, `Fork`, `defineFlow`, and all `flowplan/*` check rule ids and CLI verbs were left alone here — a flowplan (the authored playback script) is a distinct concept from a chapter (the grouping of pages). This concept **was** renamed to FlowStory in a later pass; see the dedicated section below.
 - `FlowSummary`, `FlowLibraryData`, `useFlowLibrary`, and the "Flow Library" UI panel name
 - `useFlowEngine` (FlowMaster's internal engine hook)
 - The "Screens tab" UI panel label (`ScreensHierarchy.tsx`, `KitSideExplorer.tsx`) — still literally labeled "Screens" in the live UI
@@ -131,3 +131,147 @@ Unchanged in format — still `${first}-${second}` joined by a hyphen (e.g. `onb
 - Existing workspaces authored against the pre-rename directory names (`flows/`, `flowplans/`) or the pre-rename `screenId`/bare-id scheme are **not automatically migrated**. They continue to fail `tsc`/`check:*` until manually updated to the new `flowBook/`/`flowStories/` directories, `chapters`/`pageOrder` config fields, and composite page ids in flowplan steps.
 - Any hand-authored code importing `useFlowNav` from `@flowkit-shared/utils` must switch to `useNav`.
 - Any code destructuring `.isFlow`/`.flowState` from `PageProps` (the props injected into a page by FlowMaster) must switch to `.isChapter`/`.state`.
+
+---
+
+## [Unreleased] (continued) — Flowplan → FlowStory rename
+
+A second, follow-up rename pass. The Chapter/Page rename above deliberately left the Flowplan
+domain untouched, on the grounds that a flowplan (the authored playback script) is a distinct
+concept from a chapter. This pass renames that concept too, to **FlowStory**, for full vocabulary
+consistency across the platform.
+
+### Changed
+
+- **CLI verbs:**
+
+  | Old               | New                 |
+  | ------------------ | -------------------- |
+  | `create:flowplan` | `create:flowStory`  |
+  | `remove:flowplan` | `remove:flowStory`  |
+  | `flowplan:info`   | `flowStory:info`    |
+  | `check:flowplans` | `check:flowStories` |
+
+  `plan:ls`/`fp:ls`, `add:step`, `remove:step`, and `list:steps` keep their existing verb names
+  (only the flag they take changed — see below).
+
+- **CLI flags:**
+
+  | Command                                                | Old flag                   | New flag                    |
+  | -------------------------------------------------------- | ---------------------------- | ------------------------------ |
+  | `add:step`                                             | `--flowplan:` / `--screen:` | `--flowStory:` / `--page:`  |
+  | `remove:step`, `list:steps`                            | `--flowplan:`              | `--flowStory:`              |
+  | `create:page`, `remove:page`, `rename:page`, `page:info` | `--flow:`                  | `--chapter:`                |
+  | `list:pages`                                           | `--flow:`                  | `--chapter:`                |
+  | `promote:chapter`                                      | `--flowplan:` (path)       | `--flowStory:` (path)       |
+
+  `move:page` is a deliberate exception — it keeps `--from-flow:`/`--to-flow:` rather than
+  `--from-chapter:`/`--to-chapter:`; this was never migrated and is not a bug.
+
+- **`--page:` on `add:step` still takes a bare page id**, not the composite `chapter-page` form —
+  the CLI resolves which chapter the bare id belongs to and writes the composite id into the step
+  for you, same construction behavior as before, just under the renamed flag.
+
+- **Check rule ids:** `flowplan/empty-workspace` → `flowStory/empty-workspace`,
+  `flowplan/unreadable` → `flowStory/unreadable`, `flowplan/id-filename-mismatch` →
+  `flowStory/id-filename-mismatch`, `flowplan/empty-steps` → `flowStory/empty-steps`,
+  `flowplan/invalid-page` → `flowStory/invalid-page`, `flowplan/weak-step` →
+  `flowStory/weak-step`. Check domain name: `flowplans` → `flowStories` in
+  `scripts/checks/index.js`'s `DOMAINS` table.
+
+- **Core types:** `FlowplanDef` → `FlowStoryDef`, `FlowplanRef` → `FlowStoryRef`,
+  `FlowplanStepEntry` → `FlowStoryStepEntry`, `isFlowplanRef()` → `isFlowStoryRef()`,
+  `CompiledFlowplan` → `CompiledFlowStory`, `FlowplanCompileError` → `FlowStoryCompileError`.
+  `FlowplanGate` → `FlowStoryGate`. `FlowPlaybackContext`'s `activeFlowplan`/`setActiveFlowplan` →
+  `activeFlowStory`/`setActiveFlowStory`. The compiled step's internal `__flowplan` field →
+  `__flowStory`.
+
+- **Recorded event types** (`EventType` union, `src/features/flowTracer/types.ts`): the
+  flow-lifecycle and screen-visit event names were renamed to match — `flow.entered` →
+  `chapter.entered`, `flow.completed` → `chapter.completed`, `flow.exited-early` →
+  `chapter.exited-early`, `flow.blocked` → `chapter.blocked`, `flow.transition` →
+  `chapter.transition`, `screen.visited` → `page.visited`, `screen.dwell-end` → `page.dwell-end`,
+  `screen.blocked` → `page.blocked`, `state.flow-set` → `state.chapter-set`,
+  `sidebar.flow-expanded` → `sidebar.chapter-expanded`. Every producer (`FlowEngine.ts`,
+  `DashboardContext.tsx`) and consumer (FlowLens's `analyticsEngine.ts`, `replayState.ts`,
+  `sessionMetrics.ts`, and every FlowLens view component) was updated to match. No recorded
+  session data exists on disk in this repo, so there was no migration/back-compat concern for
+  already-captured sessions.
+
+- **Renamed files:**
+
+  | Old                                                        | New                                                          |
+  | ------------------------------------------------------------ | ---------------------------------------------------------------- |
+  | `scripts/authoring/flowplans.js`                           | `scripts/authoring/flowStories.js`                          |
+  | `scripts/checks/flowplans.js`                               | `scripts/checks/flowStories.js`                             |
+  | `src/features/flow-library/compileFlowplan.ts`              | `src/features/flowStory/compileFlowStory.ts` (also moved)   |
+  | `src/features/flowStory/FlowplanSettingsContext.tsx`        | `src/features/flowStory/FlowStorySettingsContext.tsx`       |
+  | `src/features/flowStory/useFlowplanElementCheck.ts`         | `src/features/flowStory/useFlowStoryElementCheck.ts`        |
+  | `scripts/tests/flowplan-steps-cli.test.js`                  | `scripts/tests/flowStory-steps-cli.test.js`                 |
+
+- **`readFlowplanModule`** (`scripts/checks/config.js`) → `readFlowStoryModule`;
+  **`checkFlowplans`** → `checkFlowStories`; **`listFlowplanFiles`** → `listFlowStoryFiles`;
+  **`cmdCreateFlowplan`/`cmdRemoveFlowplan`/`cmdFlowplanInfo`** → their `FlowStory`-suffixed
+  equivalents.
+
+- Every `flowplan`/`Flowplan` prose mention across `src/` and `scripts/` (comments, error
+  messages, log output, `help.js`'s command listing) updated to `flowStory`/`FlowStory`.
+
+### Fixed
+
+- **`scripts/checks/index.js` and `scripts/platform/router.js` both imported a nonexistent
+  `../authoring/flowStories.js` / `./flowStories.js`** at one point mid-rename (the real files
+  were still named `flowplans.js`), which broke the entire CLI dispatcher and the `check`
+  command — any `flowkit <command>` invocation, and every `npm run test:workspace` CLI
+  integration test, threw `ERR_MODULE_NOT_FOUND` before any command logic ran. Fixed by actually
+  renaming the underlying files to match, rather than reverting the importer.
+- **`create:page`'s "Next:" hint, `chapters.js`'s post-create hint, `checks/config.js`'s
+  `fix`/`clifix` suggestions, `scripts/helpers/scaffold.js`'s generated `lib/docs/overview.md`
+  template, and both published scaffolder packages' generated `AGENTS.md` content** all still
+  printed the pre-rename `--flow:`/`--screen:` flags after the CLI itself had already moved to
+  `--chapter:`/`--page:` — meaning copy-pasting the CLI's own printed guidance would fail. All
+  corrected to match the actual current flags.
+- **`cmdRemovePage`/`cmdRenamePage`'s dangling-flowStory-reference warning was silently dead
+  code.** It searched flowStory files for a bare page id, but `add:step` writes the composite
+  `chapter-page` form into steps — so the search could never match, and removing/renaming a page
+  that a flowStory step genuinely referenced produced no warning at all. Fixed by having the
+  search build the composite id before scanning.
+- **`page:info`/`rename:page` assumed an exact `${Pascal(pageId)}Page.ext` filename** and failed
+  outright on any page whose file doesn't follow that convention (including this repo's own
+  scaffold-generated demo pages, e.g. `WelcomePage.tsx` for page id `welcome-screen`). Both
+  commands now locate the real file by scanning the folder (reusing the same `pickPageFile()`
+  tie-break already used for ambiguous folders) instead of assuming a filename. `rename:page`
+  only renames the file/patches the function name when the existing file *does* match the CLI's
+  own generated pattern exactly; otherwise it renames the folder/registration (what identity
+  actually depends on) and prints a note that the file was left as-is, rather than corrupting an
+  unrelated function name.
+- **`scripts/tests/flowStory-steps-cli.test.js` was referenced by name in `package.json`'s
+  `test:workspace` script while the file on disk was still named `flowplan-steps-cli.test.js`.**
+  Node's `--test` runner silently drops a nonexistent path from a multi-file invocation instead
+  of failing the whole run, so this didn't surface as an error — Suite F (the `add:step`/
+  `remove:step` fork-guard regression tests) was **silently not executing at all**, with a clean
+  exit code and no missing-test warning. Fixed by renaming the file to match; this also
+  surfaced two real, previously-masked failures in that suite (see next item).
+- **Two tests in the fork-guard suite still used the pre-rename `--screen:` flag** on `add:step`,
+  which by then required `--page:` — both were failing (masked by the bug above) once the suite
+  actually started running again. Fixed to use `--page:`.
+- **`WorkspaceHierarchyNode.kind`'s `'module'` value was dropped** (not renamed) as part of an
+  earlier pass in this same rename effort; confirmed no code anywhere still constructs or checks
+  for it, so this is a deliberate removal, not a regression.
+
+### Known, deliberately unresolved inconsistencies
+
+- **`FlowStoryDef.homeScreen`** was never renamed to `homePage`, even though `startScreen` →
+  `startPage` was. It's used consistently as `homeScreen` in the type, the compiler, and real
+  authored content (`workspaces/game-zone/FlowStories/intro-flow.ts`) — not a bug, just an
+  inconsistency nobody has addressed yet.
+- **Some checked-in, hand-authored flowStory content** (`workspaces/game-zone/FlowStories/*.ts`)
+  uses **bare** `pageId` values instead of the composite `chapter-page` form the runtime and
+  `check:flowStories` both require. This fails `check:flowStories` (13 findings against that one
+  workspace) and silently stalls flowStory playback at runtime, since `FlowMaster.tsx` matches
+  steps by exact composite-id equality. Flagged, not fixed — fixing it means editing checked-in
+  demo content, which was out of scope for this rename pass.
+- **`scripts/authoring/pages.js`'s `move:page`** keeps `--from-flow:`/`--to-flow:` rather than
+  `--from-chapter:`/`--to-chapter:`, unlike every sibling page command. Documented as intentional
+  (not migrated), not "fixed" to match the others, to avoid an unreviewed behavior change to a
+  command not otherwise touched by this pass.

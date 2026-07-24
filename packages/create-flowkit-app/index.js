@@ -393,7 +393,7 @@ fuller written reference.
 \`\`\`
 npx flowkit status                              # flow/page/flowStory/session health snapshot
 npx flowkit check                               # validate all authored content, exits 1 on error
-npx flowkit create:page --flow:<id> --name:<page-id>
+npx flowkit create:page --chapter:<id> --name:<page-id>
 npx flowkit add:step --flowStory:<id> --page:<page-id> [--on:<element-id>]
 npx flowkit sessions:ls                         # list recorded sessions
 npx flowkit export                              # build standalone HTML viewer → dist/
@@ -428,7 +428,7 @@ a common task — check here before improvising.
   for runtime-computed values.
 - **ALWAYS** route structural changes (new page, new flowStory step, workspace conversion)
   through the \`flowkit\` CLI rather than hand-editing generated wiring.
-- **TO** add a page **→** \`flowkit create:page --flow:<id> --name:<page-id>\`, then
+- **TO** add a page **→** \`flowkit create:page --chapter:<id> --name:<page-id>\`, then
   \`flowkit add:step --flowStory:<id> --page:<page-id>\` to wire it into playback.
 - **TO** wire a tap interaction **→** give the element a plain DOM \`id\` and add a matching
   \`{ pageId, on: '<id>' }\` step in the flowStory (no \`onClick\` needed) — or, for

@@ -1,4 +1,4 @@
-import { type FlowStoryDef, type FlowStep, type Fork, isFlowStoryRef } from '@flowkit/types/index'
+import { type FlowStep, type FlowStoryDef, type Fork, isFlowStoryRef } from '@flowkit/types/index'
 import { useFlowPlaybackOptional } from '@flowkit-features/flowStory/FlowPlaybackContext'
 import Button from '@flowkit-shared/components/ui/Button'
 import SharedEmptyState from '@flowkit-shared/components/ui/EmptyState'

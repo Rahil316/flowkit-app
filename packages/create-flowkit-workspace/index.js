@@ -366,8 +366,8 @@ fuller written reference.
 \`\`\`
 npx flowkit status                                          # health snapshot
 npx flowkit check                                           # validate authored content, exits 1 on error
-npx flowkit create:page --workspace:<ws> --flow:<id> --name:<page-id>
-npx flowkit add:step --workspace:<ws> --flowStory:<id> --screen:<page-id> [--on:<element-id>]
+npx flowkit create:page --workspace:<ws> --chapter:<id> --name:<page-id>
+npx flowkit add:step --workspace:<ws> --flowStory:<id> --page:<page-id> [--on:<element-id>]
 npx flowkit sessions:ls                                     # list recorded sessions
 npx flowkit export                                          # build standalone HTML viewer → dist/
 \`\`\`
@@ -403,8 +403,8 @@ a common task — check here before improvising.
   the \`flowkit\` CLI rather than hand-editing generated wiring.
 - **ALWAYS** pass \`--workspace:<name>\` explicitly on authoring commands once more than one
   workspace exists — don't assume the default target.
-- **TO** add a page **→** \`flowkit create:page --workspace:<ws> --flow:<id> --name:<page-id>\`,
-  then \`flowkit add:step --workspace:<ws> --flowStory:<id> --screen:<page-id>\` to wire it
+- **TO** add a page **→** \`flowkit create:page --workspace:<ws> --chapter:<id> --name:<page-id>\`,
+  then \`flowkit add:step --workspace:<ws> --flowStory:<id> --page:<page-id>\` to wire it
   into playback.
 - **TO** wire a tap interaction **→** give the element a plain DOM \`id\` and add a matching
   \`{ pageId, on: '<id>' }\` step in that workspace's flowStory (no \`onClick\` needed) — or,

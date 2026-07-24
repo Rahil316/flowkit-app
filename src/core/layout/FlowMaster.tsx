@@ -1,7 +1,7 @@
 import type { ChapterConfig, Hotspot, PageProps } from '@flowkit/types/index'
 import type { CompiledFlowStory } from '@flowkit-features/flow-library'
-import { useFlowStorySettings } from '@flowkit-features/flowStory/FlowStorySettingsContext'
 import { useFlowPlaybackOptional } from '@flowkit-features/flowStory/FlowPlaybackContext'
+import { useFlowStorySettings } from '@flowkit-features/flowStory/FlowStorySettingsContext'
 import { useFlowStoryElementCheck } from '@flowkit-features/flowStory/useFlowStoryElementCheck'
 import { useSessionRecorderOptional } from '@flowkit-features/flowTracer/context'
 import PanelErrorBoundary from '@flowkit-shared/components/errors/PanelErrorBoundary'

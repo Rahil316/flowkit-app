@@ -1,7 +1,7 @@
 import type {
   ChapterConfig,
-  FlowStoryDef,
   FlowStep,
+  FlowStoryDef,
   Fork,
   InteractionRule,
   SimulatorControl,

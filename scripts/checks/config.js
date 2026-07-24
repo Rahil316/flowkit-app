@@ -134,7 +134,7 @@ export async function checkConfig(wsDir, report) {
         severity: 'warning',
         file: WORKSPACE_CONFIG_FILENAME,
         message: `Chapter '${chapterId}' has no pages in pageOrder.`,
-        fix: `flowkit create:page --flow:${chapterId} --name:<id>`,
+        fix: `flowkit create:page --chapter:${chapterId} --name:<id>`,
       })
       continue
     }
@@ -153,7 +153,7 @@ export async function checkConfig(wsDir, report) {
           file: WORKSPACE_CONFIG_FILENAME,
           message: `pageOrder.${chapterId} lists '${pageId}', which has no matching directory.`,
           fix: `Expected: ${FLOW_BOOK_DIRNAME}/${chapterId}/.../${pageId}/`,
-          clifix: `flowkit create:page --flow:${chapterId} --name:${pageId}`,
+          clifix: `flowkit create:page --chapter:${chapterId} --name:${pageId}`,
         })
       }
     }

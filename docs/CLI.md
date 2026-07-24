@@ -1,6 +1,6 @@
 # flowkit CLI
 
-Command-line interface for managing workspaces, chapters, pages, FlowPlans, sessions, and workspace data.
+Command-line interface for managing workspaces, chapters, pages, FlowStories, sessions, and workspace data.
 
 **This CLI runs in three modes**, and most of this doc's examples use repo-mode paths (`workspaces/<ws>/...`). Where a command behaves differently or isn't available in a mode, it's called out explicitly.
 
@@ -117,13 +117,13 @@ workspaces/<name>/lib/flowLens/       ← committed session library + studies.js
 
 **Optional flags:**
 
-| Flag                  | Description                                                                         |
-| --------------------- | ----------------------------------------------------------------------------------- |
-| `--kit:apple`         | iOS HIG style — system blue, SF Pro, soft surfaces, generous radii                  |
-| `--kit:material`      | Material Design 3 — purple brand, Roboto, tonal surfaces                            |
-| `--kit:neo-brutalism` | Sharp edges, black borders, hard offset shadows                                     |
-| `--kit:none`          | No kit — base structural styles only (default)                                      |
-| `--lang:js`           | Scaffold screen files as `.jsx` / flowplan files as `.js` instead of `.tsx` / `.ts` |
+| Flag                  | Description                                                                          |
+| --------------------- | ------------------------------------------------------------------------------------ |
+| `--kit:apple`         | iOS HIG style — system blue, SF Pro, soft surfaces, generous radii                   |
+| `--kit:material`      | Material Design 3 — purple brand, Roboto, tonal surfaces                             |
+| `--kit:neo-brutalism` | Sharp edges, black borders, hard offset shadows                                      |
+| `--kit:none`          | No kit — base structural styles only (default)                                       |
+| `--lang:js`           | Scaffold screen files as `.jsx` / flowStory files as `.js` instead of `.tsx` / `.ts` |
 
 Kits are applied via the `@flowkit-kit` CSS alias — no files are copied into the workspace. The selected kit is stored in `src/workspaces.ts` and applied as a `data-kit` attribute on the preview canvas at runtime.
 
@@ -141,7 +141,7 @@ export default defineConfig({
   workspace: { name: 'MyApp', description: 'What this prototype is.' }, // optional
 
   // Page loaded by default — cold load, device home button, reset-to-first —
-  // when no flowplan is active. Optional; falls back to the first declared page when unset.
+  // when no flowStory is active. Optional; falls back to the first declared page when unset.
   startPage: 'welcome-screen',
 
   // Default device shell/mockup shown on load. Must match a DevicePreset.label
@@ -159,7 +159,7 @@ export default defineConfig({
 
   // Explicit page ordering within each chapter for the Screens tab sidebar.
   // Unlisted pages are appended after declared ones, alphabetically.
-  // NOTE: unlike flowplan step `pageId`s (which use the composite
+  // NOTE: unlike flowStory step `pageId`s (which use the composite
   // `${flowId}-${pageId}` form), pageOrder's arrays stay BARE page ids —
   // this map is already chapter-scoped by its own outer key, so no prefix is
   // needed to avoid collisions here. See Screen identity below.
@@ -184,7 +184,7 @@ export default defineConfig({
 
 > **"Flat-layout" here is unrelated to flat _mode_.** `chapters`/`pageOrder` vs. `projects` describes whether a single workspace has a `projects/` subdivision layer inside it — a repo-mode-and-consumer-mode-agnostic authoring choice. It has nothing to do with flat mode (one implicit workspace, no `workspaces/` dir) vs. multi-workspace mode (sibling workspace folders) described elsewhere in this doc. Both `flat-layout` and `nested-layout` workspaces exist identically in repo mode, flat mode, and multi-workspace mode.
 
-Per-flowplan playback can override the home-button target for the duration of that flow via `homeScreen` — see [FlowPlan anatomy](#flowplan-anatomy) below.
+Per-flowStory playback can override the home-button target for the duration of that flow via `homeScreen` — see [FlowStory anatomy](#flowstory-anatomy) below.
 
 Workspace switching happens in the browser UI — open `http://localhost:5173` and select a workspace. Your selection is saved automatically in `localStorage`.
 
@@ -224,7 +224,7 @@ flowkit status:<name>
 Prints a compact health report for the active workspace:
 
 - Chapter count + total page count (counts page files under `flowBook/<flow>/`, at any nesting depth; hidden `_`-prefixed items are counted, non-existent `__`-prefixed items are not — see [Screen visibility](#screen-visibility-hidden-vs-non-existent) below)
-- FlowPlan count (from `flowStories/*.ts`)
+- FlowStory count (from `flowStories/*.ts`)
 - Session library: count + whether FlowLens module is present
 - Feedback: committed comment count (from `.flowkit-feedback.json`)
 - Agent: agent type + spec version (from `.agent/.agent-meta.json`)
@@ -295,15 +295,15 @@ Multi-workspace mode only. Renames the folder and updates `flowkit.workspaces` i
 
 ---
 
-## FlowPlans
+## FlowStories
 
-FlowPlans are TypeScript files that define scripted journeys with conditional forks, db patches, and action notes. They are compiled at runtime by `compileFlowplan.ts`.
+FlowStories are TypeScript files that define scripted journeys with conditional forks, db patches, and action notes. They are compiled at runtime by `compileFlowStory.ts`.
 
-**Storage location:** `workspaces/<ws>/flowStories/<Name>.ts` (repo mode) or `flowStories/<Name>.ts` at the workspace root (consumer mode — flat: project root; multi-workspace: inside the workspace's own folder). (Directory renamed from `flowplans/` — the CLI verbs `check:flowplans`/`plan:ls`/`fp:ls` keep their existing spelling regardless.)
+**Storage location:** `workspaces/<ws>/flowStories/<Name>.ts` (repo mode) or `flowStories/<Name>.ts` at the workspace root (consumer mode — flat: project root; multi-workspace: inside the workspace's own folder). (Directory renamed from `flowplans/` — the `plan:ls`/`fp:ls` verbs keep their existing spelling, but the check domain was itself renamed from `check:flowplans` to `check:flowStories`.)
 
-### FlowPlan anatomy
+### FlowStory anatomy
 
-A FlowPlan is authored with `defineFlow()` — imported from `@flowkit-core/config` in repo mode, or from `'flowkit'` in consumer mode:
+A FlowStory is authored with `defineFlow()` — imported from `@flowkit-core/config` in repo mode, or from `'flowkit'` in consumer mode:
 
 ```typescript
 // repo mode
@@ -387,14 +387,14 @@ export default defineFlow({
 
 **Plan composition:** `{ ref: "plan-id" }` inlines another plan's steps at that position. The referenced plan's screen ids are namespaced as `plan-id::screen-id` to avoid collisions.
 
-### `plan:ls` / `fp:ls` — List flowplans
+### `plan:ls` / `fp:ls` — List flowStories
 
 ```bash
 flowkit plan:ls
 flowkit fp:ls
 ```
 
-Lists all flowplans in the workspace. Shows: name, file path.
+Lists all flowStories in the workspace. Shows: name, file path.
 
 ---
 
@@ -405,17 +405,17 @@ flowkit check
 flowkit check:<domain>
 ```
 
-Domain-specific linter for authored content — validates flowkit's own structural conventions (page export shape, flowplan step references, workspace config consistency, component registry/barrel exports, mock db exports) that generic tools like `tsc`/`eslint` can't see. Works in every mode (repo, flat, multi-workspace).
+Domain-specific linter for authored content — validates flowkit's own structural conventions (page export shape, flowStory step references, workspace config consistency, component registry/barrel exports, mock db exports) that generic tools like `tsc`/`eslint` can't see. Works in every mode (repo, flat, multi-workspace).
 
 `flowkit check` with no domain runs all 5 domains against one workspace and prints one combined report. `flowkit check:<domain>` runs just that domain:
 
-| Domain     | Command            | Checks                                                                                      |
-| ---------- | ------------------ | ------------------------------------------------------------------------------------------- |
-| Pages      | `check:pages`      | Default export shape, `pageMeta` presence/shape, id/directory match, ambiguous page folders |
-| Config     | `check:config`     | `workspace.ts`'s `chapters[]`/`pageOrder` consistency against `flowBook/` on disk           |
-| Components | `check:components` | `.flowkit/components.json` registry vs. files on disk, barrel export consistency            |
-| DB         | `check:db`         | `lib/data/db.ts`/`db.js` has at least one export                                            |
-| FlowPlans  | `check:flowplans`  | Parseable, `id` matches filename, non-empty `steps[]`, step `pageId`s exist, step guidance  |
+| Domain      | Command             | Checks                                                                                      |
+| ----------- | ------------------- | ------------------------------------------------------------------------------------------- |
+| Pages       | `check:pages`       | Default export shape, `pageMeta` presence/shape, id/directory match, ambiguous page folders |
+| Config      | `check:config`      | `workspace.ts`'s `chapters[]`/`pageOrder` consistency against `flowBook/` on disk           |
+| Components  | `check:components`  | `.flowkit/components.json` registry vs. files on disk, barrel export consistency            |
+| DB          | `check:db`          | `lib/data/db.ts`/`db.js` has at least one export                                            |
+| FlowStories | `check:flowStories` | Parseable, `id` matches filename, non-empty `steps[]`, step `pageId`s exist, step guidance  |
 
 Target a non-active workspace: `flowkit check:pages:<workspace-name>` for a single domain (workspace as the second colon segment, same convention as `sessions:ls:<ws>`), or `flowkit check --workspace:<workspace-name>` for the all-domains form.
 
@@ -424,9 +424,9 @@ Flags:
 - `--json` — machine-readable output (`{ workspace, errors, warnings, results }`) instead of the human-readable report
 - `--workspace:<name>` — target a non-active workspace when running all domains (`check` with no domain)
 
-Exit code 0 if clean or only warnings, 1 if any error-severity finding. `check:flowplans` is wired into `npm run prebuild` — a broken or missing flowplan blocks the production build (including an empty-but-existing `flowStories/` directory, which is treated as suspicious rather than silently passing). (`check:flowplans` keeps its existing name even though the directory it validates was renamed from `flowplans/` to `flowStories/` — intentional, not an oversight.)
+Exit code 0 if clean or only warnings, 1 if any error-severity finding. `check:flowStories` is wired into `npm run prebuild` — a broken or missing flowStory blocks the production build (including an empty-but-existing `flowStories/` directory, which is treated as suspicious rather than silently passing). (`check:flowplans` was itself renamed to `check:flowStories` alongside the directory rename from `flowplans/` to `flowStories/`.)
 
-Findings include a `ruleId` (e.g. `page/missing-meta`, `flowplan/invalid-page`), `severity` (`error`/`warning`), the offending `file`, a `message`, and where possible a `fix` (manual instructions) or `clifix` (an exact CLI command to run).
+Findings include a `ruleId` (e.g. `page/missing-meta`, `flowStory/invalid-page`), `severity` (`error`/`warning`), the offending `file`, a `message`, and where possible a `fix` (manual instructions) or `clifix` (an exact CLI command to run).
 
 **`page/ambiguous-folder` (warning, non-blocking):** raised by `check:pages` when a page folder contains 2+ unprefixed candidate `.tsx`/`.jsx` files. The alphabetically-first file is deterministically picked as the real page; the finding names the winner and suggests `_`-prefixing, deleting, or renaming the other file(s) to remove the ambiguity. Never fails the build.
 
@@ -434,7 +434,7 @@ Findings include a `ruleId` (e.g. `page/missing-meta`, `flowplan/invalid-page`),
 
 ## Authoring
 
-CRUD commands for editing the content inside a workspace — chapters, pages, flowplan steps, and shared components. Every command accepts `--workspace:<name>` (optional; defaults to the active workspace) and exits 1 with a red `✗` message on any validation failure. IDs must be kebab-case (`^[a-z][a-z0-9-]*$`) unless noted otherwise.
+CRUD commands for editing the content inside a workspace — chapters, pages, flowStory steps, and shared components. Every command accepts `--workspace:<name>` (optional; defaults to the active workspace) and exits 1 with a red `✗` message on any validation failure. IDs must be kebab-case (`^[a-z][a-z0-9-]*$`) unless noted otherwise.
 
 Work identically across all three modes. "Active workspace" (the default when `--workspace` is omitted) resolves differently per mode:
 
@@ -452,7 +452,7 @@ flowkit create:chapter --name:<flow-id>
 
 Creates `flowBook/<flow-id>/` and registers it in `workspace.ts` (`chapters[]` + an empty `pageOrder[flow-id]`). If `--name` is omitted, prompts interactively. Rolls back the created directory if registration fails.
 
-Prints `Next: flowkit create:page --flow:<flow-id> --name:<first-page> --label:"Page Name"` on success.
+Prints `Next: flowkit create:page --chapter:<flow-id> --name:<first-page> --label:"Page Name"` on success.
 
 #### `remove:chapter` — Remove a chapter
 
@@ -488,41 +488,41 @@ flowBook/<flow>/.../<screen>/<File>.tsx
 - A file directly at `flowBook/<File>.tsx` (no folders at all) falls back to chapter id `"misc"`, with the page id taken from the filename minus extension.
 - Page files no longer need to end in a literal `Screen`/`Page` suffix — `create:page` still generates `...Page.tsx` by convention/default, but hand-authored files aren't required to follow it.
 
-The registered, globally-unique page id is a **composite**: `${flowId}-${pageId}`. This makes ids collision-proof across chapters — two different chapters can each have a page folder literally named the same thing without colliding. Flowplan step `pageId` values (and any other cross-chapter/global reference) use this composite form. `workspace.ts`'s `pageOrder` map is the one exception — it stays **bare** (page id only, no chapter prefix), because that map is already chapter-scoped by its own outer key (`pageOrder['onboarding-flow'] = ['welcome-screen', ...]`).
+The registered, globally-unique page id is a **composite**: `${flowId}-${pageId}`. This makes ids collision-proof across chapters — two different chapters can each have a page folder literally named the same thing without colliding. FlowStory step `pageId` values (and any other cross-chapter/global reference) use this composite form. `workspace.ts`'s `pageOrder` map is the one exception — it stays **bare** (page id only, no chapter prefix), because that map is already chapter-scoped by its own outer key (`pageOrder['onboarding-flow'] = ['welcome-screen', ...]`).
 
 **One real page per folder:** if 2+ unprefixed candidate `.tsx`/`.jsx` files exist in the same page folder, the alphabetically-first one is deterministically picked as the real page, and `flowkit check:pages` reports a non-blocking `page/ambiguous-folder` warning naming the winner and suggesting you `_`-prefix, remove, or rename the others. This never fails the build.
 
 #### Screen visibility (hidden vs. non-existent)
 
-A single underscore prefix (`_name`) on a file or folder segment marks it **Hidden**: still fully parsed, compiled, checked, playable, and referenceable by flowplans — just excluded from the default Screens-tab browsing UI. A double underscore prefix (`__name`) marks it **non-existent**: excluded from everything — parsing, checks, flowplan reference resolution, and `flowkit status` counts.
+A single underscore prefix (`_name`) on a file or folder segment marks it **Hidden**: still fully parsed, compiled, checked, playable, and referenceable by flowStories — just excluded from the default Screens-tab browsing UI. A double underscore prefix (`__name`) marks it **non-existent**: excluded from everything — parsing, checks, flowStory reference resolution, and `flowkit status` counts.
 
 Visibility is resolved across the whole path, with parent dominance: if _any_ ancestor segment has a `__` prefix, the entire subtree is non-existent regardless of what's inside it; otherwise, if any ancestor has a single `_`, the whole subtree is hidden.
 
 #### `create:page` — Add a page to a chapter
 
 ```bash
-flowkit create:page --flow:<flow-id> --name:<screen-id> [--label:"Display Label"]
+flowkit create:page --chapter:<flow-id> --name:<screen-id> [--label:"Display Label"]
 ```
 
 Creates `flowBook/<flow-id>/<screen-id>/<PascalName>Page.tsx` from a template and registers it in `workspace.ts` (`pageOrder.<flow-id>[]`, storing the bare page id). The chapter must already exist. `--label` defaults to a Title Case version of the page id if omitted. The CLI always generates the standard 2-level shape (`<flow>/<screen>/`, no cosmetic folders in between) — variable-depth nesting with cosmetic folders is a hand-authoring capability, not something this command produces itself.
 
-Prints `Next: flowkit add:step --flowplan:<flow-id> --screen:<screen-id> --action:"..."` on success.
+Prints `Next: flowkit add:step --flowStory:<flow-id> --page:<screen-id> --action:"..."` on success.
 
 #### `remove:page` — Remove a page
 
 ```bash
-flowkit remove:page --flow:<flow-id> --name:<screen-id>
+flowkit remove:page --chapter:<flow-id> --name:<screen-id>
 ```
 
-Unregisters the page and deletes its directory. If any flowplan still references the page id, prints a warning listing the affected flowplans but does not block the removal or edit them for you. Assumes the CLI's own 2-level shape (`flowBook/<flow>/<screen>/`) — a hand-authored page nested deeper under cosmetic folders isn't located or removed by this command.
+Unregisters the page and deletes its directory. If any flowStory still references the page id, prints a warning listing the affected flowStories but does not block the removal or edit them for you. Assumes the CLI's own 2-level shape (`flowBook/<flow>/<screen>/`) — a hand-authored page nested deeper under cosmetic folders isn't located or removed by this command.
 
 #### `rename:page` — Rename a page
 
 ```bash
-flowkit rename:page --flow:<flow-id> --name:<old-id> --to:<new-id>
+flowkit rename:page --chapter:<flow-id> --name:<old-id> --to:<new-id>
 ```
 
-Renames the directory and the `.tsx` file (including the exported component function name), and updates `pageOrder`. The new id must not already exist anywhere in the workspace. Like `remove:page`, warns about but does not update flowplan references to the old id. The filename patch assumes the CLI's own `...Page.<ext>` naming convention; a page hand-renamed away from that suffix won't be matched and the rename falls through to a "not found" error rather than crashing.
+Renames the directory and the `.tsx` file (including the exported component function name), and updates `pageOrder`. The new id must not already exist anywhere in the workspace. Like `remove:page`, warns about but does not update flowStory references to the old id. The filename patch assumes the CLI's own `...Page.<ext>` naming convention; a page hand-renamed away from that suffix won't be matched and the rename falls through to a "not found" error rather than crashing.
 
 #### `move:page` — Move a page to a different chapter
 
@@ -535,7 +535,7 @@ Moves the page's directory and updates `pageOrder` on both chapters. The destina
 #### `list:pages` — List pages
 
 ```bash
-flowkit list:pages [--flow:<flow-id>]
+flowkit list:pages [--chapter:<flow-id>]
 flowkit list:pages --hidden           # also show `_`-prefixed hidden pages
 flowkit list:pages --all              # show every visibility tier, labeled
 flowkit list:pages --gone             # show ONLY `__`-prefixed non-existent items
@@ -546,43 +546,43 @@ Read-only. Lists pages grouped by chapter, or just the one chapter if `--flow` i
 #### `page:info` — Show page metadata
 
 ```bash
-flowkit page:info --flow:<flow-id> --name:<screen-id>
+flowkit page:info --chapter:<flow-id> --name:<screen-id>
 ```
 
 Read-only. Prints the page's `label`/`desc` (from `pageMeta`) and its import list, read directly from the `.tsx` file.
 
-### FlowPlan steps
+### FlowStory steps
 
-#### `add:step` — Append a step to a flowplan
+#### `add:step` — Append a step to a flowStory
 
 ```bash
-flowkit add:step --flowplan:<flowplan-id> --screen:<screen-id> [--on:<element-id>] [--action:"..."] [--position:<n>]
+flowkit add:step --flowStory:<flowStory-id> --page:<screen-id> [--on:<element-id>] [--action:"..."] [--position:<n>]
 ```
 
-Appends `{ pageId, on?, actionNote? }` to the flowplan's `steps[]`. `screen-id` must already be registered somewhere in the workspace (across any chapter) — on failure, prints a "did you mean" suggestion plus the full list of known pages. `--position` inserts at that 0-based index instead of the end; an unparseable or omitted `--position` appends to the end.
+Appends `{ pageId, on?, actionNote? }` to the flowStory's `steps[]`. `screen-id` must already be registered somewhere in the workspace (across any chapter) — on failure, prints a "did you mean" suggestion plus the full list of known pages. `--position` inserts at that 0-based index instead of the end; an unparseable or omitted `--position` appends to the end.
 
-⚠️ Rewrites the `steps: [...]` block with a non-greedy regex — on a flowplan whose first step array contains a nested `forks[].steps[...]`, this can match the wrong closing bracket. Review the file after running this on a flowplan with forks.
+⚠️ Rewrites the `steps: [...]` block with a non-greedy regex — on a flowStory whose first step array contains a nested `forks[].steps[...]`, this can match the wrong closing bracket. Review the file after running this on a flowStory with forks.
 
 #### `remove:step` — Remove a step by index
 
 ```bash
-flowkit remove:step --flowplan:<flowplan-id> --index:<n>
+flowkit remove:step --flowStory:<flowStory-id> --index:<n>
 ```
 
 Removes the step at the given 0-based index. ⚠️ **`--index` is required in practice but not enforced** — if omitted, the command does not error; it silently removes step **0** instead (via `steps.splice(NaN, 1)`, and `NaN` coerces to `0`) and still prints a "✓ Removed" confirmation naming whatever step actually sat at index 0. Always pass `--index` explicitly and double check with `list:steps` afterward.
 
-#### `list:steps` — List a flowplan's steps
+#### `list:steps` — List a flowStory's steps
 
 ```bash
-flowkit list:steps --flowplan:<flowplan-id>
+flowkit list:steps --flowStory:<flowStory-id>
 ```
 
 Read-only. Prints each step's index, page id, `on`, and `actionNote`.
 
-#### `flowplan:info` — Show flowplan summary
+#### `flowStory:info` — Show flowStory summary
 
 ```bash
-flowkit flowplan:info --name:<flowplan-id>
+flowkit flowStory:info --name:<flowStory-id>
 ```
 
 Read-only. Prints id, name, description, step count, and the first 5 steps.
@@ -645,13 +645,18 @@ flowkit list:exports --barrel:<path/to/index.ts>
 
 Read-only. Lists every `export { ... } from '...'` line in the barrel file.
 
-### `promote:chapter` — Extract a fork into its own flowplan
+### `promote:chapter` — Extract a fork into its own flowStory file
 
 ```bash
-flowkit promote:chapter --flowplan:<path> --fork:"Fork label" [--as:<new-id>]
+flowkit promote:chapter --flowStory:<path> --fork:"Fork label" [--as:<new-id>]
 ```
 
-Finds the fork by an exact match on `label: "Fork label"` **(double-quoted only** — a single-quoted label in the source, like the ones in this doc's own [FlowPlan anatomy](#flowplan-anatomy) example, will not match) and writes its `steps[]` into a brand-new flowplan file. Does **not** edit the source file — it prints the exact `{ ref: "<new-id>" }` snippet to paste in by hand, replacing the fork. `--as` sets the new flowplan's id explicitly; otherwise it's derived by slugifying the fork label.
+Finds the fork by matching `label: "Fork label"` — single, double, and backtick quotes around
+the label in the source are all accepted, so this works regardless of which quote style the
+flowStory file uses — and writes its `steps[]` into a brand-new flowStory file (named
+`${PascalCase(slug)}.ts`, not a kebab-case filename). Does **not** edit the source file — it
+prints the exact `{ ref: "<new-id>" }` snippet to paste in by hand, replacing the fork. `--as`
+sets the new flowStory's id explicitly; otherwise it's derived by slugifying the fork label.
 
 ---
 
@@ -990,7 +995,7 @@ Output: `<name>-handoff-<date>.zip` at the project root.
 
 (Renamed from `@flowkit`/`@core`/`@features`/`@shared`/`@kit` on 2026-07-12; `@flowlens` and `@workspace` unchanged.)
 
-**Consumer mode (flat/multi-workspace):** no `@flowkit*`/`@workspace` aliases — screens and `workspace.ts` import directly from the `'flowkit'` package instead (`import { defineConfig } from 'flowkit'`, `import type { PageProps } from 'flowkit'`). The `flowkit/vite` plugin (`scripts/helpers/vite-plugin.js`) generates equivalent virtual modules (`virtual:flowkit/config|screens|flowplans|workspace`) from `workspace.ts` + filesystem globs, resolved relative to the active workspace folder in multi-workspace mode (the first entry in `flowkit.workspaces` by default) or project root in flat mode.
+**Consumer mode (flat/multi-workspace):** no `@flowkit*`/`@workspace` aliases — screens and `workspace.ts` import directly from the `'flowkit'` package instead (`import { defineConfig } from 'flowkit'`, `import type { PageProps } from 'flowkit'`). The `flowkit/vite` plugin (`scripts/helpers/vite-plugin.js`) generates equivalent virtual modules (`virtual:flowkit/config|pages|flowStories|workspace`) from `workspace.ts` + filesystem globs, resolved relative to the active workspace folder in multi-workspace mode (the first entry in `flowkit.workspaces` by default) or project root in flat mode.
 
 ---
 
@@ -1032,48 +1037,50 @@ Commands grouped by item type. Click the heading to jump to the full section.
 | `remove:workspace [--name:<id>]`     | —     | Remove a workspace (multi-workspace mode only) |
 | `rename:workspace <old> <new>`       | —     | Rename a workspace (multi-workspace mode only) |
 
-### [FlowPlans](#flowplans)
+### [FlowStories](#flowstories)
 
-| Command   | Alias   | Description    |
-| --------- | ------- | -------------- |
-| `plan:ls` | `fp:ls` | List flowplans |
+| Command   | Alias   | Description      |
+| --------- | ------- | ---------------- |
+| `plan:ls` | `fp:ls` | List flowStories |
 
 ### [Check](#check)
 
-| Command            | Description                                |
-| ------------------ | ------------------------------------------ |
-| `check`            | Run all 5 domain checkers, combined report |
-| `check:pages`      | Page export shape / `pageMeta`             |
-| `check:config`     | Workspace config vs. `flowBook/` on disk   |
-| `check:components` | Component registry / barrel exports        |
-| `check:db`         | Mock db exports                            |
-| `check:flowplans`  | FlowPlan structure / step references       |
+| Command             | Description                                |
+| ------------------- | ------------------------------------------ |
+| `check`             | Run all 5 domain checkers, combined report |
+| `check:pages`       | Page export shape / `pageMeta`             |
+| `check:config`      | Workspace config vs. `flowBook/` on disk   |
+| `check:components`  | Component registry / barrel exports        |
+| `check:db`          | Mock db exports                            |
+| `check:flowStories` | FlowStory structure / step references      |
 
 ### [Authoring](#authoring)
 
-| Command            | Alias | Description                               |
-| ------------------ | ----- | ----------------------------------------- |
-| `create:chapter`   | —     | Add a chapter                             |
-| `remove:chapter`   | —     | Remove a chapter (`--force` if non-empty) |
-| `list:chapters`    | —     | List chapters                             |
-| `create:page`      | —     | Add a page to a chapter                   |
-| `remove:page`      | —     | Remove a page                             |
-| `rename:page`      | —     | Rename a page                             |
-| `move:page`        | —     | Move a page to a different chapter        |
-| `list:pages`       | —     | List pages                                |
-| `page:info`        | —     | Show page metadata                        |
-| `add:step`         | —     | Append a step to a flowplan               |
-| `remove:step`      | —     | Remove a step by index                    |
-| `list:steps`       | —     | List a flowplan's steps                   |
-| `flowplan:info`    | —     | Show flowplan summary                     |
-| `create:component` | —     | Add a shared component                    |
-| `remove:component` | —     | Remove a shared component                 |
-| `components:find`  | —     | Look up a component                       |
-| `components:ls`    | —     | List registered components                |
-| `components:scan`  | —     | Sync the registry from disk               |
-| `add:export`       | —     | Add a barrel export                       |
-| `list:exports`     | —     | List a barrel's exports                   |
-| `promote:chapter`  | —     | Extract a fork into its own flowplan      |
+| Command            | Alias | Description                                |
+| ------------------ | ----- | ------------------------------------------ |
+| `create:chapter`   | —     | Add a chapter                              |
+| `remove:chapter`   | —     | Remove a chapter (`--force` if non-empty)  |
+| `list:chapters`    | —     | List chapters                              |
+| `create:page`      | —     | Add a page to a chapter                    |
+| `remove:page`      | —     | Remove a page                              |
+| `rename:page`      | —     | Rename a page                              |
+| `move:page`        | —     | Move a page to a different chapter         |
+| `list:pages`       | —     | List pages                                 |
+| `page:info`        | —     | Show page metadata                         |
+| `create:flowStory` | —     | Add a flowStory                            |
+| `remove:flowStory` | —     | Remove a flowStory (`--force`)             |
+| `add:step`         | —     | Append a step to a flowStory               |
+| `remove:step`      | —     | Remove a step by index                     |
+| `list:steps`       | —     | List a flowStory's steps                   |
+| `flowStory:info`   | —     | Show flowStory summary                     |
+| `create:component` | —     | Add a shared component                     |
+| `remove:component` | —     | Remove a shared component                  |
+| `components:find`  | —     | Look up a component                        |
+| `components:ls`    | —     | List registered components                 |
+| `components:scan`  | —     | Sync the registry from disk                |
+| `add:export`       | —     | Add a barrel export                        |
+| `list:exports`     | —     | List a barrel's exports                    |
+| `promote:chapter`  | —     | Extract a fork into its own flowStory file |
 
 ### [Sessions](#sessions-flowtracer--flowlens)
 

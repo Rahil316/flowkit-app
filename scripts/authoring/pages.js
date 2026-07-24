@@ -126,7 +126,9 @@ export async function cmdCreatePage(_val, args = []) {
 
   if (!flowId || !pageId) {
     console.error(r('✗ --chapter:<chapter-id> and --name:<page-id> are required'))
-    console.error(d('  Example: flowkit create:page --chapter:auth --name:sign-in --label:"Sign In"'))
+    console.error(
+      d('  Example: flowkit create:page --chapter:auth --name:sign-in --label:"Sign In"')
+    )
     process.exit(1)
   }
 

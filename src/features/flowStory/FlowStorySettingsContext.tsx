@@ -67,7 +67,8 @@ export function FlowStorySettingsProvider({ children }: { children: React.ReactN
     readBool(LS_FLOWSTORY_SHOW_WRONG_CLICK, true)
   )
   const [wrongClickColor, setWrongClickColorState] = useState<HighlightColor>(
-    () => (localStorage.getItem(LS_FLOWSTORY_WRONG_CLICK_COLOR) as HighlightColor | null) ?? 'orange'
+    () =>
+      (localStorage.getItem(LS_FLOWSTORY_WRONG_CLICK_COLOR) as HighlightColor | null) ?? 'orange'
   )
   const [hintPosition, setHintPositionState] = useState<HintPosition>(
     () => (localStorage.getItem(LS_FLOWSTORY_HINT_POSITION) as HintPosition | null) ?? 'bottom'
@@ -145,6 +146,7 @@ export function FlowStorySettingsProvider({ children }: { children: React.ReactN
 /** Access flowStory playback settings. Throws outside the provider. */
 export function useFlowStorySettings(): FlowStorySettingsValue {
   const ctx = useContext(FlowStorySettingsContext)
-  if (!ctx) throw new Error('useFlowStorySettings() must be used within a FlowStorySettingsProvider')
+  if (!ctx)
+    throw new Error('useFlowStorySettings() must be used within a FlowStorySettingsProvider')
   return ctx
 }

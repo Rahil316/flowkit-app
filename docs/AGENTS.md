@@ -75,12 +75,10 @@ Rules are written as machine-unambiguous directives, not prose to interpret:
 Example (from a generated `rules.md`):
 
 ```
-NEVER reference flowBook/router.tsx or _playFlow.ts — flat-flowplan workspaces don't have them
+NEVER reference flowBook/router.tsx or _playFlow.ts — flat-flowStory workspaces don't have them
 ALWAYS read/mutate data via const db = useDb()
 TO add a page → create flowBook/<flow>/<screen-slug>/<ScreenName>.tsx, then add a step in flowStories/<flow>.ts
 ```
-
-> ⚠️ **Generator drift as of this writing:** the example above is illustrative — `scripts/platform/agent-spec.js`, which actually generates each workspace's `rules.md`/`.agent/*`/`AGENTS.md`, still emits hardcoded `flows/`/`flowplans/` strings (not yet updated to `flowBook/`/`flowStories/`). See this doc's own note on the agent-spec generator further down.
 
 The few hardest rules are inlined into the memory file so they're loaded before any file read.
 
@@ -100,7 +98,7 @@ The few hardest rules are inlined into the memory file so they're loaded before 
 
 ## Workspace format
 
-Workspaces use the **flat flowplan format**: `flowBook/<flow>/<screen>/<Screen>.tsx` + `flowStories/*.ts` (directories renamed from `flows/`/`flowplans/`; the CLI verbs like `check:flowplans`/`watch:flows` keep their existing names regardless). Page folders may nest to any depth under `flowBook/<flow>/` — see FLOWKIT.md's page-authoring section for the full identity/visibility rules. There is no `_playFlow.ts`, no `router.tsx`, no `projects/` directory (unless you've deliberately opted into the nested-layout `projects` field in `workspace.ts` — see CLI.md).
+Workspaces use the **flowStory format**: `flowBook/<flow>/<screen>/<Screen>.tsx` + `flowStories/*.ts` (directories renamed from `flows/`/`flowplans/`; the CLI verb `watch:flows` keeps its existing name regardless, but `check:flowplans` was itself renamed to `check:flowStories`). Page folders may nest to any depth under `flowBook/<flow>/` — see FLOWKIT.md's page-authoring section for the full identity/visibility rules. There is no `_playFlow.ts`, no `router.tsx`, no `projects/` directory (unless you've deliberately opted into the nested-layout `projects` field in `workspace.ts` — see CLI.md).
 
 ---
 
@@ -108,7 +106,7 @@ Workspaces use the **flat flowplan format**: `flowBook/<flow>/<screen>/<Screen>.
 
 The canonical way to do each common thing. (The INDEX routes here; the reference docs have full detail.)
 
-### Add a page (flat flowplan format)
+### Add a page (flowStory format)
 
 1. Create the page folder and component:
 
@@ -146,15 +144,15 @@ export default function <ScreenName>Page({ db }: PageProps) {
 
 (`pageId` here is the composite `${flowId}-${pageId}` form — see FLOWKIT.md's page-authoring section. `workspace.ts`'s `pageOrder` map, by contrast, stores the bare `<screen-slug>`.)
 
-Or use the CLI, which handles both steps and works in all three modes: `flowkit create:page --flow:<flow-id> --name:<screen-slug>` then `flowkit add:step --flowplan:<flow-id> --screen:<screen-slug> --action:"..."`.
+Or use the CLI, which handles both steps and works in all three modes: `flowkit create:page --chapter:<flow-id> --name:<screen-slug>` then `flowkit add:step --flowStory:<flow-id> --page:<screen-slug> --action:"..."`.
 
-> **To remove a page:** `flowkit remove:page --flow:<flow-id> --name:<screen-slug>` (unregisters it and deletes the directory — safer than a manual `rm -rf`, since it also updates `workspace.ts`).
+> **To remove a page:** `flowkit remove:page --chapter:<flow-id> --name:<screen-slug>` (unregisters it and deletes the directory — safer than a manual `rm -rf`, since it also updates `workspace.ts`).
 
-### Add a flowplan
+### Add a flowStory
 
-Drop a `.ts` file into `flowStories/` using `defineFlow()`, or run `flowkit create:flowplan --name:<flow-id>`. Run `flowkit plan:ls` to confirm it's discovered, `flowkit check:flowplans` to validate. (`check:flowplans` keeps its existing name even though the directory it validates is `flowStories/`, not `flowplans/`.)
+Drop a `.ts` file into `flowStories/` using `defineFlow()`, or run `flowkit create:flowStory --name:<flow-id>`. Run `flowkit plan:ls` to confirm it's discovered, `flowkit check:flowStories` to validate.
 
-### Add a flowplan step with a conditional fork
+### Add a flowStory step with a conditional fork
 
 ```ts
 {
@@ -212,7 +210,7 @@ export default function HomePage({ onAction }: PageProps) {
 }
 ```
 
-Prefer wiring a plain DOM `id` + a matching flowplan step's `on` field over calling `onAction`
+Prefer wiring a plain DOM `id` + a matching flowStory step's `on` field over calling `onAction`
 for simple taps — `onAction`/`onNext`/`onBack` are the escape hatch for programmatic triggers
 (async callbacks, form submits), not the default navigation path.
 
@@ -236,8 +234,8 @@ Seed data lives in `lib/data/db.ts`. → FLOWKIT.md (Mock database)
 
 A page's `db` prop (`PageProps.db`) is **read-only** and `undefined` outside chapter
 playback — there is no `useDashboard()`/`updateDb` hook here. Mutation happens in the
-flowplan, not the page: give the interactive element an `id`, then add a
-`ctx.updateDb()` call in that flowplan's `interactions[id].do`:
+flowStory, not the page: give the interactive element an `id`, then add a
+`ctx.updateDb()` call in that flowStory's `interactions[id].do`:
 
 ```ts
 // flowStories/<flow>.ts
@@ -264,7 +262,7 @@ Tailwind for static values; `style={{}}` only for dynamic/computed values; color
 
 ### Add a reviewer toggle
 
-**Repo mode:** edit `data/simulator.tsx` (a default-exported JSX component):
+**Repo mode:** edit `lib/data/simulator.tsx` (a default-exported JSX component):
 
 ```tsx
 <ControlAccordion label="Auth" defaultOpen>
@@ -272,9 +270,9 @@ Tailwind for static values; `style={{}}` only for dynamic/computed values; color
 </ControlAccordion>
 ```
 
-Components: `ControlAccordion`, `SimToggle`, `SimSegmented`, `SimSelect`, `SimAction`, `SimTextInput`, `SimNumberInput`, `SimControl` — from `@features/simulator/controls`. This JSX-component convention and its barrel are **repo-mode only**; neither is exported from the public `flowkit` package.
+Components: `ControlAccordion`, `SimToggle`, `SimSegmented`, `SimSelect`, `SimAction`, `SimTextInput`, `SimNumberInput`, `SimControl` — from `@flowkit-features/simulator/controls`. This JSX-component convention and its barrel are **repo-mode only**; neither is exported from the public `flowkit` package.
 
-**Consumer mode (flat/multi-workspace):** there is no `simulator.tsx`/JSX API. Add a plain `SimulatorControl` data object to the relevant flowplan's `simulator.controls` array instead:
+**Consumer mode (flat/multi-workspace):** there is no `simulator.tsx`/JSX API. Add a plain `SimulatorControl` data object to the relevant flowStory's `simulator.controls` array instead:
 
 ```ts
 simulator: {
@@ -284,7 +282,7 @@ simulator: {
 }
 ```
 
-`path` is a dot-path into the flow's db copy; `type` is one of `boolean` / `toggle` / `count` / `select` / `text` / `null-toggle`. See `FlowplanDef`/`SimulatorControl` in `src/types/index.ts` for the full field set (`min`/`max`/`options`/`states`). → FLOWKIT.md (Simulator controls authoring)
+`path` is a dot-path into the flow's db copy; `type` is one of `boolean` / `toggle` / `count` / `select` / `text` / `null-toggle`. See `FlowStoryDef`/`SimulatorControl` in `src/types/index.ts` for the full field set (`min`/`max`/`options`/`states`). → FLOWKIT.md (Simulator controls authoring)
 
 ### Work with recorded sessions
 
@@ -308,10 +306,10 @@ flowkit lr                           # alias for lens:report
 ### Check workspace health
 
 ```bash
-flowkit status          # chapters, pages, flowplans, sessions, feedback, agent
-flowkit check           # validate all authored content (pages/config/components/db/flowplans) — exits 1 on error
-flowkit check:<domain>  # validate just one domain — pages/config/components/db/flowplans
-flowkit plan:ls         # list all flowplans with file paths
+flowkit status          # chapters, pages, flowStories, sessions, feedback, agent
+flowkit check           # validate all authored content (pages/config/components/db/flowStories) — exits 1 on error
+flowkit check:<domain>  # validate just one domain — pages/config/components/db/flowStories
+flowkit plan:ls         # list all flowStories with file paths
 ```
 
 All four work in every mode (repo, flat, multi-workspace).
