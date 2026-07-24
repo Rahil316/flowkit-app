@@ -20,7 +20,7 @@ declare module 'virtual:flowkit/pages' {
   /** Eagerly imported pageMeta per screen, keyed by "flow/pageId" */
   export const pageMeta: Record<string, PageMeta | undefined>
   /** Structured screen list for hierarchy building */
-  export const screenList: Array<{
+  export const pageList: Array<{
     key: string
     flow: string
     pageId: string

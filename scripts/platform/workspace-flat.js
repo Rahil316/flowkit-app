@@ -75,8 +75,8 @@ const WORKSPACE_ENTRIES = [
 const VITE_CONFIG_BUILD_BLOCK = `  build: {
     rollupOptions: {
       onwarn(warning, defaultHandler) {
-        // Screens are both statically listed (for eager type-checking) and
-        // dynamically imported (for code-splitting) by the virtual:flowkit/screens
+        // Pages are both statically listed (for eager type-checking) and
+        // dynamically imported (for code-splitting) by the virtual:flowkit/pages
         // module flowkit/vite generates — harmless by design, not a real issue.
         if (warning.code === 'INEFFECTIVE_DYNAMIC_IMPORT') return
         defaultHandler(warning)

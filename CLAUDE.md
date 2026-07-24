@@ -170,7 +170,7 @@ npm run dev
 - `npm test` — vitest run (⚠️ covers `scripts/tests/` only — `src/` logic untested)
 - `npm run test:watch` — vitest watch
 - `npm run test:coverage` — vitest with v8 coverage report
-- `npm run test:workspace` — Node test runner, 7 CLI integration test files (always runs all 7, concurrency 1)
+- `npm run test:workspace` — Node test runner, 8 CLI integration test files (always runs all 8, concurrency 1)
 - `node --test scripts/tests/<file>.test.js` — run a single CLI integration test file directly
 - `npx vitest run <pattern>` — single file/pattern
 
@@ -187,7 +187,7 @@ npm run dev
 - `flowkit watch` — watch workspace for file changes (help shows `watch:flows`; dispatcher matches `watch`) — **repo mode only**
 - `flowkit export [--workspace:<name>] [--profile:<name>]` — standalone HTML export, guided flow in every mode (repo, flat, multi-workspace). Ships the full codebase always — no FlowLens on/off distinction currently (feature-gating deferred). Reads named export profiles from `flowkit.json` if present
 - `flowkit handoff` — developer handoff zip
-- `flowkit sessions:ls/import/export/check/stats/sample/rm/brief/purge` — session management
+- `flowkit sessions:ls/import/export/check/stats/sample/rm/brief/purge/report` — session management; `sessions:study:new/ls/archive/active` manages FlowLens studies
 - `flowkit lens:report` — export FlowLens analytics JSON
 - `flowkit plan:ls` — flowStory discovery (short alias `fp:ls`); validation is `flowkit check:flowStories` (see below)
 - `flowkit check` / `flowkit check:<domain>` — domain-specific linter for authored content (pages/config/components/db/flowStories); `--json` flag; `check:flowStories` is the prebuild gate; works in every mode
@@ -264,7 +264,7 @@ is a future task, not currently implemented.
 - **New feature structure**: every feature needs an `index.ts` barrel (public API) and a `panel.tsx` root component. Add `export * from './<name>/index'` to `src/features/index.ts`. Shared state between features belongs in `@flowkit-shared/contexts`.
 - **New mode structure**: export a single default component from `src/modes/<name>/index.ts`, lazy-import from `PreviewCanvas` behind a `VITE_ENABLE_*` env flag.
 - **Workspace reconciliation**: `reconcileWorkspacesPlugin()` in `vite.config.ts` auto-syncs `src/workspaces.json` with disk on every dev start — removes stale entries and orphaned FlowLens folders. Manual edits to `src/workspaces.json` will be overwritten; use the CLI or browser UI.
-- **Agent spec system**: `scripts/platform/agent-spec.js` + `agent-sync.js` generate `CLAUDE.md`, `Documentation/AGENTS.md`, and `.cursor/rules/flowkit.mdc` from a single spec. Run `flowkit agent:sync` to regenerate all three. See [Documentation/AGENTS.md](Documentation/AGENTS.md).
+- **Agent spec system**: `scripts/platform/agent-spec.js` + `agent-sync.js` generate a single per-workspace `AGENTS.md` (plus `.agent/{INDEX,rules,platform}.md`) from one spec — collapsed from an earlier multi-target design (this root `CLAUDE.md` is hand-maintained, not regenerated). Run `flowkit agent:sync` to regenerate a workspace's `AGENTS.md`/`.agent/*`. See [docs/AGENTS.md](docs/AGENTS.md) for the client-facing agent spec reference.
 
 ---
 

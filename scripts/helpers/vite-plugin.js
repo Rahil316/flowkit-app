@@ -9,7 +9,7 @@
  *
  * Virtual modules produced:
  *   virtual:flowkit/config      — parsed FlowkitConfig object
- *   virtual:flowkit/screens     — lazy screen import map
+ *   virtual:flowkit/pages       — lazy screen import map, pageList, pageMeta
  *   virtual:flowkit/flowStories   — eager flowStory import map
  *   virtual:flowkit/workspace   — db, simulator, tokens, logos, tags, sessions
  */
@@ -190,7 +190,7 @@ export const pageMeta = {
 ${metaLines.join(',\n')}
 }
 
-export const screenList = [
+export const pageList = [
 ${listLines.join(',\n')}
 ]`
 }

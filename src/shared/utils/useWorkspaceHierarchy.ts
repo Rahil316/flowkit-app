@@ -45,7 +45,7 @@ const isSingle = import.meta.env.VITE_SINGLE_WORKSPACE === 'true'
 // ─── Flat mode: virtual module imports ────────────────────────────────────────
 
 import { flowStories as _virtualFlowStories } from 'virtual:flowkit/flowStories'
-import { pageMeta as _virtualPageMeta, screenList as _virtualPageList } from 'virtual:flowkit/pages'
+import { pageList as _virtualPageList,pageMeta as _virtualPageMeta } from 'virtual:flowkit/pages'
 
 // ─── Repo mode: Vite glob maps (string literals only) ────────────────────────
 //
@@ -187,14 +187,14 @@ export interface WorkspaceHierarchyResult {
  *  against real screens/device presets. Shared by both the flat and nested builders. */
 function resolveConfigDefaults(
   config: FlowkitConfig,
-  screensById: Map<string, unknown>
+  pagesById: Map<string, unknown>
 ): {
   startPageId?: string
   defaultDeviceLabel?: string
   defaultOrientation?: 'portrait' | 'landscape'
 } {
   const startPageId =
-    config.startPage && screensById.has(config.startPage) ? config.startPage : undefined
+    config.startPage && pagesById.has(config.startPage) ? config.startPage : undefined
 
   const resolvedDevicePreset = config.defaultDevice
     ? DEVICE_PRESETS.find(p => p.label === config.defaultDevice)
@@ -215,11 +215,11 @@ function resolveConfigDefaults(
 function buildFlatHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
   const config = getWorkspaceConfig(activeWorkspace)
 
-  // 1. Build screens from virtual:flowkit/screens screenList. genScreens() (flat-mode's
+  // 1. Build pages from virtual:flowkit/pages pageList. genScreens() (flat-mode's
   //    vite-plugin.js) already derives flow/pageId via the same shared pagePathIdentity
   //    module used here, and pre-filters '__' (non-existent) entries before they ever reach
   //    this list — so no visibility check needed here, only the id/path construction.
-  const screensById = new Map<string, PageRec>()
+  const pagesById = new Map<string, PageRec>()
   for (const entry of _virtualPageList) {
     const { flow, pageId, loader } = entry
     const meta = _virtualPageMeta[entry.key]
@@ -236,7 +236,7 @@ function buildFlatHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
       chapter: flow,
       project: activeWorkspace,
     }
-    screensById.set(id, {
+    pagesById.set(id, {
       id,
       label,
       project: activeWorkspace,
@@ -253,11 +253,11 @@ function buildFlatHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
     if (def?.id) registry.set(def.id, def)
   }
 
-  const hasHierarchy = screensById.size > 0 || registry.size > 0
+  const hasHierarchy = pagesById.size > 0 || registry.size > 0
 
   // 3. Screen resolver
   const resolve: PageResolver = (pageId: string): ResolvedPage | undefined => {
-    const rec = screensById.get(pageId)
+    const rec = pagesById.get(pageId)
     if (!rec) return undefined
     return { id: rec.id, label: rec.label, component: rec.component }
   }
@@ -283,12 +283,12 @@ function buildFlatHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
 
   // 5. Views
   const views: WireframeView[] = [
-    ...[...screensById.values()].map(r => r.view),
+    ...[...pagesById.values()].map(r => r.view),
     ...stories.flatMap(f => f.children ?? []),
   ]
 
   // 6. Tree
-  const tree = buildTree([...screensById.values()], config, activeWorkspace)
+  const tree = buildTree([...pagesById.values()], config, activeWorkspace)
 
   // 7. Tags — sourced directly from each screen's own pageMeta.annotations.
   const metaByPageId = new Map<string, PageMeta | undefined>()
@@ -304,7 +304,7 @@ function buildFlatHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
     registry,
     hasHierarchy,
     tagsByPage,
-    ...resolveConfigDefaults(config, screensById),
+    ...resolveConfigDefaults(config, pagesById),
   }
 }
 
@@ -379,7 +379,7 @@ function buildHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
   }
 
   // 2. Build a PageRec per (chapter, page) pair.
-  const screensById = new Map<string, PageRec>()
+  const pagesById = new Map<string, PageRec>()
   for (const [screenKey, files] of variantsByScreen) {
     const [flow, screen] = screenKey.split('::')
     const pageId = makePageId(flow, screen)
@@ -416,7 +416,7 @@ function buildHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
       chapter: def.flow,
       project: def.project,
     }
-    screensById.set(pageId, {
+    pagesById.set(pageId, {
       id: pageId,
       label,
       project: def.project,
@@ -435,11 +435,11 @@ function buildHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
     if (def && def.id) registry.set(def.id, def)
   }
 
-  const hasHierarchy = screensById.size > 0 || registry.size > 0
+  const hasHierarchy = pagesById.size > 0 || registry.size > 0
 
   // 4. Screen resolver injected into the compiler.
   const resolve: PageResolver = (pageId: string): ResolvedPage | undefined => {
-    const rec = screensById.get(pageId)
+    const rec = pagesById.get(pageId)
     if (!rec) return undefined
     return { id: rec.id, label: rec.label, component: rec.component }
   }
@@ -466,12 +466,12 @@ function buildHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
 
   // 6. Flat views = all screens + every flow's play node.
   const views: WireframeView[] = [
-    ...[...screensById.values()].map(r => r.view),
+    ...[...pagesById.values()].map(r => r.view),
     ...stories.flatMap(f => f.children ?? []),
   ]
 
   // 7. Tree: project → flow → screen.
-  const tree = buildTree([...screensById.values()], config, activeWorkspace)
+  const tree = buildTree([...pagesById.values()], config, activeWorkspace)
 
   // 8. Tags — sourced directly from each screen's own pageMeta.annotations
   //    (pageMetaModules is already eagerly globbed above, keyed by full workspace path).
@@ -491,7 +491,7 @@ function buildHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
     registry,
     hasHierarchy,
     tagsByPage,
-    ...resolveConfigDefaults(config, screensById),
+    ...resolveConfigDefaults(config, pagesById),
   }
 }
 
