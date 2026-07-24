@@ -34,7 +34,7 @@ The "FlowKit" subsystem covers the platform shell: canvas, workspace model, kit 
 
 - Built-in controls: connection mode, network speed, CVD filter, blur intensity — `useDashboard()`
 - Custom workspace controls: `data/simulator.tsx`; `SimControl`, `ControlAccordion`, etc.
-- "Ignore all Simulator Settings" master switch
+- "Ignore all Simulator Settings" global switch
 
 #### Feedback
 

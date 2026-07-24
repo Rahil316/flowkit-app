@@ -165,7 +165,7 @@ not necessarily the chapter folder name).
 
 ```bash
 flowkit rename:page --chapter:checkout --name:payment-form --to:payment-details [--workspace:<name>]
-flowkit move:page --name:payment-form --from-flow:checkout --to-flow:billing [--workspace:<name>]
+flowkit move:page --name:payment-form --from-chapter:checkout --to-chapter:billing [--workspace:<name>]
 ```
 
 `rename:page` locates the actual page file by scanning the folder (`pickPageFile` tie-break, same
@@ -184,11 +184,10 @@ This is intentional graceful degradation, not a bug — the CLI can't safely gue
 name from an arbitrary old one. Full rollback on any mid-operation failure (folder rename, file
 rename, and `pageOrder` update are all reverted together if any step throws).
 
-`move:page` uses **`--from-flow:`/`--to-flow:`**, not `--from-chapter:`/`--to-chapter:` — this is
-the one page-authoring command that kept the old `flow` flag name; it was never migrated to
-`--chapter:` like `create:page`/`remove:page`/`rename:page`/`list:pages`/`page:info` were. Verified
-directly in `scripts/authoring/pages.js`'s `cmdMovePage` (`parseStringFlag(args, 'from-flow')`).
-Don't "fix" this to `--from-chapter:` — it's the current, working flag name.
+`move:page` uses **`--from-chapter:`/`--to-chapter:`** — matching `create:page`/`remove:page`/
+`rename:page`/`list:pages`/`page:info`. It previously used `--from-flow:`/`--to-flow:` (the one
+page-authoring command that had kept the old `flow` flag name); that was a breaking rename, not
+a back-compat alias — old `--from-flow:`/`--to-flow:` scripts must be updated.
 
 ### Removing a page
 
@@ -635,7 +634,7 @@ instead of composite pageId.
 | `create:page`      | `--chapter:`, `--name:`                            | `--label:`, `--workspace:`                                  |
 | `remove:page`      | `--chapter:`, `--name:`                            | `--workspace:`                                              |
 | `rename:page`      | `--chapter:`, `--name:` (old id), `--to:` (new id) | `--workspace:`                                              |
-| `move:page`        | `--name:`, `--from-flow:`, `--to-flow:`            | `--workspace:` (note: `from-flow`/`to-flow`, not `chapter`) |
+| `move:page`        | `--name:`, `--from-chapter:`, `--to-chapter:`      | `--workspace:`                                              |
 | `list:pages`       | —                                                  | `--chapter:`, `--hidden`, `--gone`, `--all`, `--workspace:` |
 | `page:info`        | `--chapter:`, `--name:`                            | `--workspace:`                                              |
 | `create:flowStory` | `--name:`                                          | `--workspace:`                                              |

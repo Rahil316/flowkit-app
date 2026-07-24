@@ -44,7 +44,7 @@ ${b('Scaffold (authoring):')}
   ${c('remove:component')} ${d('--name:<ComponentName>')}
   ${c('remove:step')} ${d('--flowStory:<id> --index:<n>')}
   ${c('rename:page')} ${d('--chapter:<id> --name:<old-id> --to:<new-id>')}
-  ${c('move:page')} ${d('--name:<id> --from-flow:<id> --to-flow:<id>')}
+  ${c('move:page')} ${d('--name:<id> --from-chapter:<id> --to-chapter:<id>')}
   ${c('add:step')} ${d('--flowStory:<id> --page:<id>')}   Append a step to a flowStory
   ${c('add:export')} ${d('--barrel:<path> --name:<ExportName>')}   Add a barrel re-export
   ${c('list:chapters')}                        List chapters in the workspace

@@ -113,13 +113,13 @@ export function resolveTypeImport(typeName) {
  *   process.cwd()/<declared path> if `name` is a real entry in flowkit.workspaces,
  *   else process.cwd()/<first workspace's declared path> — matches the same
  *   "first entry" convention the generated vite.config.ts uses
- *   (scripts/helpers/workspace-template.js's callers), so `flowkit create:flow`
+ *   (scripts/helpers/workspace-template.js's callers), so `flowkit create:chapter`
  *   (no --workspace flag) and `npm run dev` target the same workspace by
  *   default. The declared `path` (not just the workspace name) is what's
  *   joined onto cwd — see workspaceEntryPath() — so a workspace whose folder
  *   doesn't match its own name still resolves correctly.
  *
- * Without this branch, every authoring command (create:flow, create:screen,
+ * Without this branch, every authoring command (create:chapter, create:page,
  * components:ls, etc.) run from a multi-workspace project's root always
  * resolved to root itself — never a named workspace subfolder — silently
  * operating on nothing or the wrong directory. Confirmed live: components:ls
@@ -217,7 +217,7 @@ export function requireActiveWorkspace(commandLabel) {
  * workspacePath() correctly returns process.cwd() for every call — the
  * author project root IS the one implicit workspace by design — so this
  * guard must not treat that as unsafe there, or every authoring/CRUD command
- * (create:flow, create:screen, etc.) refuses to run in a real flat-mode
+ * (create:chapter, create:page, etc.) refuses to run in a real flat-mode
  * project. Confirmed by running the authoring commands end-to-end against a
  * flat-mode scaffold: this guard fired on the very first call before the fix.
  */

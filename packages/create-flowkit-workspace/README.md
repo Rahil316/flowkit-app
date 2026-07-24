@@ -18,10 +18,14 @@ npm create flowkit-workspace@latest my-project -- --empty
 
 This scaffolds a project with one initial workspace and a root `vite.config.ts` pre-wired for multi-workspace mode. Each workspace gets its own:
 
-- `flows/` — screens, organized by flow
-- `flowplans/` — playback scripts
+- `flowBook/` — pages, organized by chapter
+- `flowStories/` — playback scripts
 - `workspace.ts` — workspace config (`defineConfig`)
 - `lib/` — shared workspace data/components
+
+By default the initial workspace ships with a playable demo (a splash/welcome intro into
+a hub of 6 mini-games) so you have real content to explore immediately. Pass `--empty` for
+a bare scaffold instead — zero chapters, empty db/simulator stubs, ready for your own content.
 
 Once scaffolded:
 

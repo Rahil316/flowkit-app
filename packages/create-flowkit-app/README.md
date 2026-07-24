@@ -18,11 +18,15 @@ npm create flowkit-app@latest my-prototype -- --empty
 
 This scaffolds a new project with:
 
-- `flows/` — your screens, organized by flow
-- `flowplans/` — playback scripts describing step-by-step flows
+- `flowBook/` — your pages, organized by chapter
+- `flowStories/` — playback scripts describing step-by-step chapters
 - `workspace.ts` — workspace config (`defineConfig`)
 - `lib/` — shared workspace data/components
 - `vite.config.ts` pre-wired with the `flowkit/vite` plugin
+
+By default the project ships with a playable demo (a splash/welcome intro into a hub of
+6 mini-games) so you have real content to explore immediately. Pass `--empty` for a bare
+scaffold instead — zero chapters, empty db/simulator stubs, ready for your own content.
 
 Once scaffolded:
 

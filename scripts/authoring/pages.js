@@ -360,24 +360,24 @@ export async function cmdMovePage(_val, args = []) {
   const wsDir = workspacePath(wsName)
   assertScopedWorkspaceDir(wsDir, wsName)
   let pageId = parseStringFlag(args, 'name')
-  let fromFlow = parseStringFlag(args, 'from-flow')
-  let toFlow = parseStringFlag(args, 'to-flow')
+  let fromFlow = parseStringFlag(args, 'from-chapter')
+  let toFlow = parseStringFlag(args, 'to-chapter')
 
   if (!pageId || !fromFlow || !toFlow) {
-    console.error(r('✗ --name:<page-id> --from-flow:<id> --to-flow:<id> are required'))
+    console.error(r('✗ --name:<page-id> --from-chapter:<id> --to-chapter:<id> are required'))
     process.exit(1)
   }
   try {
     pageId = assertKebab(pageId, 'name')
-    fromFlow = assertKebab(fromFlow, 'from-flow')
-    toFlow = assertKebab(toFlow, 'to-flow')
+    fromFlow = assertKebab(fromFlow, 'from-chapter')
+    toFlow = assertKebab(toFlow, 'to-chapter')
   } catch (e) {
     console.error(r(`✗ ${e.message}`))
     process.exit(1)
   }
 
   if (fromFlow === toFlow) {
-    console.error(r(`✗ Page '${pageId}' is already in flow '${fromFlow}'`))
+    console.error(r(`✗ Page '${pageId}' is already in chapter '${fromFlow}'`))
     process.exit(1)
   }
 
@@ -398,7 +398,7 @@ export async function cmdMovePage(_val, args = []) {
 
   const toFlowDir = path.join(wsDir, FLOW_BOOK_DIRNAME, toFlow)
   if (!fs.existsSync(toFlowDir)) {
-    console.error(r(`✗ Destination flow '${toFlow}' directory not found`))
+    console.error(r(`✗ Destination chapter '${toFlow}' directory not found`))
     console.error(d(`  Create it first: flowkit create:chapter --name:${toFlow}`))
     process.exit(1)
   }

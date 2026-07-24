@@ -543,7 +543,7 @@ Renames the directory and the `.tsx` file (including the exported component func
 #### `move:page` — Move a page to a different chapter
 
 ```bash
-flowkit move:page --name:<screen-id> --from-flow:<flow-id> --to-flow:<flow-id>
+flowkit move:page --name:<page-id> --from-chapter:<chapter-id> --to-chapter:<chapter-id>
 ```
 
 Moves the page's directory and updates `pageOrder` on both chapters. The destination chapter must already exist.

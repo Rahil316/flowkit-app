@@ -91,7 +91,7 @@ export function renderPlatform(ctx) {
   const surfaces = platformSurfaces(ctx)
     .map(
       s =>
-        `### ${s.area}\n- **Use:** ${s.api}\n- **From:** ${s.from}\n- **Note:** ${s.note}\n- **Full detail:** \`Documentation/${s.doc}\``
+        `### ${s.area}\n- **Use:** ${s.api}\n- **From:** ${s.from}\n- **Note:** ${s.note}\n- **Full detail:** \`docs/${s.doc}\``
     )
     .join('\n\n')
   const cli = cliRows(ctx)
@@ -102,7 +102,7 @@ export function renderPlatform(ctx) {
     `Terse map of the platform surfaces you can reach. Each ends in a pointer to the full doc.\n\n` +
     `${surfaces}\n\n` +
     `## CLI\n\n| Command | What |\n|---|---|\n${cli}\n\n` +
-    `\n> **Flow ordering** is set in \`workspace.ts\` → \`projects.<proj>.flows[]\`. Use the **Manage tab** (right panel → Manage) to generate a terminal script for reordering.\n>\n> **Default screen** (cold load / device home button / reset-to-first) is set in \`workspace.ts\` → \`startPage\`; a flowStory's \`homeScreen\` overrides it while that plan is playing.\n>\n> **To remove a flow or screen**, delete the folder manually: \`rm -rf workspaces/${ctx.name}/flows/<flow>/\`\n\n` +
+    `\n> **Chapter ordering** is set in \`workspace.ts\` → \`chapters[]\`/\`pageOrder{}\`. Use the **Manage tab** (right panel → Manage) to generate a terminal script for reordering.\n>\n> **Default page** (cold load / device home button / reset-to-first) is set in \`workspace.ts\` → \`startPage\`; a flowStory's \`homeScreen\` overrides it while that flowStory is playing.\n>\n> **To remove a chapter or page**, delete the folder manually: \`rm -rf workspaces/${ctx.name}/flowBook/<chapter>/\`\n\n` +
     `_Generated (spec v${AGENT_SPEC_VERSION}). Facts mirror the platform source — \`flowkit agent:sync\` to refresh._\n`
   )
 }
@@ -113,9 +113,9 @@ export function renderMemory(ctx) {
   const top = topDirectives(ctx).map(fmtRule).join('\n')
   return (
     `# FlowKit workspace — ${ctx.name}\n\n` +
-    `You are building a product inside a **FlowKit** workspace (screens = React components, ` +
-    `flows = ordered screen sequences). You edit \`workspaces/${ctx.name}/\` only; \`src/\` is platform code.\n\n` +
-    `**Screens live under \`flows/<flow>/<screen>/\`.** Journeys are declared in \`flowStories/<flow>.ts\`. There is no \`_playFlow.ts\` and no \`flows/router.tsx\`.\n\n` +
+    `You are building a product inside a **FlowKit** workspace (pages = React components, ` +
+    `chapters = ordered page sequences). You edit \`workspaces/${ctx.name}/\` only; \`src/\` is platform code.\n\n` +
+    `**Pages live under \`flowBook/<chapter>/<page>/\`.** Journeys are declared in \`flowStories/<chapter>.ts\`. There is no \`_playFlow.ts\` and no \`flowBook/router.tsx\`.\n\n` +
     `**Start here:** read \`.agent/rules.md\` (directives) and \`.agent/INDEX.md\` (task → where to go), ` +
     `then \`.agent/project.md\` (what this product is). Use the INDEX to find anything — do not search blindly.\n\n` +
     `## Non-negotiables (full set in \`.agent/rules.md\`)\n\n${top}\n\n` +
@@ -131,7 +131,7 @@ export function renderProjectStub(name) {
     `<!-- HAND-OWNED. \`flowkit agent:sync\` never overwrites this file. Fill it in as the product takes shape. -->\n\n` +
     `## What this product is\n<!-- One paragraph: the product and who uses it -->\n\n` +
     `## Target platform\n- OS:\n- Primary device:\n- Form factor:\n\n` +
-    `## Flows\n\n| Flow ID | Label | Entry screen | Purpose |\n|---|---|---|---|\n| demo-flow | Demo | DemoScreen | Starter demo |\n\n` +
+    `## Chapters\n\n| Chapter ID | Label | Entry page | Purpose |\n|---|---|---|---|\n| demo-chapter | Demo | DemoPage | Starter demo |\n\n` +
     `## Data model\n<!-- Shape of data/db.ts and what each key means -->\n\n` +
     `## Decisions & constraints\n<!-- e.g. "Auth is always mocked — never show a real login form" -->\n`
   )

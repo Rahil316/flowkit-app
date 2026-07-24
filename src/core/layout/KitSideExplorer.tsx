@@ -322,7 +322,7 @@ export default function KitSideExplorer({
       <div className="flex flex-row size-full">
         {/* Mobile sub-tab rail — desktop SidebarButton style */}
         <div className="w-11 shrink-0 flex flex-col border-r border-theme-border bg-theme-elevated">
-          {(['screens', 'flows'] as LeftTab[]).map(t => {
+          {(['screens', 'chapters'] as LeftTab[]).map(t => {
             const active = tab === t
             const Icon = LEFT_TAB_META[t].icon
             return (
