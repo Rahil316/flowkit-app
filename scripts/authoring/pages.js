@@ -25,7 +25,14 @@ import {
   FLOW_BOOK_DIRNAME,
   FLOW_STORIES_DIRNAME,
 } from '../helpers/config-filenames.js'
-import { makePageId, isNonExistent, isHidden } from '../../src/shared/utils/pagePathIdentity.js'
+import {
+  makePageId,
+  isNonExistent,
+  isHidden,
+  pickPageFile,
+} from '../../src/shared/utils/pagePathIdentity.js'
+
+const PAGE_EXTS = ['.tsx', '.jsx']
 
 /** kebab-case → PascalCase: 'sign-in' → 'SignIn' */
 function toPascal(kebab) {
@@ -33,6 +40,32 @@ function toPascal(kebab) {
     .split('-')
     .map(w => w.charAt(0).toUpperCase() + w.slice(1))
     .join('')
+}
+
+/**
+ * Finds the real page component file inside a page folder, regardless of filename
+ * convention (the CLI's own create:page generates `${Pascal(pageId)}Page.ext`, but
+ * hand-authored or differently-scaffolded pages — e.g. scripts/helpers/scaffold.js's
+ * demo content, which drops the redundant "Screen"/"Page" suffix — may not follow that
+ * exact pattern; identity is folder-derived, not filename-derived, per
+ * pagePathIdentity.js). Reuses the same pickPageFile() tie-break as the runtime/checks
+ * use for ambiguous folders. Returns { fileName, ext } or null if no candidate exists.
+ */
+function findPageFile(pageDir) {
+  if (!fs.existsSync(pageDir)) return null
+  const candidates = fs
+    .readdirSync(pageDir)
+    .filter(f => !isNonExistent(f) && PAGE_EXTS.some(ext => f.endsWith(ext)))
+    .filter(f => fs.statSync(path.join(pageDir, f)).isFile())
+  const { chosen } = pickPageFile(candidates)
+  if (!chosen) return null
+  return { fileName: chosen, ext: path.extname(chosen).slice(1) }
+}
+
+/** Extracts the exported default function's name from a page file's source, or null. */
+function findDefaultExportName(src) {
+  const m = src.match(/export default function (\w+)\s*\(/)
+  return m ? m[1] : null
 }
 
 /** kebab-case → Title Case label: 'sign-in' → 'Sign In' */
@@ -65,8 +98,10 @@ export const pageMeta = { label: ${asJsStringLiteral(label)}, desc: '' }
 `
 }
 
-/** Scan all flowStory files for any step referencing pageId. Returns list of flowStory ids. */
-function findFlowplanRefs(wsDir, pageId) {
+/** Scan all flowStory files for any step referencing pageId (composite chapter-page form,
+ * since that's what add:step writes into steps). Returns list of flowStory ids. */
+function findFlowplanRefs(wsDir, chapterId, pageId) {
+  const compositePageId = makePageId(chapterId, pageId)
   const fpDir = path.join(wsDir, FLOW_STORIES_DIRNAME)
   if (!fs.existsSync(fpDir)) return []
   return fs
@@ -74,7 +109,9 @@ function findFlowplanRefs(wsDir, pageId) {
     .filter(f => f.endsWith('.ts'))
     .filter(f => {
       const src = fs.readFileSync(path.join(fpDir, f), 'utf8')
-      return src.includes(`pageId: '${pageId}'`) || src.includes(`pageId: "${pageId}"`)
+      return (
+        src.includes(`pageId: '${compositePageId}'`) || src.includes(`pageId: "${compositePageId}"`)
+      )
     })
     .map(f => f.replace('.ts', ''))
 }
@@ -83,7 +120,7 @@ export async function cmdCreatePage(_val, args = []) {
   const wsName = resolveWorkspace(parseStringFlag(args, 'workspace'))
   const wsDir = workspacePath(wsName)
   assertScopedWorkspaceDir(wsDir, wsName)
-  let flowId = parseStringFlag(args, 'chapter')
+  let flowId = parseStringFlag(args, 'flow')
   let pageId = parseStringFlag(args, 'name')
   let label = parseStringFlag(args, 'label')
 
@@ -94,7 +131,7 @@ export async function cmdCreatePage(_val, args = []) {
   }
 
   try {
-    flowId = assertKebab(flowId, 'chapter')
+    flowId = assertKebab(flowId, 'flow')
     pageId = assertKebab(pageId, 'page name')
   } catch (e) {
     console.error(r(`✗ ${e.message}`))
@@ -147,7 +184,7 @@ export async function cmdCreatePage(_val, args = []) {
     console.log('')
     console.log(
       d(
-        `Next: flowkit add:step --flowStory:${flowId} --screen:${pageId} --action:"User arrives at ${label}"`
+        `Next: flowkit add:step --flowStory:<flowStory-id> --page:${pageId} --action:"User arrives at ${label}"`
       )
     )
   } catch (e) {
@@ -161,7 +198,7 @@ export async function cmdRemovePage(_val, args = []) {
   const wsName = resolveWorkspace(parseStringFlag(args, 'workspace'))
   const wsDir = workspacePath(wsName)
   assertScopedWorkspaceDir(wsDir, wsName)
-  let flowId = parseStringFlag(args, 'chapter')
+  let flowId = parseStringFlag(args, 'flow')
   let pageId = parseStringFlag(args, 'name')
 
   if (!flowId || !pageId) {
@@ -169,14 +206,14 @@ export async function cmdRemovePage(_val, args = []) {
     process.exit(1)
   }
   try {
-    flowId = assertKebab(flowId, 'chapter')
+    flowId = assertKebab(flowId, 'flow')
     pageId = assertKebab(pageId, 'page name')
   } catch (e) {
     console.error(r(`✗ ${e.message}`))
     process.exit(1)
   }
 
-  const refs = findFlowplanRefs(wsDir, pageId)
+  const refs = findFlowplanRefs(wsDir, flowId, pageId)
   if (refs.length > 0) {
     console.log(r(`⚠  Warning: flowStory(s) reference '${pageId}': ${refs.join(', ')}`))
     console.log(r('   Update those flowStories after removing this page.'))
@@ -203,7 +240,7 @@ export async function cmdRenamePage(_val, args = []) {
   const wsName = resolveWorkspace(parseStringFlag(args, 'workspace'))
   const wsDir = workspacePath(wsName)
   assertScopedWorkspaceDir(wsDir, wsName)
-  let flowId = parseStringFlag(args, 'chapter')
+  let flowId = parseStringFlag(args, 'flow')
   let oldId = parseStringFlag(args, 'name')
   let newId = parseStringFlag(args, 'to')
 
@@ -213,7 +250,7 @@ export async function cmdRenamePage(_val, args = []) {
   }
 
   try {
-    flowId = assertKebab(flowId, 'chapter')
+    flowId = assertKebab(flowId, 'flow')
     oldId = assertKebab(oldId, 'name')
     newId = assertKebab(newId, 'new name')
   } catch (e) {
@@ -234,19 +271,24 @@ export async function cmdRenamePage(_val, args = []) {
     process.exit(1)
   }
 
-  // The "Page" suffix is no longer a REQUIREMENT for hand-authored files, but
-  // this rename command still assumes it because the CLI's own create:page
-  // always generates it — this regex-based function-name patch only needs to
-  // stay in sync with what this file itself produces, not with every possible
-  // hand-authored filename. A page that was hand-renamed away from the
-  // "Page" suffix convention won't be found here and rename will fall through
-  // to the "not found" branch below (fileContentPatched stays false, no crash).
+  // The real page file is found by scanning the folder (pickPageFile — same
+  // tie-break the runtime/checks use for ambiguous folders) rather than assuming an
+  // exact filename, since identity is folder-derived, not filename-derived
+  // (pagePathIdentity.js) — the CLI's own create:page generates `${Pascal(id)}Page.ext`,
+  // but other content (e.g. scaffold.js's demo pages) uses different conventions and
+  // there's no reliable way to derive a "new" file/function name from an arbitrary old
+  // one. So: only rename the file and patch the function name when the file matches the
+  // CLI's own generated pattern exactly (oldPascal + 'Page') — for anything else, rename
+  // the folder and registration (which is what identity actually depends on) and leave
+  // the file/function name as-is, flagging it so the author can rename by hand if wanted.
   const oldPascal = toPascal(oldId)
   const newPascal = toPascal(newId)
-  const ext =
-    ['tsx', 'jsx'].find(e => fs.existsSync(path.join(oldDir, `${oldPascal}Page.${e}`))) ?? 'tsx'
-  const oldFile = path.join(oldDir, `${oldPascal}Page.${ext}`)
-  const newFile = path.join(oldDir, `${newPascal}Page.${ext}`)
+  const found = findPageFile(oldDir)
+  const oldFile = found ? path.join(oldDir, found.fileName) : null
+  const matchesCliConvention = found?.fileName === `${oldPascal}Page.${found.ext}`
+  const newFile = matchesCliConvention
+    ? path.join(oldDir, `${newPascal}Page.${found.ext}`)
+    : oldFile
 
   // Steps below mutate the filesystem and then the config; if any step past
   // the first throws, roll back everything already applied so a failure never
@@ -257,7 +299,7 @@ export async function cmdRenamePage(_val, args = []) {
   let fileRenamed = false
   let dirRenamed = false
   try {
-    if (fs.existsSync(oldFile)) {
+    if (matchesCliConvention && oldFile && fs.existsSync(oldFile)) {
       filePatchedBackup = fs.readFileSync(oldFile, 'utf8')
       const patched = filePatchedBackup.replace(
         new RegExp(`export default function ${oldPascal}Page\\b`),
@@ -283,7 +325,7 @@ export async function cmdRenamePage(_val, args = []) {
     process.exit(1)
   }
 
-  const refs = findFlowplanRefs(wsDir, oldId)
+  const refs = findFlowplanRefs(wsDir, flowId, oldId)
   if (refs.length > 0) {
     console.log(r(`⚠  Warning: flowStory(s) still reference '${oldId}': ${refs.join(', ')}`))
     console.log(r(`   Update step pageIds from '${oldId}' to '${newId}'.`))
@@ -294,7 +336,16 @@ export async function cmdRenamePage(_val, args = []) {
       `✓ Renamed:   ${FLOW_BOOK_DIRNAME}/${flowId}/${oldId}/ → ${FLOW_BOOK_DIRNAME}/${flowId}/${newId}/`
     )
   )
-  console.log(g(`✓ Renamed:   ${oldPascal}Page.${ext} → ${newPascal}Page.${ext}`))
+  if (matchesCliConvention && oldFile) {
+    console.log(g(`✓ Renamed:   ${path.basename(oldFile)} → ${path.basename(newFile)}`))
+  } else if (oldFile) {
+    console.log(
+      d(
+        `  Note:      ${path.basename(oldFile)} doesn't match the CLI's generated naming ` +
+          `pattern — left as-is. Rename it by hand if you'd like it to match '${newId}'.`
+      )
+    )
+  }
   console.log(
     g(
       `✓ Updated:   ${WORKSPACE_CONFIG_FILENAME} → pageOrder.${flowId}[] (id: ${makePageId(flowId, oldId)} → ${makePageId(flowId, newId)})`
@@ -427,7 +478,7 @@ export async function cmdListPages(_val, args = []) {
   const wsName = resolveWorkspace(parseStringFlag(args, 'workspace'))
   const wsDir = workspacePath(wsName)
   assertScopedWorkspaceDir(wsDir, wsName)
-  const filterFlow = parseStringFlag(args, 'chapter')
+  const filterFlow = parseStringFlag(args, 'flow')
   // Presence-flags, consistent with the `args.includes('--flag')` convention
   // used elsewhere in this codebase (e.g. scripts/checks/index.js's --json,
   // scripts/authoring/chapters.js's --force) — no dedicated boolean-flag helper
@@ -515,7 +566,7 @@ export async function cmdPageInfo(_val, args = []) {
   const wsName = resolveWorkspace(parseStringFlag(args, 'workspace'))
   const wsDir = workspacePath(wsName)
   assertScopedWorkspaceDir(wsDir, wsName)
-  const flowId = parseStringFlag(args, 'chapter')
+  const flowId = parseStringFlag(args, 'flow')
   const pageId = parseStringFlag(args, 'name')
 
   if (!flowId || !pageId) {
@@ -523,30 +574,30 @@ export async function cmdPageInfo(_val, args = []) {
     process.exit(1)
   }
 
-  const pascalName = toPascal(pageId)
   // Same 2-level assumption as remove/rename/move — see comment on cmdRemovePage.
+  // The real page file is found by scanning the folder (findPageFile) rather than
+  // assuming an exact filename — see the comment in cmdRenamePage for why.
   const pageDir = path.join(wsDir, FLOW_BOOK_DIRNAME, flowId, pageId)
-  const ext = ['tsx', 'jsx'].find(e => fs.existsSync(path.join(pageDir, `${pascalName}Page.${e}`)))
+  const found = findPageFile(pageDir)
 
-  if (!ext) {
-    console.error(
-      r(`✗ Page file not found: ${FLOW_BOOK_DIRNAME}/${flowId}/${pageId}/${pascalName}Page.tsx`)
-    )
+  if (!found) {
+    console.error(r(`✗ No page file found: ${FLOW_BOOK_DIRNAME}/${flowId}/${pageId}/`))
     process.exit(1)
   }
-  const pageFile = path.join(pageDir, `${pascalName}Page.${ext}`)
+  const pageFile = path.join(pageDir, found.fileName)
 
   const src = fs.readFileSync(pageFile, 'utf8')
 
   const labelMatch = src.match(/label:\s*['"]([^'"]+)['"]/)
   const descMatch = src.match(/desc:\s*['"]([^'"]*)['"]/)
   const imports = [...src.matchAll(/^import\s+.*from\s+['"]([^'"]+)['"]/gm)].map(m => m[1])
+  const defaultName = findDefaultExportName(src)
 
   const fullPageId = makePageId(flowId, pageId)
-  console.log(b(`Page: ${pascalName}Page\n`))
+  console.log(b(`Page: ${defaultName ?? found.fileName}\n`))
   console.log(`  Flow:      ${flowId}`)
   console.log(`  Page ID:   ${pageId}  ${d(`(${fullPageId})`)}`)
-  console.log(`  File:      ${FLOW_BOOK_DIRNAME}/${flowId}/${pageId}/${pascalName}Page.${ext}`)
+  console.log(`  File:      ${FLOW_BOOK_DIRNAME}/${flowId}/${pageId}/${found.fileName}`)
   console.log(`  Label:     ${labelMatch ? labelMatch[1] : d('(not set)')}`)
   console.log(`  Desc:      ${descMatch && descMatch[1] ? descMatch[1] : d('(not set)')}`)
   if (imports.length > 0) {

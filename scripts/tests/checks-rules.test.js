@@ -10,11 +10,11 @@ import { after, before, describe, it } from 'node:test'
 import { createReport } from '../checks/reporter.js'
 import { checkPages } from '../checks/pages.js'
 import { checkDb } from '../checks/db.js'
-import { checkFlowplans } from '../checks/flowplans.js'
+import { checkFlowplans } from '../checks/flowStories.js'
 import { checkConfig } from '../checks/config.js'
 import { checkComponents } from '../checks/components.js'
 import { FLOW_BOOK_DIRNAME, FLOW_STORIES_DIRNAME } from '../helpers/config-filenames.js'
-import { makePageId, parseVariant } from '../../src/shared/utils/screenPathIdentity.js'
+import { makePageId, parseVariant } from '../../src/shared/utils/pagePathIdentity.js'
 
 let wsDir
 

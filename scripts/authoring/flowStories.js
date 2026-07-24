@@ -61,7 +61,7 @@ function rewriteSteps(filePath, steps) {
     throw new Error(
       `Step [${forkedIndex}] has forks — add:step/remove:step can't safely rewrite a flowStory ` +
         `with forks (only simple, non-nested step arrays are supported). Hand-edit ` +
-        `${path.basename(filePath)} directly, or use "flowkit promote:flow" to extract the fork first.`
+        `${path.basename(filePath)} directly, or use "flowkit promote:chapter" to extract the fork first.`
     )
   }
   let src = fs.readFileSync(filePath, 'utf8')
