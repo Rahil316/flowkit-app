@@ -2,7 +2,7 @@ import type { Plugin } from 'vite'
 
 export interface FlowkitPluginOptions {
   /**
-   * Which folder to read the workspace config file/flows/flowStories/lib from.
+   * Which folder to read the workspace config file/flowBook/flowStories/lib from.
    * Defaults to process.cwd() (repo mode's own vite.config.ts and flat-mode
    * consumer projects both omit this). Multi-workspace consumer projects pass
    * the active workspace's folder name.

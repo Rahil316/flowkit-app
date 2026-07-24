@@ -166,24 +166,24 @@ export async function cmdAddStep(_val, args = []) {
     process.exit(1)
   }
 
-  // Validate the bare pageId exists in some flow's pageOrder (pageOrder is
-  // flow-scoped/bare, per config-patch.js), then build the collision-proof composite
-  // id (chapter-page) from whichever flow it's actually registered under — a flowStory's
+  // Validate the bare pageId exists in some chapter's pageOrder (pageOrder is
+  // chapter-scoped/bare, per config-patch.js), then build the collision-proof composite
+  // id (chapter-page) from whichever chapter it's actually registered under — a flowStory's
   // own id is a separate authored concept, not necessarily the same as the target
   // page's chapter folder, so this can't be assumed from fpId.
   const config = readWorkspaceConfig(wsDir)
-  const owningFlow = Object.entries(config.pageOrder).find(([, pages]) =>
+  const owningChapter = Object.entries(config.pageOrder).find(([, pages]) =>
     pages.includes(pageId)
   )?.[0]
-  if (!owningFlow) {
+  if (!owningChapter) {
     const allPages = Object.values(config.pageOrder).flat()
-    console.error(r(`✗ pageId '${pageId}' not found in workspace flows`))
+    console.error(r(`✗ pageId '${pageId}' not found in workspace chapters`))
     const close = allPages.filter(s => s.startsWith(pageId.split('-')[0]))
     if (close.length > 0) console.error(d(`  Did you mean: ${close.join(', ')}`))
     console.error(d(`  Available pages: ${allPages.join(', ')}`))
     process.exit(1)
   }
-  const compositePageId = makePageId(owningFlow, pageId)
+  const compositePageId = makePageId(owningChapter, pageId)
 
   const fpPath = flowStoryPath(wsDir, fpId)
   if (!fs.existsSync(fpPath)) {

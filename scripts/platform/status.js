@@ -1,4 +1,4 @@
-// Platform command: read-only health snapshot of a workspace (flows, sessions, feedback, agent).
+// Platform command: read-only health snapshot of a workspace (chapters, sessions, feedback, agent).
 import fs from 'fs'
 import path from 'path'
 import { workspacePath, isRepoMode, ROOT, getActiveWorkspaceName } from '../helpers/paths.js'
@@ -27,7 +27,7 @@ export function cmdStatus(wsArg) {
 
   const flatPlansDir = path.join(wsDir, FLOW_STORIES_DIRNAME)
 
-  // Recursively walks a flow folder (variable depth, mirroring
+  // Recursively walks a chapter folder (variable depth, mirroring
   // scripts/checks/screens.js's walkScreenFiles) counting real screen files.
   // `__`-prefixed segments are pruned entirely (never descended into); `_`-prefixed
   // segments are still counted here (status counts total authored screens, not just
@@ -50,8 +50,8 @@ export function cmdStatus(wsArg) {
     return count
   }
 
-  // Flows + screens: flowBook/<flow>/.../<screen>/<Screen>.tsx (variable depth)
-  let flowCount = 0,
+  // Chapters + screens: flowBook/<chapter>/.../<screen>/<Screen>.tsx (variable depth)
+  let chapterCount = 0,
     screenCount = 0
   if (fs.existsSync(chaptersDir)) {
     for (const folder of fs.readdirSync(chaptersDir)) {
@@ -60,12 +60,12 @@ export function cmdStatus(wsArg) {
       if (!fs.statSync(full).isDirectory()) continue
       const total = countScreenFiles(full)
       if (total > 0) {
-        flowCount++
+        chapterCount++
         screenCount += total
       }
     }
   }
-  console.log(`  Flows:           ${b(flowCount)}  (${screenCount} screens total)`)
+  console.log(`  Chapters:        ${b(chapterCount)}  (${screenCount} screens total)`)
 
   // FlowStories
   if (fs.existsSync(flatPlansDir)) {

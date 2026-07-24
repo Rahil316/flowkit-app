@@ -21,14 +21,14 @@ import type { AnnotationTag, FlowkitConfig, FlowStoryDef } from '../../types/ind
  * `workspace.ts` gets type inference at the call site without an explicit
  * type annotation; there is no runtime behavior or validation.
  *
- * @param config - The workspace manifest (flows, pageOrder, projects, etc.)
+ * @param config - The workspace manifest (chapters, pageOrder, projects, etc.)
  * @returns The same `config` object, unmodified.
  *
  * @example
  * ```ts
  * // workspaces/<ws>/workspace.ts
  * import { defineConfig } from "flowkit";
- * export default defineConfig({ flows: ["onboarding", "checkout"] });
+ * export default defineConfig({ chapters: ["onboarding", "checkout"] });
  * ```
  */
 export function defineConfig(config: FlowkitConfig): FlowkitConfig {

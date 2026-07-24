@@ -22,7 +22,7 @@ ${b('Workspaces (repo mode only')} ${d('— not available in flat/multi consumer
   ${c('nw')} / ${c('new-workspace')}           Create workspace (guided or express)
   ${c('rw')} / ${c('remove-workspace')}        Remove workspace (requires confirmation)
   ${c('watch')} / ${c('watch:<workspace-name>')}   Watch for file changes (guided if name omitted)
-  ${c('status')}                           Health snapshot: flows, flowStories, sessions, feedback, agent
+  ${c('status')}                           Health snapshot: chapters, flowStories, sessions, feedback, agent
 
 ${b('Workspaces (flat consumer projects):')}
   ${c('convert:multi')} ${d('[--name:<id>]')}       Convert a flat project to multi-workspace mode
@@ -38,7 +38,7 @@ ${b('Scaffold (authoring):')}
   ${c('create:page')} ${d('--chapter:<id> --name:<id>')}  Add a page to a chapter
   ${c('create:flowStory')} ${d('--name:<id>')}         Add a flowStory script
   ${c('create:component')} ${d('--name:<PascalName> --path:<lib/components/...>')}   Add a workspace component
-  ${c('remove:chapter')} ${d('--name:<flow-id> [--force]')}
+  ${c('remove:chapter')} ${d('--name:<chapter-id> [--force]')}
   ${c('remove:page')} ${d('--chapter:<id> --name:<page-id>')}
   ${c('remove:flowStory')} ${d('--name:<flowStory-id> [--force]')}
   ${c('remove:component')} ${d('--name:<ComponentName>')}

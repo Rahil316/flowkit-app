@@ -32,8 +32,6 @@ unrenamed source still contains the literal old words — do not "fix" these thi
 typos:
 
 - `homeScreen` on `FlowStoryDef` (never renamed to `homePage` — see the Chapter/Workspace section).
-- The live error string `✗ pageId '<id>' not found in workspace flows` (`flowStories.js`) —
-  says "flows", not "chapters"; this is the actual current text `add:step` prints today.
 
 **One rename that DID land today (2026-07-24)**: `flowkit plan:ls` / `fp:ls` → `flowkit
 flowStory:ls` / `fs:ls` (`scripts/platform/plans.js` renamed to `flowStoryDiscovery.js`,
@@ -435,7 +433,7 @@ command. If the bare id isn't found anywhere, it prints a "did you mean" suggest
 matching the first hyphen-segment, plus the full list of known pages:
 
 ```
-✗ pageId '<id>' not found in workspace flows
+✗ pageId '<id>' not found in workspace chapters
   Did you mean: <matches...>
   Available pages: <all pages...>
 ```

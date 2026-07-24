@@ -112,7 +112,7 @@ export interface WireframeView {
   label: string
   component: React.ComponentType
   meta?: PageMeta
-  /** Workspace-relative path, e.g. flows/diagnostics/EquipmentListScreen.tsx */
+  /** Workspace-relative path, e.g. flowBook/diagnostics/EquipmentListScreen.tsx */
   filePath?: string
   /**
    * A/B variants of this screen (FlowStory hierarchy only). Always includes the
@@ -709,8 +709,8 @@ export type AnnotationTagColor = 'blue' | 'green' | 'red' | 'amber' | 'purple'
 
 /**
  * An ephemeral review marker shown as a badge in the Screens tab sidebar.
- * Declared in a workspace's `flows/_tags.ts` via the {@link tag} helper and
- * scoped to specific screens and/or flows.
+ * Declared directly on a page via `pageMeta.annotations` (replaces the retired
+ * workspace-level `_tags.ts` file) and scoped to that specific page.
  */
 export interface AnnotationTag {
   /** Display label shown as the badge text. */

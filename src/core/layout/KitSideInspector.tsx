@@ -218,7 +218,7 @@ export function ScreenInfoContent({
     : `${activeViewId}Screen.tsx`
   const derivedPath = activeView?.filePath
     ? `workspaces/${activeWorkspace}/${activeView.filePath}`
-    : `workspaces/${activeWorkspace}/flows/${activeViewId.split('-')[0] ?? ''}/${derivedFilename}`
+    : `workspaces/${activeWorkspace}/flowBook/${activeViewId.split('-')[0] ?? ''}/${derivedFilename}`
   const pendingEdit = activeView ? pendingEdits.get(activeView.id) : undefined
   const [copiedText, setCopiedText] = useState<string | null>(null)
   const [tagInput, setTagInput] = useState('')

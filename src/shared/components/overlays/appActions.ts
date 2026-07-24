@@ -210,7 +210,7 @@ export const APP_ACTIONS: AppAction[] = [
     id: 'sidebar-flows',
     modes: ['default'],
     group: 'Left Panel',
-    label: 'Flow Map tab',
+    label: 'Flow Library tab',
     shortcut: 'Alt+2',
   },
   {

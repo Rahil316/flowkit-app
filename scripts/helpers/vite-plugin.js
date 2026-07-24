@@ -115,8 +115,8 @@ function genConfig(config) {
 async function genScreens(config, cwd) {
   const pageOrder = config.pageOrder ?? {}
 
-  // Scan the whole flowBook/ tree — flow id is now derived from path position
-  // (via the shared pagePathIdentity module), not assumed from config.flows/
+  // Scan the whole flowBook/ tree — chapter id is now derived from path position
+  // (via the shared pagePathIdentity module), not assumed from config.chapters/
   // pageOrder keys. Node's fs/promises glob() matches both depth-0
   // (flowBook/File.tsx) and deeper nesting with a single `**/*.tsx` pattern —
   // verified directly, no `{*,**/*}` workaround needed.
@@ -293,7 +293,7 @@ export function flowkit(options = {}) {
     ? path.resolve(process.cwd(), options.workspaceRoot)
     : process.cwd()
   // Two independent things `workspaceRoot` used to conflate into one flag:
-  //   1. which folder to read the workspace config file/flows/flowStories/lib from (cwd, above)
+  //   1. which folder to read the workspace config file/flowBook/flowStories/lib from (cwd, above)
   //   2. whether flat-mode aliases (@flowkit/@flowkit-core/@flowkit-features/etc) need supplying
   // Repo mode passes workspaceRoot AND already supplies its own aliases in the
   // host vite.config.ts (see this repo's own vite.config.ts) — standalone
@@ -397,7 +397,7 @@ export function flowkit(options = {}) {
         },
         server: {
           fs: {
-            // cwd = where the workspace config file/flows/flowStories/lib live — the
+            // cwd = where the workspace config file/flowBook/flowStories/lib live — the
             // project root itself (flat mode, single-workspace standalone),
             // or a workspace subfolder under the project root (multi-workspace
             // standalone, or repo mode's active workspace dir).

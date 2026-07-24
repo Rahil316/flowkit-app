@@ -264,7 +264,7 @@ export function writeState(patch) {
 
 /**
  * Detects whether a workspace's authored content is TS or plain JS, by
- * inspecting what's actually on disk under flows/ — not every mode tracks a
+ * inspecting what's actually on disk under flowBook/ — not every mode tracks a
  * `language` field the same way (repo mode's src/workspaces.json does; flat/
  * multi-workspace mode's package.json flowkit.workspaces does not), so
  * detection-by-file-extension is the one signal available in every mode.

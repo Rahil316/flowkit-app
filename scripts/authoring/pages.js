@@ -1,4 +1,4 @@
-// Authoring command: CRUD for pages within a flow (create/remove/rename/move/list/info).
+// Authoring command: CRUD for pages within a chapter (create/remove/rename/move/list/info).
 import fs from 'fs'
 import path from 'path'
 import { parseStringFlag } from '../helpers/args.js'
@@ -120,11 +120,11 @@ export async function cmdCreatePage(_val, args = []) {
   const wsName = resolveWorkspace(parseStringFlag(args, 'workspace'))
   const wsDir = workspacePath(wsName)
   assertScopedWorkspaceDir(wsDir, wsName)
-  let flowId = parseStringFlag(args, 'chapter')
+  let chapterId = parseStringFlag(args, 'chapter')
   let pageId = parseStringFlag(args, 'name')
   let label = parseStringFlag(args, 'label')
 
-  if (!flowId || !pageId) {
+  if (!chapterId || !pageId) {
     console.error(r('✗ --chapter:<chapter-id> and --name:<page-id> are required'))
     console.error(
       d('  Example: flowkit create:page --chapter:auth --name:sign-in --label:"Sign In"')
@@ -133,7 +133,7 @@ export async function cmdCreatePage(_val, args = []) {
   }
 
   try {
-    flowId = assertKebab(flowId, 'chapter')
+    chapterId = assertKebab(chapterId, 'chapter')
     pageId = assertKebab(pageId, 'page name')
   } catch (e) {
     console.error(r(`✗ ${e.message}`))
@@ -141,9 +141,9 @@ export async function cmdCreatePage(_val, args = []) {
   }
 
   const config = readWorkspaceConfig(wsDir)
-  if (!config.chapters.includes(flowId)) {
-    console.error(r(`✗ Chapter '${flowId}' not found in workspace '${wsName}'`))
-    console.error(d(`  Create it first: flowkit create:chapter --name:${flowId}`))
+  if (!config.chapters.includes(chapterId)) {
+    console.error(r(`✗ Chapter '${chapterId}' not found in workspace '${wsName}'`))
+    console.error(d(`  Create it first: flowkit create:chapter --name:${chapterId}`))
     process.exit(1)
   }
 
@@ -157,31 +157,31 @@ export async function cmdCreatePage(_val, args = []) {
   const isJs = detectWorkspaceLanguage(wsDir) === 'js'
   const ext = isJs ? 'jsx' : 'tsx'
   const pascalName = toPascal(pageId)
-  // The CLI always creates the standard 2-level shape (flow/page, no cosmetic
+  // The CLI always creates the standard 2-level shape (chapter/page, no cosmetic
   // folders in between) — variable-depth nesting is a hand-authoring capability,
   // not something this command needs to produce itself.
-  const pageDir = path.join(wsDir, FLOW_BOOK_DIRNAME, flowId, pageId)
+  const pageDir = path.join(wsDir, FLOW_BOOK_DIRNAME, chapterId, pageId)
   // "Page" suffix is no longer REQUIRED anywhere (pagePathIdentity.js derives
   // identity from folders, not filename) — but we keep generating it as the CLI's
   // own friendly convention default, since it costs nothing and reads clearly.
   const pageFile = path.join(pageDir, `${pascalName}Page.${ext}`)
-  // Collision-proof display/registration id: `${flowId}-${pageId}` — see
+  // Collision-proof display/registration id: `${chapterId}-${pageId}` — see
   // pagePathIdentity.js's makePageId(). config-patch.js's pageOrder map is
-  // already flow-scoped (pageOrder[flowId] = [...]) so it stores the bare
-  // pageId internally without risk of cross-flow collision; makePageId is
+  // already chapter-scoped (pageOrder[chapterId] = [...]) so it stores the bare
+  // pageId internally without risk of cross-chapter collision; makePageId is
   // only needed where an id is shown to the user or would be compared globally.
-  const fullPageId = makePageId(flowId, pageId)
+  const fullPageId = makePageId(chapterId, pageId)
 
   try {
     fs.mkdirSync(pageDir, { recursive: true })
     fs.writeFileSync(pageFile, pageTemplate(pascalName, label, isJs))
-    addPage(wsDir, flowId, pageId)
-    console.log(g(`✓ Directory:  ${FLOW_BOOK_DIRNAME}/${flowId}/${pageId}/`))
+    addPage(wsDir, chapterId, pageId)
+    console.log(g(`✓ Directory:  ${FLOW_BOOK_DIRNAME}/${chapterId}/${pageId}/`))
     console.log(
-      g(`✓ Page:       ${FLOW_BOOK_DIRNAME}/${flowId}/${pageId}/${pascalName}Page.${ext}`)
+      g(`✓ Page:       ${FLOW_BOOK_DIRNAME}/${chapterId}/${pageId}/${pascalName}Page.${ext}`)
     )
     console.log(
-      g(`✓ Registered: ${WORKSPACE_CONFIG_FILENAME} → pageOrder.${flowId}[] (id: ${fullPageId})`)
+      g(`✓ Registered: ${WORKSPACE_CONFIG_FILENAME} → pageOrder.${chapterId}[] (id: ${fullPageId})`)
     )
     console.log('')
     console.log(
@@ -200,41 +200,41 @@ export async function cmdRemovePage(_val, args = []) {
   const wsName = resolveWorkspace(parseStringFlag(args, 'workspace'))
   const wsDir = workspacePath(wsName)
   assertScopedWorkspaceDir(wsDir, wsName)
-  let flowId = parseStringFlag(args, 'chapter')
+  let chapterId = parseStringFlag(args, 'chapter')
   let pageId = parseStringFlag(args, 'name')
 
-  if (!flowId || !pageId) {
+  if (!chapterId || !pageId) {
     console.error(r('✗ --chapter:<chapter-id> and --name:<page-id> are required'))
     process.exit(1)
   }
   try {
-    flowId = assertKebab(flowId, 'chapter')
+    chapterId = assertKebab(chapterId, 'chapter')
     pageId = assertKebab(pageId, 'page name')
   } catch (e) {
     console.error(r(`✗ ${e.message}`))
     process.exit(1)
   }
 
-  const refs = findFlowStoryRefs(wsDir, flowId, pageId)
+  const refs = findFlowStoryRefs(wsDir, chapterId, pageId)
   if (refs.length > 0) {
     console.log(r(`⚠  Warning: flowStory(s) reference '${pageId}': ${refs.join(', ')}`))
     console.log(r('   Update those flowStories after removing this page.'))
   }
 
-  removePage(wsDir, flowId, pageId)
+  removePage(wsDir, chapterId, pageId)
 
   // Keeping the CLI's own 2-level assumption for locating the folder to delete
-  // (flowBook/<flow>/<page>/) — a page this command created is always
+  // (flowBook/<chapter>/<page>/) — a page this command created is always
   // here; a hand-authored page nested deeper (cosmetic folders in between)
   // is an advanced/manual case this command does not attempt to locate or
   // remove in this pass.
-  const pageDir = path.join(wsDir, FLOW_BOOK_DIRNAME, flowId, pageId)
+  const pageDir = path.join(wsDir, FLOW_BOOK_DIRNAME, chapterId, pageId)
   if (fs.existsSync(pageDir)) fs.rmSync(pageDir, { recursive: true, force: true })
 
-  const fullPageId = makePageId(flowId, pageId)
-  console.log(g(`✓ Removed:      ${FLOW_BOOK_DIRNAME}/${flowId}/${pageId}/`))
+  const fullPageId = makePageId(chapterId, pageId)
+  console.log(g(`✓ Removed:      ${FLOW_BOOK_DIRNAME}/${chapterId}/${pageId}/`))
   console.log(
-    g(`✓ Unregistered: ${WORKSPACE_CONFIG_FILENAME} → pageOrder.${flowId}[] (id: ${fullPageId})`)
+    g(`✓ Unregistered: ${WORKSPACE_CONFIG_FILENAME} → pageOrder.${chapterId}[] (id: ${fullPageId})`)
   )
 }
 
@@ -242,17 +242,17 @@ export async function cmdRenamePage(_val, args = []) {
   const wsName = resolveWorkspace(parseStringFlag(args, 'workspace'))
   const wsDir = workspacePath(wsName)
   assertScopedWorkspaceDir(wsDir, wsName)
-  let flowId = parseStringFlag(args, 'chapter')
+  let chapterId = parseStringFlag(args, 'chapter')
   let oldId = parseStringFlag(args, 'name')
   let newId = parseStringFlag(args, 'to')
 
-  if (!flowId || !oldId || !newId) {
+  if (!chapterId || !oldId || !newId) {
     console.error(r('✗ --chapter:<id> --name:<old-id> --to:<new-id> are required'))
     process.exit(1)
   }
 
   try {
-    flowId = assertKebab(flowId, 'chapter')
+    chapterId = assertKebab(chapterId, 'chapter')
     oldId = assertKebab(oldId, 'name')
     newId = assertKebab(newId, 'new name')
   } catch (e) {
@@ -261,11 +261,11 @@ export async function cmdRenamePage(_val, args = []) {
   }
 
   // Same 2-level assumption as cmdRemovePage/cmdMovePage — see comment there.
-  const oldDir = path.join(wsDir, FLOW_BOOK_DIRNAME, flowId, oldId)
-  const newDir = path.join(wsDir, FLOW_BOOK_DIRNAME, flowId, newId)
+  const oldDir = path.join(wsDir, FLOW_BOOK_DIRNAME, chapterId, oldId)
+  const newDir = path.join(wsDir, FLOW_BOOK_DIRNAME, chapterId, newId)
 
   if (!fs.existsSync(oldDir)) {
-    console.error(r(`✗ Page directory not found: ${FLOW_BOOK_DIRNAME}/${flowId}/${oldId}/`))
+    console.error(r(`✗ Page directory not found: ${FLOW_BOOK_DIRNAME}/${chapterId}/${oldId}/`))
     process.exit(1)
   }
   if (newId !== oldId && pageExists(wsDir, newId)) {
@@ -316,7 +316,7 @@ export async function cmdRenamePage(_val, args = []) {
     }
     fs.renameSync(oldDir, newDir)
     dirRenamed = true
-    renamePage(wsDir, flowId, oldId, newId)
+    renamePage(wsDir, chapterId, oldId, newId)
   } catch (e) {
     if (dirRenamed) fs.renameSync(newDir, oldDir)
     if (fileRenamed) fs.renameSync(newFile, oldFile)
@@ -327,7 +327,7 @@ export async function cmdRenamePage(_val, args = []) {
     process.exit(1)
   }
 
-  const refs = findFlowStoryRefs(wsDir, flowId, oldId)
+  const refs = findFlowStoryRefs(wsDir, chapterId, oldId)
   if (refs.length > 0) {
     console.log(r(`⚠  Warning: flowStory(s) still reference '${oldId}': ${refs.join(', ')}`))
     console.log(r(`   Update step pageIds from '${oldId}' to '${newId}'.`))
@@ -335,7 +335,7 @@ export async function cmdRenamePage(_val, args = []) {
 
   console.log(
     g(
-      `✓ Renamed:   ${FLOW_BOOK_DIRNAME}/${flowId}/${oldId}/ → ${FLOW_BOOK_DIRNAME}/${flowId}/${newId}/`
+      `✓ Renamed:   ${FLOW_BOOK_DIRNAME}/${chapterId}/${oldId}/ → ${FLOW_BOOK_DIRNAME}/${chapterId}/${newId}/`
     )
   )
   if (matchesCliConvention && oldFile) {
@@ -350,7 +350,7 @@ export async function cmdRenamePage(_val, args = []) {
   }
   console.log(
     g(
-      `✓ Updated:   ${WORKSPACE_CONFIG_FILENAME} → pageOrder.${flowId}[] (id: ${makePageId(flowId, oldId)} → ${makePageId(flowId, newId)})`
+      `✓ Updated:   ${WORKSPACE_CONFIG_FILENAME} → pageOrder.${chapterId}[] (id: ${makePageId(chapterId, oldId)} → ${makePageId(chapterId, newId)})`
     )
   )
 }
@@ -360,60 +360,60 @@ export async function cmdMovePage(_val, args = []) {
   const wsDir = workspacePath(wsName)
   assertScopedWorkspaceDir(wsDir, wsName)
   let pageId = parseStringFlag(args, 'name')
-  let fromFlow = parseStringFlag(args, 'from-chapter')
-  let toFlow = parseStringFlag(args, 'to-chapter')
+  let fromChapter = parseStringFlag(args, 'from-chapter')
+  let toChapter = parseStringFlag(args, 'to-chapter')
 
-  if (!pageId || !fromFlow || !toFlow) {
+  if (!pageId || !fromChapter || !toChapter) {
     console.error(r('✗ --name:<page-id> --from-chapter:<id> --to-chapter:<id> are required'))
     process.exit(1)
   }
   try {
     pageId = assertKebab(pageId, 'name')
-    fromFlow = assertKebab(fromFlow, 'from-chapter')
-    toFlow = assertKebab(toFlow, 'to-chapter')
+    fromChapter = assertKebab(fromChapter, 'from-chapter')
+    toChapter = assertKebab(toChapter, 'to-chapter')
   } catch (e) {
     console.error(r(`✗ ${e.message}`))
     process.exit(1)
   }
 
-  if (fromFlow === toFlow) {
-    console.error(r(`✗ Page '${pageId}' is already in chapter '${fromFlow}'`))
+  if (fromChapter === toChapter) {
+    console.error(r(`✗ Page '${pageId}' is already in chapter '${fromChapter}'`))
     process.exit(1)
   }
 
   // Same 2-level assumption as cmdRemovePage/cmdRenamePage — see comment there.
-  const fromDir = path.join(wsDir, FLOW_BOOK_DIRNAME, fromFlow, pageId)
-  const toDir = path.join(wsDir, FLOW_BOOK_DIRNAME, toFlow, pageId)
+  const fromDir = path.join(wsDir, FLOW_BOOK_DIRNAME, fromChapter, pageId)
+  const toDir = path.join(wsDir, FLOW_BOOK_DIRNAME, toChapter, pageId)
 
   if (!fs.existsSync(fromDir)) {
-    console.error(r(`✗ Page not found: ${FLOW_BOOK_DIRNAME}/${fromFlow}/${pageId}/`))
+    console.error(r(`✗ Page not found: ${FLOW_BOOK_DIRNAME}/${fromChapter}/${pageId}/`))
     process.exit(1)
   }
   if (fs.existsSync(toDir)) {
     console.error(
-      r(`✗ Page already exists at destination: ${FLOW_BOOK_DIRNAME}/${toFlow}/${pageId}/`)
+      r(`✗ Page already exists at destination: ${FLOW_BOOK_DIRNAME}/${toChapter}/${pageId}/`)
     )
     process.exit(1)
   }
 
-  const toFlowDir = path.join(wsDir, FLOW_BOOK_DIRNAME, toFlow)
-  if (!fs.existsSync(toFlowDir)) {
-    console.error(r(`✗ Destination chapter '${toFlow}' directory not found`))
-    console.error(d(`  Create it first: flowkit create:chapter --name:${toFlow}`))
+  const toChapterDir = path.join(wsDir, FLOW_BOOK_DIRNAME, toChapter)
+  if (!fs.existsSync(toChapterDir)) {
+    console.error(r(`✗ Destination chapter '${toChapter}' directory not found`))
+    console.error(d(`  Create it first: flowkit create:chapter --name:${toChapter}`))
     process.exit(1)
   }
 
   fs.renameSync(fromDir, toDir)
-  movePage(wsDir, pageId, fromFlow, toFlow)
+  movePage(wsDir, pageId, fromChapter, toChapter)
 
   console.log(
     g(
-      `✓ Moved:   ${FLOW_BOOK_DIRNAME}/${fromFlow}/${pageId}/ → ${FLOW_BOOK_DIRNAME}/${toFlow}/${pageId}/`
+      `✓ Moved:   ${FLOW_BOOK_DIRNAME}/${fromChapter}/${pageId}/ → ${FLOW_BOOK_DIRNAME}/${toChapter}/${pageId}/`
     )
   )
   console.log(
     g(
-      `✓ Updated: ${WORKSPACE_CONFIG_FILENAME} (removed '${makePageId(fromFlow, pageId)}' from '${fromFlow}', added '${makePageId(toFlow, pageId)}' to '${toFlow}')`
+      `✓ Updated: ${WORKSPACE_CONFIG_FILENAME} (removed '${makePageId(fromChapter, pageId)}' from '${fromChapter}', added '${makePageId(toChapter, pageId)}' to '${toChapter}')`
     )
   )
 }
@@ -434,8 +434,8 @@ function isHiddenPageId(pageId) {
  * non-existent items are excluded from pageOrder entirely (they're not
  * "registered" pages at all, by design), so `--gone` is the one listing mode
  * that can't be answered from workspace config and must scan the filesystem
- * directly. Returns a flat list of { flow, relPath } — relPath is the path
- * under flowBook/<flow>/ for display, kept as raw segments (not otherwise
+ * directly. Returns a flat list of { chapter, relPath } — relPath is the path
+ * under flowBook/<chapter>/ for display, kept as raw segments (not otherwise
  * parsed/identified) since a non-existent item has no real page id.
  */
 function findGoneItems(wsDir) {
@@ -443,7 +443,7 @@ function findGoneItems(wsDir) {
   if (!fs.existsSync(root)) return []
   const results = []
 
-  function walk(flow, dir, segmentsSoFar) {
+  function walk(chapter, dir, segmentsSoFar) {
     let entries
     try {
       entries = fs.readdirSync(dir, { withFileTypes: true })
@@ -453,25 +453,25 @@ function findGoneItems(wsDir) {
     for (const entry of entries) {
       const segs = [...segmentsSoFar, entry.name]
       if (isNonExistent(entry.name)) {
-        results.push({ flow, relPath: segs.join('/') })
+        results.push({ chapter, relPath: segs.join('/') })
         // Don't recurse further in — everything below a '__' segment is
         // already covered by parent-dominance (resolveVisibility), no need
         // to enumerate it item-by-item as separate "gone" entries.
         continue
       }
       if (entry.isDirectory()) {
-        walk(flow, path.join(dir, entry.name), segs)
+        walk(chapter, path.join(dir, entry.name), segs)
       }
     }
   }
 
-  for (const flowEntry of fs.readdirSync(root, { withFileTypes: true })) {
-    if (!flowEntry.isDirectory()) continue
-    if (isNonExistent(flowEntry.name)) {
-      results.push({ flow: flowEntry.name, relPath: '' })
+  for (const chapterEntry of fs.readdirSync(root, { withFileTypes: true })) {
+    if (!chapterEntry.isDirectory()) continue
+    if (isNonExistent(chapterEntry.name)) {
+      results.push({ chapter: chapterEntry.name, relPath: '' })
       continue
     }
-    walk(flowEntry.name, path.join(root, flowEntry.name), [])
+    walk(chapterEntry.name, path.join(root, chapterEntry.name), [])
   }
   return results
 }
@@ -480,7 +480,7 @@ export async function cmdListPages(_val, args = []) {
   const wsName = resolveWorkspace(parseStringFlag(args, 'workspace'))
   const wsDir = workspacePath(wsName)
   assertScopedWorkspaceDir(wsDir, wsName)
-  const filterFlow = parseStringFlag(args, 'chapter')
+  const filterChapters = parseStringFlag(args, 'chapter')
   // Presence-flags, consistent with the `args.includes('--flag')` convention
   // used elsewhere in this codebase (e.g. scripts/checks/index.js's --json,
   // scripts/authoring/chapters.js's --force) — no dedicated boolean-flag helper
@@ -491,29 +491,35 @@ export async function cmdListPages(_val, args = []) {
   const showGoneOnly = args.includes('--gone')
 
   const config = readWorkspaceConfig(wsDir)
-  const pageOrder = listPages(wsDir, filterFlow || undefined)
-  const flows = filterFlow ? [filterFlow] : config.chapters
+  const pageOrder = listPages(wsDir, filterChapters || undefined)
+  const chapters = filterChapters ? [filterChapters] : config.chapters
 
   // --gone is a fully separate mode: registered pageOrder has no concept of
   // non-existent items (they're excluded from config by definition), so this
   // branch never touches pageOrder at all and returns early.
   if (showGoneOnly) {
-    const gone = findGoneItems(wsDir).filter(item => !filterFlow || item.flow === filterFlow)
-    console.log(b(`Non-existent (__)  [${wsName}]${filterFlow ? ` — flow: ${filterFlow}` : ''}\n`))
+    const gone = findGoneItems(wsDir).filter(
+      item => !filterChapters || item.chapter === filterChapters
+    )
+    console.log(
+      b(`Non-existent (__)  [${wsName}]${filterChapters ? ` — chapter: ${filterChapters}` : ''}\n`)
+    )
     if (gone.length === 0) {
       console.log(d('  (none found)'))
       return
     }
     for (const item of gone) {
-      console.log(`  ${c(item.flow)}/${item.relPath ? item.relPath : d('(entire flow folder)')}`)
+      console.log(
+        `  ${c(item.chapter)}/${item.relPath ? item.relPath : d('(entire chapter folder)')}`
+      )
     }
     console.log('')
     console.log(d(`Total: ${gone.length} non-existent item${gone.length !== 1 ? 's' : ''}`))
     return
   }
 
-  if (flows.length === 0) {
-    console.log(d(`No flows in workspace '${wsName}'`))
+  if (chapters.length === 0) {
+    console.log(d(`No chapters in workspace '${wsName}'`))
     return
   }
 
@@ -525,16 +531,18 @@ export async function cmdListPages(_val, args = []) {
   // always the plain 2-level shape; a hand-authored deeper path with a hidden
   // cosmetic ancestor folder isn't reflected in pageOrder in the first place.
   const modeLabel = showAll ? ' — all tiers' : showHidden ? ' — including hidden' : ''
-  console.log(b(`Pages  [${wsName}]${filterFlow ? ` — flow: ${filterFlow}` : ''}${modeLabel}\n`))
+  console.log(
+    b(`Pages  [${wsName}]${filterChapters ? ` — chapter: ${filterChapters}` : ''}${modeLabel}\n`)
+  )
 
   let total = 0
   let hiddenTotal = 0
-  for (const flowId of flows) {
-    const pages = pageOrder[flowId] || []
+  for (const chapterId of chapters) {
+    const pages = pageOrder[chapterId] || []
     const visible = pages.filter(
       s => !isNonExistent(s) && (showAll || showHidden || !isHiddenPageId(s))
     )
-    console.log(`  ${c(flowId)}  ${d(`(${visible.length})`)}`)
+    console.log(`  ${c(chapterId)}  ${d(`(${visible.length})`)}`)
     visible.forEach((s, i) => {
       const hiddenTag = isHiddenPageId(s) ? d(' (hidden)') : ''
       console.log(`    ${d(`${i + 1}.`)} ${s}${hiddenTag}`)
@@ -546,11 +554,15 @@ export async function cmdListPages(_val, args = []) {
   }
 
   if (showAll) {
-    const gone = findGoneItems(wsDir).filter(item => !filterFlow || item.flow === filterFlow)
+    const gone = findGoneItems(wsDir).filter(
+      item => !filterChapters || item.chapter === filterChapters
+    )
     if (gone.length > 0) {
       console.log(`  ${d('Non-existent (__):')}`)
       gone.forEach(item =>
-        console.log(`    ${d(`${item.flow}/${item.relPath || '(entire flow folder)'} (gone)`)}`)
+        console.log(
+          `    ${d(`${item.chapter}/${item.relPath || '(entire chapter folder)'} (gone)`)}`
+        )
       )
       console.log('')
     }
@@ -558,7 +570,7 @@ export async function cmdListPages(_val, args = []) {
 
   console.log(
     d(
-      `Total: ${total} page${total !== 1 ? 's' : ''} across ${flows.length} flow${flows.length !== 1 ? 's' : ''}` +
+      `Total: ${total} page${total !== 1 ? 's' : ''} across ${chapters.length} chapter${chapters.length !== 1 ? 's' : ''}` +
         (hiddenTotal > 0 ? ` (${hiddenTotal} hidden)` : '')
     )
   )
@@ -568,10 +580,10 @@ export async function cmdPageInfo(_val, args = []) {
   const wsName = resolveWorkspace(parseStringFlag(args, 'workspace'))
   const wsDir = workspacePath(wsName)
   assertScopedWorkspaceDir(wsDir, wsName)
-  const flowId = parseStringFlag(args, 'chapter')
+  const chapterId = parseStringFlag(args, 'chapter')
   const pageId = parseStringFlag(args, 'name')
 
-  if (!flowId || !pageId) {
+  if (!chapterId || !pageId) {
     console.error(r('✗ --chapter:<id> and --name:<page-id> are required'))
     process.exit(1)
   }
@@ -579,11 +591,11 @@ export async function cmdPageInfo(_val, args = []) {
   // Same 2-level assumption as remove/rename/move — see comment on cmdRemovePage.
   // The real page file is found by scanning the folder (findPageFile) rather than
   // assuming an exact filename — see the comment in cmdRenamePage for why.
-  const pageDir = path.join(wsDir, FLOW_BOOK_DIRNAME, flowId, pageId)
+  const pageDir = path.join(wsDir, FLOW_BOOK_DIRNAME, chapterId, pageId)
   const found = findPageFile(pageDir)
 
   if (!found) {
-    console.error(r(`✗ No page file found: ${FLOW_BOOK_DIRNAME}/${flowId}/${pageId}/`))
+    console.error(r(`✗ No page file found: ${FLOW_BOOK_DIRNAME}/${chapterId}/${pageId}/`))
     process.exit(1)
   }
   const pageFile = path.join(pageDir, found.fileName)
@@ -595,11 +607,11 @@ export async function cmdPageInfo(_val, args = []) {
   const imports = [...src.matchAll(/^import\s+.*from\s+['"]([^'"]+)['"]/gm)].map(m => m[1])
   const defaultName = findDefaultExportName(src)
 
-  const fullPageId = makePageId(flowId, pageId)
+  const fullPageId = makePageId(chapterId, pageId)
   console.log(b(`Page: ${defaultName ?? found.fileName}\n`))
-  console.log(`  Flow:      ${flowId}`)
+  console.log(`  Chapter:   ${chapterId}`)
   console.log(`  Page ID:   ${pageId}  ${d(`(${fullPageId})`)}`)
-  console.log(`  File:      ${FLOW_BOOK_DIRNAME}/${flowId}/${pageId}/${found.fileName}`)
+  console.log(`  File:      ${FLOW_BOOK_DIRNAME}/${chapterId}/${pageId}/${found.fileName}`)
   console.log(`  Label:     ${labelMatch ? labelMatch[1] : d('(not set)')}`)
   console.log(`  Desc:      ${descMatch && descMatch[1] ? descMatch[1] : d('(not set)')}`)
   if (imports.length > 0) {
