@@ -150,7 +150,7 @@ Or use the CLI, which handles both steps and works in all three modes: `flowkit 
 
 ### Add a flowStory
 
-Drop a `.ts` file into `flowStories/` using `defineFlow()`, or run `flowkit create:flowStory --name:<flow-id>`. Run `flowkit plan:ls` to confirm it's discovered, `flowkit check:flowStories` to validate.
+Drop a `.ts` file into `flowStories/` using `defineFlow()`, or run `flowkit create:flowStory --name:<flow-id>`. Run `flowkit flowStory:ls` to confirm it's discovered, `flowkit check:flowStories` to validate.
 
 ### Add a flowStory step with a conditional fork
 
@@ -309,7 +309,7 @@ flowkit lr                           # alias for lens:report
 flowkit status          # chapters, pages, flowStories, sessions, feedback, agent
 flowkit check           # validate all authored content (pages/config/components/db/flowStories) — exits 1 on error
 flowkit check:<domain>  # validate just one domain — pages/config/components/db/flowStories
-flowkit plan:ls         # list all flowStories with file paths
+flowkit flowStory:ls    # list all flowStories with file paths
 ```
 
 All four work in every mode (repo, flat, multi-workspace).

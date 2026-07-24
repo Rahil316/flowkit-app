@@ -1,6 +1,6 @@
 // Shared per-workspace content generator — the one source of truth for demo
 // workspace content across three call sites: this repo's own `flowkit
-// create:workspace` command (scripts/platform/workspace-flat.js), and the two
+// create:workspace` command (scripts/platform/flowkit-mono.js), and the two
 // standalone scaffolder packages (create-flowkit-app, create-flowkit-workspace),
 // which import this file from their own `flowkit` devDependency at scaffold-time
 // (i.e. from node_modules/flowkit/scripts/helpers/workspace-template.js, after
@@ -82,7 +82,7 @@ const VITE_CONFIG_BUILD_BLOCK = `  build: {
  * config load (so create:workspace/remove:workspace/rename:workspace take
  * effect without hand-editing this file).
  *
- * Single source of truth for this template — both scripts/platform/workspace-flat.js
+ * Single source of truth for this template — both scripts/platform/flowkit-mono.js
  * (flowkit convert:multi, run against this monorepo's own consumer-mode helpers)
  * and packages/create-flowkit-workspace/index.js (scaffolding a brand-new project)
  * must produce byte-identical output, or a freshly scaffolded multi-workspace

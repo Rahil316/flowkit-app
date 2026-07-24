@@ -6,13 +6,48 @@ description: Command FlowKit's authoring CLI and file formats precisely — crea
 Every fact below was checked against source (file:line), not against other docs. Where this
 contradicts CLAUDE.md/README/docs/, this is the one that was re-verified — trust this file for
 CLI mechanics. Last full re-verification: 2026-07-24, after the `flow`→`chapter`, `screen`→`page`,
-and `flowplan`→`flowStory` renames were completed across `src/` and `scripts/`.
+`flowplan`→`flowStory`, and `plan:ls`/`fp:ls`→`flowStory:ls`/`fs:ls` renames were completed across
+`src/` and `scripts/`.
 
-Vocabulary: **Chapter** (a grouping of pages, formerly "Flow") and **Page** (one component
-file/folder, formerly "Screen") and **FlowStory** (an authored playback script — a distinct third
-concept, formerly "Flowplan") are the three core terms, now fully renamed and consistent across
+## Vocabulary mapping — translate the user's words before you act
+
+**Chapter** (a grouping of pages, formerly "Flow") and **Page** (one component file/folder,
+formerly "Screen") and **FlowStory** (an authored playback script — a distinct third concept,
+formerly "Flowplan") are the three core terms, now the current, correct vocabulary across
 identifiers, CLI flags, ruleIds, and file names. `FlowMaster`, `FlowLens`, and the package name
 `flowkit` are brand names, never renamed.
+
+A user will very often still say the **old** words out of habit. Translate before acting — don't
+ask them to rephrase, and don't silently do the wrong thing:
+
+| If the user says...                     | They almost certainly mean...                                             |
+| --------------------------------------- | ------------------------------------------------------------------------- |
+| "screen", "screen component"            | **page** — `flowkit create:page`, not a search for `create:screen`        |
+| "flow", "add a flow", "flow of screens" | **chapter** — `flowkit create:chapter`, `flowBook/<chapter>/`             |
+| "flowplan", "plan"                      | **flowStory** — `flowkit create:flowStory`, `flowStories/<chapter>.ts`    |
+| "project" (ambiguous — see below)       | usually **workspace**, but see the real, separate "project" concept below |
+
+**This mapping is for the user's _prose_, not for real code strings.** Some genuinely current,
+unrenamed source still contains the literal old words — do not "fix" these thinking they're
+typos:
+
+- `homeScreen` on `FlowStoryDef` (never renamed to `homePage` — see the Chapter/Workspace section).
+- The live error string `✗ pageId '<id>' not found in workspace flows` (`flowStories.js`) —
+  says "flows", not "chapters"; this is the actual current text `add:step` prints today.
+
+**One rename that DID land today (2026-07-24)**: `flowkit plan:ls` / `fp:ls` → `flowkit
+flowStory:ls` / `fs:ls` (`scripts/platform/plans.js` renamed to `flowStoryDiscovery.js`,
+`cmdPlanLs`→`cmdFlowStoryLs`). This was a breaking rename with **no back-compat alias** — old
+scripts/docs saying `plan:ls` are now wrong and must be updated to `flowStory:ls`. If you see
+`plan:ls` referenced anywhere outside `CHANGELOG.md` or a dated historical planning doc, it's
+stale — fix it, don't preserve it.
+
+- A real, separate **"project"** concept: `flowkit project:ls` (`pj:ls`) lists **projects** — a
+  legacy nested-layout concept (`projects/<proj>/flowStories/...`) that can exist _inside_ a
+  workspace, distinct from both "workspace" and "chapter". Most workspaces have zero projects and
+  you'll rarely touch this, but if a user's workspace does have one, don't conflate "project" with
+  "workspace" — they're two different nesting levels (`workspace.projects.<proj>.chapters[]` per
+  `FlowkitConfig`).
 
 ---
 
@@ -37,6 +72,29 @@ commands differ.
 active workspace in `src/workspaces.json`. In flat mode it's meaningless (there's only `cwd`). In
 multi mode it defaults to `flowkit.workspaces` object's first key.
 
+## `assertKebab()` — auto-normalizes, doesn't just reject (`scripts/helpers/validate.js`)
+
+Every `--name:`/chapter-id/page-id kebab-case requirement below is enforced by this one function
+— but "enforced" is not "hard-validated." `assertKebab(value, label)` runs `toKebab()` first
+(`scripts/helpers/strings.js`): trims whitespace, lowercases, converts underscores/spaces/stray
+punctuation to hyphens, collapses repeated separators. Only if the **normalized** result is still
+invalid does it throw. So `--name:"My Test 2"` silently becomes `my-test-2` — it does not error.
+
+Two distinct outcomes, don't conflate them:
+
+- **Input needed no correction** → returns the value unchanged, **prints nothing**.
+- **Input needed correction but is now valid** → returns the normalized value **and prints a
+  non-error notice** (`  i using '<normalized>' (normalized from '<original>')`) — this is not a
+  warning about a problem, just a heads-up that the id on disk won't match what was typed.
+- **Still invalid after normalizing** (e.g. leading digit, all-punctuation, empty) → throws
+  `ValidationError`, exact message: `${label} '${value}' must be kebab-case (e.g. sign-in)`
+  — `label` is whatever the call site passed (`'name'`, `'chapter'`, `'page name'`, `'from-chapter'`,
+  etc.), so the exact wording varies per flag but the template is fixed.
+
+Practical consequence: don't assume a `create:chapter --name:"Checkout Flow"` was rejected just
+because you typed spaces — check what actually landed in `flowBook/`, it may well be
+`checkout-flow` with a quiet notice printed, not an error.
+
 ---
 
 # Creating things
@@ -44,46 +102,50 @@ multi mode it defaults to `flowkit.workspaces` object's first key.
 ## Workspace (repo mode only)
 
 ```bash
-flowkit nw:my-app
+flowkit nw:my-app [--kit:<name>] [--empty]
 ```
 
-Scaffolds (exact file list, `scripts/helpers/scaffold.js`):
+Default scaffold content (as of the 2026-07-24 game-demo rewrite) is a full playable 7-chapter
+demo — a splash/welcome intro into a hub of 6 mini-games (Blackjack, Dice, Tic-Tac-Toe, 2048,
+Memory Match, Math Quiz) — sourced from `scripts/helpers/game-demo-scaffold.js`, the single shared
+module also used by `create:workspace`/`create-flowkit-app`/`create-flowkit-workspace`. Pass
+**`--empty`** for a bare, valid-but-minimal scaffold instead: zero chapters (`chapters: []`,
+`pageOrder: {}`), no `flowBook/`/`flowStories/` directories at all, stub `lib/data/db.ts`/
+`lib/data/simulator.tsx`. Both forms pass `flowkit check` clean immediately after scaffolding.
 
-```
-index.ts                                        # barrel, empty by default
-lib/data/db.ts                                   # mock db — named exports become db.* keys
-lib/data/simulator.tsx                           # simulator control panel for this workspace
-lib/design-system/tokens.css
-lib/docs/overview.md                             # project brief, includes CLI quick-reference
-workspace.ts                                      # defineConfig() — chapters[], pageOrder{}, startPage
-.flowkit/components.json                         # empty array — component registry
-flowStories/onboarding-flow.ts
-flowStories/home-flow.ts
-flowBook/onboarding-flow/welcome-screen/WelcomePage.tsx
-flowBook/onboarding-flow/setup-screen/SetupPage.tsx
-flowBook/onboarding-flow/ready-screen/ReadyPage.tsx
-flowBook/home-flow/home-screen/HomePage.tsx
-flowBook/home-flow/detail-screen/DetailPage.tsx
-```
+**No more `--lang:ts|js` flag** — scaffolding is TypeScript-only now (removed the same day as the
+game-demo rewrite). If you see `--lang:` referenced anywhere, it's stale.
+
+Full scaffold's exact file list (46 files under the workspace root, plus `workspace.ts`):
+`flowBook/<chapter>/<page>/<PageName>.tsx` for all 18 pages across the 7 chapters,
+`flowStories/*.ts` (5 files: `intro-flow.ts` + 4 `journey-*.ts` named playback scripts),
+`lib/game-logic/*.ts` (7 files, pure logic), `lib/components/ui/*.tsx` (10 shared components,
+pre-registered in `.flowkit/components.json`), `lib/data/db.ts`, `lib/data/simulator.tsx`,
+`lib/design-system/tokens.css`, `lib/docs/overview.md`, `index.ts`. Don't assume the old 2-chapter
+`onboarding-flow`/`home-flow` demo is still what `nw:` produces — that content was fully replaced.
 
 Note: there is no workspace-level annotation-tags sidecar file anymore (the old `flows/_tags.ts`
-is gone). Annotation badges are declared per-page via `pageMeta.annotations` instead — see the
-demo pages' commented-out example in `WelcomePage.tsx`.
+is gone). Annotation badges are declared per-page via `pageMeta.annotations` instead.
 
 Also registers the workspace in `src/workspaces.json` and runs `flowkit agent:sync` to generate
 `AGENTS.md`/`.agent/*` for the new workspace. Has rollback on failure.
 
-Demo pages import `PageMeta` from `@flowkit/types` and `useAppNav` from `@flowkit-shared/utils`
-for navigation (plus `useDashboard` from `@flowkit-shared/contexts` too, on pages that also read
-`db`) — **not** `PageProps`. They use the direct-navigation convention (see Page navigation
-conventions below), not the FlowMaster-injected-props convention. Don't assume every scaffolded
-page uses `PageProps` — the demo ones deliberately don't.
+Demo pages import `PageMeta` from `@flowkit/types` and `useAppNav`/`useDb` from
+`@flowkit-shared/utils` for navigation and live db reads/writes — **not** `PageProps`. They use
+the direct-navigation convention (see Page navigation conventions below), not the
+FlowMaster-injected-props convention. Don't assume every scaffolded page uses `PageProps` — the
+demo ones deliberately don't. This works identically in flat/multi-workspace consumer mode too —
+`@flowkit-shared/utils` resolves the same way there; there is no capability gap between modes,
+only a workspace-topology difference.
 
-`home-flow.ts` sets `homeScreen: 'home-screen'` — note this field name was **never renamed** to
-`homePage` even though everything else moved from screen/flow terminology to page/chapter. It's
-a real, currently-shipping field on `FlowStoryDef` (and on real authored content, e.g.
-`workspaces/game-zone/FlowStories/intro-flow.ts`) — don't "fix" it to `homePage`, that's not a
-typo, it's just an inconsistency nobody's addressed yet.
+`intro-flow.ts` sets `homeScreen: 'intro-flow-hub-screen'` — note this field name was **never
+renamed** to `homePage` even though everything else moved from screen/flow terminology to
+page/chapter. It's a real, currently-shipping field on `FlowStoryDef` — don't "fix" it to
+`homePage`, that's not a typo, it's just an inconsistency nobody's addressed yet. (Some other
+checked-in content, e.g. `workspaces/game-zone/FlowStories/intro-flow.ts`, uses bare instead of
+composite `pageId`s for this same field and elsewhere — that's a separate, known-broken
+inconsistency in that specific workspace's content, not something to imitate; see the Forks
+section below for why bare ids silently fail at runtime.)
 
 ## Chapter
 
@@ -91,7 +153,8 @@ typo, it's just an inconsistency nobody's addressed yet.
 flowkit create:chapter --name:checkout [--workspace:<name>]
 ```
 
-`--name:` required, kebab-case (enforced by `assertKebab`) — prompts interactively if omitted.
+`--name:` required, kebab-case (auto-normalized by `assertKebab()` — see above) — prompts
+interactively if omitted.
 Creates `flowBook/<name>/` and registers it in `workspace.ts`'s `chapters[]` + initializes
 `pageOrder[name] = []` (`scripts/authoring/chapters.js`).
 
@@ -118,10 +181,11 @@ flowkit create:page --chapter:checkout --name:payment-form [--label:"Payment For
 ```
 
 **The flag is `--chapter:`, not `--flow:`** (`scripts/authoring/pages.js` — `parseStringFlag(args,
-'chapter')`). `--chapter:` and `--name:` required (both kebab-case). `--label:` optional, defaults
-to title-cased name. Error: `✗ --chapter:<chapter-id> and --name:<page-id> are required`. Fails if
-the chapter doesn't exist yet (`✗ Chapter '<id>' not found in workspace '<ws>'`) or the page id is
-already taken anywhere in the workspace (`✗ Page '<id>' already exists in workspace '<ws>'`).
+'chapter')`). `--chapter:` and `--name:` required (both auto-normalized to kebab-case — see
+`assertKebab()` above). `--label:` optional, defaults to title-cased name. Error: `✗
+--chapter:<chapter-id> and --name:<page-id> are required`. Fails if the chapter doesn't exist yet
+(`✗ Chapter '<id>' not found in workspace '<ws>'`) or the page id is already taken anywhere in the
+workspace (`✗ Page '<id>' already exists in workspace '<ws>'`).
 
 **Exact output path**: `flowBook/<chapterId>/<pageId>/<PascalName>Page.{tsx|jsx}` — one directory
 per page. The generated filename/function name is suffixed `Page` as the CLI's own convention
@@ -189,6 +253,13 @@ rename, and `pageOrder` update are all reverted together if any step throws).
 page-authoring command that had kept the old `flow` flag name); that was a breaking rename, not
 a back-compat alias — old `--from-flow:`/`--to-flow:` scripts must be updated.
 
+`rename:page` also checks the **new** id isn't already taken elsewhere in the workspace before
+touching anything: `✗ Page '<newId>' already exists in workspace '<ws>'`. `move:page` has two of
+its own guards, both easy to miss: same-chapter no-op (`✗ Page '<id>' is already in chapter
+'<fromChapter>'`) and a missing-destination check (`✗ Destination chapter '<toChapter>' directory
+not found`, with a `Create it first: flowkit create:chapter --name:<toChapter>` hint) — `move:page`
+does **not** create the destination chapter for you.
+
 ### Removing a page
 
 ```bash
@@ -232,6 +303,39 @@ warning naming the winner and the losers, with `requiresAcknowledgment: true` (s
 boxed section of the printed report, but never counts toward `errorCount` — never blocks the
 build).
 
+### Page variants (A/B naming convention) — parseable, but don't recommend this as a real feature
+
+`pagePathIdentity.js`'s `parseVariant()` recognizes a suffix on the filename stem —
+`WelcomePage.variant-red-theme.tsx` or the shorthand `WelcomePage.v-red-theme.tsx` — and splits it
+into `{ componentName: 'WelcomePage', variant: 'red-theme' }` (no suffix → `variant: 'default'`).
+This is real, working parsing logic, unit-tested, and it genuinely does more than just parse:
+
+- **Repo mode**: `useWorkspaceHierarchy.ts` groups every file in a page folder by variant, attaches
+  them as a `variants[]` array on the page's `WireframeView`, and the Screens-tab UI
+  (`PagesHierarchy.tsx`) shows a real variant picker (an "Nᵥ" badge + expandable list) when more
+  than one exists. `pageMeta.variantLabel`/`variantOrder` control the picker's display label/order.
+  Switching variants in the picker actually re-renders `PreviewCanvas` with the chosen component.
+- **Flat/multi-workspace consumer mode is broken for this feature.** `scripts/helpers/vite-plugin.js`'s
+  `genScreens()` drops the `variant` field before it reaches `virtual:flowkit/pages` — every
+  variant file becomes a separate, colliding page with the _same_ page id instead of being grouped,
+  so this only works correctly in repo mode.
+- **`flowkit check:pages` actively misfires on a legitimately-authored variant.** It groups
+  candidate files by `${chapter}::${page}` only — `variant` is not part of that key — so a base
+  file plus its variant sitting in the same folder look like 2+ ambiguous candidates. You'll get a
+  spurious `page/ambiguous-folder` warning, and the variant file's own `pageMeta` never gets
+  checked at all (only the "winning" file does).
+- **No CLI support whatsoever.** `create:page` has no `--variant:` flag; there's no scaffolding,
+  no template. Authoring a variant is a fully manual "create the file yourself with the right
+  suffix" convention.
+- **Zero real usage anywhere in this repo.** No workspace (`test`, `game-zone`, or otherwise) has
+  ever actually authored a variant file — this has never been dogfooded.
+
+**Don't present this to a user as a ready-to-use A/B-testing feature.** If asked to build A/B page
+variants, be upfront: it half-works in repo mode only, has no CLI support, and will trip a false
+`page/ambiguous-folder` warning the moment you use it. If the user's workspace is flat/multi-mode
+(the common case for anyone using the published `flowkit` package), this convention doesn't work
+at all today — don't recommend it there.
+
 ## FlowStory
 
 ```bash
@@ -248,6 +352,32 @@ flowkit remove:flowStory --name:checkout-flow --force [--workspace:<name>]
 ```
 
 `--force` is required — without it: `✗ Add --force to confirm deletion of flowStories/<id>.ts`.
+
+```bash
+flowkit flowStory:ls [--project:<slug>] [--workspace:<name>]
+flowkit fs:ls [--project:<slug>] [--workspace:<name>]
+```
+
+Read-only discovery — lists every flowStory in the workspace (name + file path), no required
+flags (`scripts/platform/flowStoryDiscovery.js`, formerly `plans.js` — renamed 2026-07-24 along
+with the command itself, see the vocabulary section above). Checks the flat layout
+(`flowStories/*.ts`) first; only falls back to the legacy nested `projects/<proj>/flowStories/`
+layout if the flat directory is empty or absent. `--project:<slug>` scopes to one legacy project;
+omit it to search all of them. This is discovery only — it doesn't validate anything; use
+`flowkit check:flowStories` for that.
+
+```bash
+flowkit project:ls [--workspace:<name>]
+flowkit pj:ls [--workspace:<name>]
+```
+
+Lists the workspace's **projects** — a legacy nested-layout concept
+(`projects/<proj>/flowStories/...`), distinct from both "workspace" and "chapter" (see the
+vocabulary section above). Most workspaces have none; in that case it reports the flat-layout
+flowStory count instead of an empty list (`Flat workspace — no projects layer. N flowStories in
+flowStories/`). Both `flowStory:ls`/`fs:ls` and `project:ls`/`pj:ls` accept `--workspace:` the
+normal way — this wasn't true before 2026-07-24 (both previously only accepted a colon-chained
+workspace name, undocumented and inconsistent with every other command; fixed alongside the rename).
 
 ## Component
 
@@ -576,9 +706,11 @@ Domains map to `scripts/checks/index.js`'s `DOMAINS` table exactly: `pages`, `co
 `npm run build`.
 
 `--json` output shape (verified live against a clean workspace):
+
 ```json
 { "workspace": "<name>", "errors": 0, "warnings": 0, "results": [], "requiresAcknowledgment": [] }
 ```
+
 `results` is the flat findings array (each with `ruleId`/`severity`/`file`/`message`/`fix`?/
 `clifix`?); `requiresAcknowledgment` is a separate, filtered array containing only the findings
 that also have `requiresAcknowledgment: true` — i.e. `page/ambiguous-folder` findings appear in
@@ -593,6 +725,7 @@ Every ruleId, its severity, and whether it requires acknowledgment (verified dir
 | `page/no-default-export`         | error    | —                      |
 | `page/missing-meta`              | error    | —                      |
 | `page/meta-id-mismatch`          | error    | —                      |
+| `page/meta-missing-label`        | warning  | —                      |
 | `config/chapter-mismatch`        | error    | —                      |
 | `config/empty-chapter`           | warning  | —                      |
 | `config/orphaned-id`             | error    | —                      |
@@ -617,6 +750,11 @@ component isn't exported from its barrel) are easy to miss if you're going from 
 aren't in most people's mental model of the 5 domains, but they're real, separate ruleIds from
 `components/stale-registry`/`components/unregistered`.
 
+`page/meta-missing-label` is distinct from `page/missing-meta` — don't conflate the two.
+`page/missing-meta` (error) fires when a page has **no `pageMeta` export at all**;
+`page/meta-missing-label` (warning) fires when `pageMeta` **exists but has no `label` field**. A
+page can trip one, the other, or neither, never both at once.
+
 `flowStory/invalid-page`'s message spells out the expectation directly: `step[<i>]'s pageId '<id>'
 is not a real page in this workspace. Expected the 'chapter-page' composite id form (see
 makePageId).` — i.e. this check is exactly what catches a flowStory step written with a bare
@@ -639,6 +777,8 @@ instead of composite pageId.
 | `page:info`        | `--chapter:`, `--name:`                            | `--workspace:`                                              |
 | `create:flowStory` | `--name:`                                          | `--workspace:`                                              |
 | `remove:flowStory` | `--name:`, `--force`                               | `--workspace:`                                              |
+| `flowStory:ls`     | —                                                  | `--project:`, `--workspace:`                                |
+| `project:ls`       | —                                                  | `--workspace:`                                              |
 | `add:step`         | `--flowStory:`, `--page:`                          | `--on:`, `--action:`, `--position:`, `--workspace:`         |
 | `remove:step`      | `--flowStory:`, `--index:`                         | `--workspace:`                                              |
 | `list:steps`       | `--flowStory:`                                     | `--workspace:`                                              |
@@ -737,7 +877,9 @@ import directly for identity parsing — never reimplemented per-caller.
 - `resolveVisibility(segments)` — parent-dominance: any `__` anywhere → `'non-existent'`; else any
   `_` anywhere → `'hidden'`; else `'normal'`.
 - `parseVariant(stem)` — accepts both `.variant-<serial>` and shorthand `.v-<serial>`, greedy
-  serial capture (a serial itself containing hyphens, e.g. `red-theme`, parses correctly).
+  serial capture (a serial itself containing hyphens, e.g. `red-theme`, parses correctly). See
+  "Page variants" under the Page section above for what actually consumes this (repo mode only,
+  broken in flat/multi-workspace mode, no CLI support) — don't treat this as a finished feature.
 - `parsePageSegments(segments)` — core parser. Returns `null` if the file doesn't have a
   `.tsx`/`.jsx` extension. Otherwise `{ chapter, page, variant, componentName, visibility,
 cosmeticSegments }`. Zero-folder case (`flowBook/File.tsx`) falls back to `chapter: 'misc'`

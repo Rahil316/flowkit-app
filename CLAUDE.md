@@ -189,15 +189,15 @@ npm run dev
 - `flowkit handoff` — developer handoff zip
 - `flowkit sessions:ls/import/export/check/stats/sample/rm/brief/purge/report` — session management; `sessions:study:new/ls/archive/active` manages FlowLens studies
 - `flowkit lens:report` — export FlowLens analytics JSON
-- `flowkit plan:ls` — flowStory discovery (short alias `fp:ls`); validation is `flowkit check:flowStories` (see below)
+- `flowkit flowStory:ls` — flowStory discovery (short alias `fs:ls`); validation is `flowkit check:flowStories` (see below). Renamed 2026-07-24 from `plan:ls`/`fp:ls` — a breaking change, no back-compat alias
 - `flowkit check` / `flowkit check:<domain>` — domain-specific linter for authored content (pages/config/components/db/flowStories); `--json` flag; `check:flowStories` is the prebuild gate; works in every mode
 - `flowkit project:ls` — list projects (short alias `pj:ls`)
 - `flowkit feedback:ls/import/dump` — feedback management
 - `flowkit agent:sync` — agent spec sync
-- `flowkit create/remove/list/rename/move/add/page/flowStory/components/promote:chapter` — lower-level scaffolding sub-verbs used internally by `nw`/other commands (router.js) — prefer the higher-level commands above unless you need fine-grained control. Work correctly in repo, flat, and multi-workspace consumer mode; accept `--workspace:<name>` to target a non-default workspace in multi-workspace mode (default: the first entry, by key order, in `flowkit.workspaces`)
+- `flowkit create/remove/list/rename/move/add/page/flowStory/components/promote:chapter` — lower-level scaffolding sub-verbs used internally by `nw`/other commands (dispatcher.js) — prefer the higher-level commands above unless you need fine-grained control. Work correctly in repo, flat, and multi-workspace consumer mode; accept `--workspace:<name>` to target a non-default workspace in multi-workspace mode (default: the first entry, by key order, in `flowkit.workspaces`)
 - `flowkit convert:multi [--name:<id>]` — convert a flat-mode consumer project to multi-workspace mode — **flat/multi consumer mode only**
 - `flowkit convert:flat [--from:<id>] [--all]` — collapse a multi-workspace consumer project back to flat mode — **flat/multi consumer mode only**
-- `flowkit create:workspace [--name:<id>] [--empty]` / `remove:workspace [--name:<id>]` / `rename:workspace <old> <new>` — add/remove/rename a workspace in a multi-workspace consumer project (`scripts/platform/workspace-flat.js`) — **flat/multi consumer mode only**, distinct from repo-mode's `nw`/`rw`
+- `flowkit create:workspace [--name:<id>] [--empty]` / `remove:workspace [--name:<id>]` / `rename:workspace <old> <new>` — add/remove/rename a workspace in a multi-workspace consumer project (`scripts/platform/flowkit-mono.js`) — **flat/multi consumer mode only**, distinct from this monorepo's own `nw`/`rw` (`scripts/platform/flowkit-engine.js`)
 
 ---
 
@@ -220,27 +220,27 @@ is a future task, not currently implemented.
 
 ## Canvas Keyboard Shortcuts
 
-| Shortcut              | Action                                                  |
-| --------------------- | ------------------------------------------------------- |
-| `Cmd =` / `Cmd -`     | Zoom in / out                                           |
-| `Cmd 0`               | Reset to 100% zoom                                      |
-| `Cmd Shift 0`         | Toggle keep-fit                                         |
-| `0`                   | Toggle keep-fit                                         |
-| `F`                   | Toggle fullscreen                                       |
-| `\`                   | Toggle orientation                                      |
+| Shortcut              | Action                                                   |
+| --------------------- | -------------------------------------------------------- |
+| `Cmd =` / `Cmd -`     | Zoom in / out                                            |
+| `Cmd 0`               | Reset to 100% zoom                                       |
+| `Cmd Shift 0`         | Toggle keep-fit                                          |
+| `0`                   | Toggle keep-fit                                          |
+| `F`                   | Toggle fullscreen                                        |
+| `\`                   | Toggle orientation                                       |
 | `R`                   | Restart flowStory (if gating) else reset to first screen |
-| `Escape`              | Exit fullscreen                                         |
-| `←` / `→`             | Navigate pages                                          |
-| `Shift ←` / `Shift →` | Navigate chapters                                       |
-| `Shift 1–9`           | Switch right panel tabs                                 |
-| `Shift ,` / `Shift .` | Prev / next sub-tab of active right panel tab           |
-| `Alt 1–N`             | Jump to left-panel tab by position                      |
-| `Shift F`             | Focus screen search                                     |
-| `Shift S`             | Toggle Screens ↔ Flow Map                               |
-| `Shift G`             | Go-To overlay                                           |
-| `Cmd /`               | Action Center                                           |
-| `Cmd Shift /`         | Help                                                    |
-| `Cmd Alt Shift P`     | Toggle canvas ↔ preview mode                            |
+| `Escape`              | Exit fullscreen                                          |
+| `←` / `→`             | Navigate pages                                           |
+| `Shift ←` / `Shift →` | Navigate chapters                                        |
+| `Shift 1–9`           | Switch right panel tabs                                  |
+| `Shift ,` / `Shift .` | Prev / next sub-tab of active right panel tab            |
+| `Alt 1–N`             | Jump to left-panel tab by position                       |
+| `Shift F`             | Focus screen search                                      |
+| `Shift S`             | Toggle Screens ↔ Flow Map                                |
+| `Shift G`             | Go-To overlay                                            |
+| `Cmd /`               | Action Center                                            |
+| `Cmd Shift /`         | Help                                                     |
+| `Cmd Alt Shift P`     | Toggle canvas ↔ preview mode                             |
 
 > Source of truth: `src/core/shortcuts/useKeyboardShortcuts.ts`. There is no dedicated "enter flowStory playback" key — playback starts from the UI.
 
@@ -276,7 +276,7 @@ FlowKit ships three ways from one repo — every path in `scripts/helpers/` and 
 
 - **Repo mode** (this checkout) — `workspaces/<name>/` holds author content; multiple workspaces coexist, switched via browser UI.
 - **Flat mode** — consumer scaffolds via `create-flowkit-app`, gets `flowkit` installed into `node_modules/`; no `workspaces/` dir, one implicit workspace at the project root.
-- **Multi-workspace (standalone) mode** — consumer scaffolds via `create-flowkit-workspace`, gets multiple sibling workspace folders at project root (not nested under `workspaces/`). Mode and workspace list are declared explicitly in the consumer's `package.json` under a `flowkit` key (`{ mode: "multi", workspaces: [...] }`) — see `scripts/helpers/flowkit-manifest.js`. Convert between flat and multi via `flowkit convert:multi` / `flowkit convert:flat`; add/remove/rename workspaces via `flowkit create:workspace` / `remove:workspace` / `rename:workspace` (all in `scripts/platform/workspace-flat.js`, distinct from the repo-mode-only `nw`/`rw`/`watch` in `scripts/platform/workspace.js`).
+- **Multi-workspace (standalone) mode** — consumer scaffolds via `create-flowkit-workspace`, gets multiple sibling workspace folders at project root (not nested under `workspaces/`). Mode and workspace list are declared explicitly in the consumer's `package.json` under a `flowkit` key (`{ mode: "multi", workspaces: [...] }`) — see `scripts/helpers/flowkit-manifest.js`. Convert between flat and multi via `flowkit convert:multi` (`scripts/platform/flowkit-mono.js`) / `flowkit convert:flat` (`scripts/platform/flowkit-app.js`); add/remove/rename workspaces via `flowkit create:workspace` / `remove:workspace` / `rename:workspace` (all in `flowkit-mono.js`), distinct from this monorepo's own internal-dev-only `nw`/`rw`/`watch` in `scripts/platform/flowkit-engine.js`. Shared move/rename primitives for both consumer-mode files live in `scripts/platform/workspace-consumer-shared.js`.
 
 Rationale for flat/multi-workspace mode generally: `node_modules/` gives universal, convention-based blindness so AI coding agents/editors don't wander into platform internals (`src/core`, `src/features`, `src/shared`) unprompted.
 
@@ -286,7 +286,7 @@ Rationale for flat/multi-workspace mode generally: `node_modules/` gives univers
 - **`scripts/helpers/vite-plugin.js`** (exported as `flowkit/vite`) is what makes flat/multi-workspace mode work at dev-server time — it generates virtual modules (`virtual:flowkit/config|pages|flowStories|workspace`) that replace `import.meta.glob` patterns hardcoding `workspaces/<name>/...`, reconstructing the same data from `flowkit.config.ts` (bundled via esbuild) + filesystem globs from `cwd()` instead. Handles HMR via full-reload. The plugin takes two independent options: `workspaceRoot` (which folder to read `flowkit.config.ts`/`flowBook`/`flowStories`/`lib` from) and `standalone` (whether the plugin itself must supply `@flowkit`/`@core`/etc. aliases, vs. a host `vite.config.ts` already supplying them). Repo mode passes `workspaceRoot` only (its own `vite.config.ts` supplies aliases); multi-workspace standalone mode passes both `workspaceRoot` **and** `standalone: true` (no host config exists to supply aliases). Conflating these two options into one flag was a real bug — fixed 2026-07-10 — see `scripts/helpers/vite-plugin.js`'s `config()` for the current split.
 - **`scripts/authoring-support/config-patch.js`'s `writeConfig()` must preserve the existing `flowkit.config.ts` import line, not hardcode one.** Repo mode imports `defineConfig` from `@platform/core/config`; flat/standalone mode imports it from the published `flowkit` package. Hardcoding either breaks the other mode's build the next time any authoring command (`create:chapter`, `create:page`, etc.) mutates the file. Fixed 2026-07-10 by capturing the import line into `config._importLine` on read and reusing it on write.
 - **`scripts/helpers/paths.js`'s `workspacePath()`/`getActiveWorkspaceName()` must resolve against `flowkit.workspaces` in multi-workspace mode**, not just branch on repo-mode-vs-not. Without this, every authoring command run from a multi-workspace project's root silently resolved to root itself, never a named workspace subfolder. Fixed 2026-07-10 — both functions now consult `scripts/helpers/flowkit-manifest.js`'s `readFlowkitManifest()`/`isMultiMode()` and default to `flowkit.workspaces[0]` when no `--workspace:<name>` flag is given (matching the same "first entry" convention the generated `vite.config.ts` uses).
-- **`flowkit convert:multi`/`convert:flat` must rewrite `vite.config.ts`, not just move files.** The two templates (flat: bare `flowkit()`; multi: `flowkit({ workspaceRoot, standalone: true })` reading `package.json`'s `flowkit.workspaces[0]`) are written by `writeFlatViteConfig()`/`writeMultiViteConfig()` in `scripts/platform/workspace-flat.js` — keep in sync with the literal templates in `packages/create-flowkit-app/index.js` and `packages/create-flowkit-workspace/index.js` if either changes. Omitting this step was a real bug — the build succeeded but silently produced an empty bundle (no workspace content) — fixed 2026-07-10.
+- **`flowkit convert:multi`/`convert:flat` must rewrite `vite.config.ts`, not just move files.** The two templates (flat: bare `flowkit()`; multi: `flowkit({ workspaceRoot, standalone: true })` reading `package.json`'s `flowkit.workspaces[0]`) are written by `writeFlatViteConfig()` (`scripts/platform/flowkit-app.js`) / `writeMultiViteConfig()` (`scripts/platform/flowkit-mono.js`) — keep in sync with the literal templates in `packages/create-flowkit-app/index.js` and `packages/create-flowkit-workspace/index.js` if either changes. Omitting this step was a real bug — the build succeeded but silently produced an empty bundle (no workspace content) — fixed 2026-07-10.
 - **`packages/create-flowkit-app/`** and **`packages/create-flowkit-workspace/`** are real, working scaffolders (not stubs). Both import their shared per-workspace content generator (`scripts/helpers/workspace-template.js` — the one shared source of truth also used by `flowkit create:workspace`) dynamically from their own `flowkit` devDependency, **after** `npm install` completes, not at their own top level — neither scaffolder package may depend on the monorepo directly (`scripts/` isn't part of either scaffolder's own tarball). Both also support `--local-dev` / `FLOWKIT_LOCAL_DEV=1`, gated on the repo marker, for testing against this checkout instead of a published version.
 
 ### What's actually done vs. not, toward publish
@@ -316,6 +316,8 @@ See [Documentation/product/vision/VISION.md](Documentation/product/vision/VISION
 - **`flowkit add:step`/`remove:step` now refuse to rewrite a flowStory containing `forks`** (fixed 2026-07-15) instead of silently corrupting it — `rewriteSteps()` in `scripts/authoring/flowStories.js` checks for `forks` on any step before rewriting and throws with a pointer to hand-editing or `promote:chapter`. Previously: `formatStep()` has no serialization path for `forks`, and the non-greedy `steps: [...]` regex only matches to the first `]`, so either would have dropped fork data or written a malformed array with no warning. Regression coverage: `scripts/tests/flowStory-steps-cli.test.js` (Suite F, wired into `npm run test:workspace`).
 - **Bare vs. composite page ids — don't conflate them.** Since the `flows/`→`flowBook/` / `flowplans/`→`flowStories/` folder rename (see `src/shared/utils/pagePathIdentity.js`), the registered page id is a **composite** `${flowId}-${pageId}` (collision-proof across chapters) — flowStory step `pageId` values and any other cross-chapter reference use this composite form. `workspace.ts`'s `pageOrder` map is the one exception: it stays **bare**, since that map is already chapter-scoped by its own outer key (`pageOrder['onboarding-flow'] = ['welcome-screen', ...]`). Writing a bare id into a flowStory step, or a composite id into `pageOrder`, won't throw — it just silently fails to resolve. Some checked-in demo content (`workspaces/game-zone/FlowStories/*.ts`) still uses bare ids and is currently broken as a result (fails `check:flowStories`, stalls at runtime) — known, unresolved, don't imitate it.
 - **`_`/`__` filename-prefix visibility system** (see `pagePathIdentity.js`) — a single `_` prefix on a file/folder segment means **Hidden** (still fully parsed/compiled/checked/playable/referenceable, just excluded from the default Screens-tab browsing UI); a double `__` prefix means **non-existent** (excluded from everything — parsing, checks, flowStory reference resolution, `flowkit status` counts). Parent-dominance applies: any `__` ancestor makes the whole subtree non-existent regardless of what's inside; otherwise any `_` ancestor makes it hidden. `flowkit list:pages --gone` is the only listing mode that can find non-existent items, since they're excluded from `workspace.ts` by definition. Page folders can also nest to any depth now (only the first and last path segments count for identity — everything in between is cosmetic), and 2+ ambiguous candidate files in one page folder resolve to the alphabetically-first one plus a non-blocking `page/ambiguous-folder` warning from `flowkit check:pages`.
+- **`as SomeType[]` force-casts on hardcoded arrays bypass TypeScript entirely — a real crash came from exactly this.** `KitSideExplorer.tsx`'s mobile/`bare` render branch had `(['screens', 'flows'] as LeftTab[]).map(...)` indexing into `LEFT_TAB_META`, whose real keys are `'screens'`/`'chapters'` — `LEFT_TAB_META['flows']` was `undefined`, so `.icon` on it threw at render time on every mobile-canvas load. The `as LeftTab[]` cast suppressed the compiler catching the literal `'flows'` typo. Fixed 2026-07-24 (`'flows'` → `'chapters'`) — if you see another hardcoded `[...] as SomeUnionType[]` pattern anywhere, verify each literal against the real union/object keys by hand; the cast means `tsc` won't do it for you.
+- **`scripts/platform/agent-spec.js` (the single-source spec that renders every workspace's `.agent/*.md` + `AGENTS.md` via `flowkit agent:sync`) was substantially rewritten 2026-07-24** — it previously described stale/wrong APIs (`PageProps.flowState` instead of the real `state`, a nonexistent authored `interactions` map on flowStory steps, wrong simulator import path, wrong FlowLens gating path, missing `useDb().reset()`/`useTheme().scale`, `check:screens`/`list:screens` instead of `check:pages`/`list:pages`) on top of leftover flow/screen terminology. `scripts/platform/agent-sync.js` also had three separate hardcoded stale template strings (in `renderPlatform`/`renderMemory`/`renderProjectStub`) independent of the spec data — fixed alongside it. If a workspace's generated `AGENTS.md` still reads like the old wording, re-run `flowkit agent:sync`.
 
 ---
 

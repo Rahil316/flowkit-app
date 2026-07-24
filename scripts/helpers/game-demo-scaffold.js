@@ -59,7 +59,7 @@ lib/
 
 Each page lives in its own folder under its chapter (\`flowBook/<chapter>/<page>/\`),
 one \`.tsx\` file per folder, matching the platform's own convention — this is
-what lets \`flowkit check\`/\`plan:ls\` discover pages and flowStory \`pageId\`s
+what lets \`flowkit check\`/\`flowStory:ls\` discover pages and flowStory \`pageId\`s
 by folder name. Pages import shared code via the \`@workspace/lib/...\` alias,
 never relative \`../../\` paths, and only ever import \`@flowkit/*\` (read-only
 platform types) or plain React — \`db\`/\`navigateTo\` are pulled in via hooks

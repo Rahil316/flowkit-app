@@ -132,13 +132,13 @@ stubs. Still a fully valid, buildable workspace — `flowkit check` passes clean
 
 **Optional flags:**
 
-| Flag                  | Description                                                                          |
-| --------------------- | ------------------------------------------------------------------------------------ |
-| `--kit:apple`         | iOS HIG style — system blue, SF Pro, soft surfaces, generous radii                   |
-| `--kit:material`      | Material Design 3 — purple brand, Roboto, tonal surfaces                             |
-| `--kit:neo-brutalism` | Sharp edges, black borders, hard offset shadows                                      |
-| `--kit:none`          | No kit — base structural styles only (default)                                       |
-| `--empty`             | Bare scaffold — no demo chapters/pages/flowStories/components                        |
+| Flag                  | Description                                                        |
+| --------------------- | ------------------------------------------------------------------ |
+| `--kit:apple`         | iOS HIG style — system blue, SF Pro, soft surfaces, generous radii |
+| `--kit:material`      | Material Design 3 — purple brand, Roboto, tonal surfaces           |
+| `--kit:neo-brutalism` | Sharp edges, black borders, hard offset shadows                    |
+| `--kit:none`          | No kit — base structural styles only (default)                     |
+| `--empty`             | Bare scaffold — no demo chapters/pages/flowStories/components      |
 
 Kits are applied via the `@flowkit-kit` CSS alias — no files are copied into the workspace. The selected kit is stored in `src/workspaces.ts` and applied as a `data-kit` attribute on the preview canvas at runtime.
 
@@ -315,7 +315,7 @@ Multi-workspace mode only. Renames the folder and updates `flowkit.workspaces` i
 
 FlowStories are TypeScript files that define scripted journeys with conditional forks, db patches, and action notes. They are compiled at runtime by `compileFlowStory.ts`.
 
-**Storage location:** `workspaces/<ws>/flowStories/<Name>.ts` (repo mode) or `flowStories/<Name>.ts` at the workspace root (consumer mode — flat: project root; multi-workspace: inside the workspace's own folder). (Directory renamed from `flowplans/` — the `plan:ls`/`fp:ls` verbs keep their existing spelling, but the check domain was itself renamed from `check:flowplans` to `check:flowStories`.)
+**Storage location:** `workspaces/<ws>/flowStories/<Name>.ts` (repo mode) or `flowStories/<Name>.ts` at the workspace root (consumer mode — flat: project root; multi-workspace: inside the workspace's own folder). (Directory renamed from `flowplans/`; the check domain was renamed from `check:flowplans` to `check:flowStories`; the discovery verb itself was renamed 2026-07-24 from `plan:ls`/`fp:ls` to `flowStory:ls`/`fs:ls` — a breaking change, no back-compat alias.)
 
 ### FlowStory anatomy
 
@@ -401,13 +401,13 @@ export default defineFlow({
 
 **Fork fields:** `label`, `db` (condition patch), `steps`, `mergesTo: "next"` (rejoin) or omit (terminal).
 
-**Plan composition:** `{ ref: "plan-id" }` inlines another plan's steps at that position. The referenced plan's screen ids are namespaced as `plan-id::screen-id` to avoid collisions.
+**FlowStory composition:** `{ ref: "flowStory-id" }` inlines another flowStory's steps at that position. The referenced flowStory's page ids are namespaced as `flowStory-id::page-id` to avoid collisions.
 
-### `plan:ls` / `fp:ls` — List flowStories
+### `flowStory:ls` / `fs:ls` — List flowStories
 
 ```bash
-flowkit plan:ls
-flowkit fp:ls
+flowkit flowStory:ls
+flowkit fs:ls
 ```
 
 Lists all flowStories in the workspace. Shows: name, file path.
@@ -1055,9 +1055,9 @@ Commands grouped by item type. Click the heading to jump to the full section.
 
 ### [FlowStories](#flowstories)
 
-| Command   | Alias   | Description      |
-| --------- | ------- | ---------------- |
-| `plan:ls` | `fp:ls` | List flowStories |
+| Command        | Alias   | Description      |
+| -------------- | ------- | ---------------- |
+| `flowStory:ls` | `fs:ls` | List flowStories |
 
 ### [Check](#check)
 

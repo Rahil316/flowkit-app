@@ -178,7 +178,7 @@ export default defineConfig({
   build: {
     rollupOptions: {
       onwarn(warning, defaultHandler) {
-        // Screens are both statically listed (for eager type-checking) and
+        // Pages are both statically listed (for eager type-checking) and
         // dynamically imported (for code-splitting) by the virtual:flowkit/pages
         // module flowkit/vite generates — harmless by design, not a real issue.
         if (warning.code === 'INEFFECTIVE_DYNAMIC_IMPORT') return
@@ -262,7 +262,7 @@ guessing from adjacent code.
 
 ## Project layout
 
-- \`${FLOW_BOOK_DIRNAME}/<flow>/<page-id>/<PageName>.tsx\` — one component per page, default-exports
+- \`${FLOW_BOOK_DIRNAME}/<chapter>/<page-id>/<PageName>.tsx\` — one component per page, default-exports
   the page and a named \`pageMeta\` (\`{ label, desc? }\`, optional \`canEnter\`:
   \`({ db }) => boolean\`, \`tags?\`, \`isStandalone?\`). The scaffolded demo pages call
   \`useAppNav()\` (from \`'flowkit'\`) for navigation — \`const { navigateTo } = useAppNav();
@@ -274,7 +274,7 @@ guessing from adjacent code.
   \`onBack?\`, \`isChapter?\`, \`db?\`) still exists and is injected during flow playback for
   pages that prefer that convention instead — pick one convention per page, don't mix
   \`useAppNav()\`'s \`navigateTo\` and an unguarded \`onAction\` call on the same element.
-- \`${FLOW_STORIES_DIRNAME}/<flow>.ts\` — playback scripts authored with \`defineFlow()\` from \`'flowkit'\`:
+- \`${FLOW_STORIES_DIRNAME}/<chapter>.ts\` — playback scripts authored with \`defineFlow()\` from \`'flowkit'\`:
   an ordered \`steps[]\` of \`{ pageId, on?, actionNote? }\` (\`on\` matches a DOM element id
   in the page, wired via event delegation — no \`onClick\` needed on that element for the
   step to advance, though the scaffolded demo pages also wire an explicit \`onClick\` via
@@ -288,8 +288,8 @@ guessing from adjacent code.
   live without touching code.
 - \`lib/design-system/tokens.css\` — CSS custom properties for theming, additive on top of
   the platform's own \`bg-theme-*\`/\`text-theme-*\` Tailwind classes.
-- \`${WORKSPACE_CONFIG_FILENAME}\` — the manifest (\`defineConfig()\` from \`'flowkit'\`): flow/page
-  ordering, \`startPage\`, \`defaultDevice\`/\`defaultOrientation\`. Check this first when a flow
+- \`${WORKSPACE_CONFIG_FILENAME}\` — the manifest (\`defineConfig()\` from \`'flowkit'\`): chapter/page
+  ordering, \`startPage\`, \`defaultDevice\`/\`defaultOrientation\`. Check this first when a chapter
   or page seems "missing" from the UI — it's usually an ordering/registration issue here,
   not a bug in the page itself.
 
@@ -319,7 +319,7 @@ the live, always-current command list for this project's exact mode. \`docs/CLI.
 fuller written reference.
 
 \`\`\`
-npx flowkit status                              # flow/page/flowStory/session health snapshot
+npx flowkit status                              # chapter/page/flowStory/session health snapshot
 npx flowkit check                               # validate all authored content, exits 1 on error
 npx flowkit create:page --chapter:<id> --name:<page-id>
 npx flowkit add:step --flowStory:<id> --page:<page-id> [--on:<element-id>]
@@ -343,7 +343,7 @@ a common task — check here before improvising.
 - **NEVER** import \`lib/data/db.ts\`'s exports directly into a page to read or write live
   state — that file is the *initial* seed only. Use \`useDb()\` (\`get\`/\`set\`/\`update\`/\`has\`/
   \`remove\`) for anything at runtime.
-- **NEVER** hand-write a new flow/page file from scratch — copy an existing page's
+- **NEVER** hand-write a new chapter/page file from scratch — copy an existing page's
   boilerplate (or use \`flowkit create:page\`) so exports stay consistent with what the
   Vite plugin expects.
 - **NEVER** hardcode hex colors — use \`lib/design-system/tokens.css\` vars.
@@ -352,7 +352,7 @@ a common task — check here before improvising.
 - **NEVER** mix \`useAppNav()\`'s \`navigateTo\` and an unguarded \`onAction\`/\`PageProps\` call
   as two navigation paths on the same element — pick one convention per page.
 - **ALWAYS** optional-chain \`onAction\`/\`onNext\`/\`onBack\` if a page also destructures
-  \`PageProps\` — they're \`undefined\` outside flow playback. \`useAppNav()\`/\`useDb()\` need no
+  \`PageProps\` — they're \`undefined\` outside Story playback. \`useAppNav()\`/\`useDb()\` need no
   such guard; both work standalone and during playback.
 - **ALWAYS** use Tailwind utility classes for static styling; reach for \`style={{}}\` only
   for runtime-computed values.
@@ -364,14 +364,14 @@ a common task — check here before improvising.
   \`{ pageId, on: '<id>' }\` step in the flowStory, and (for the button to also work during
   standalone preview) call \`navigateTo(...)\`/mutate via \`useDb()\` in the same \`onClick\`.
 - **TO** navigate from inside a page **→** \`const { navigateTo } = useAppNav()\`, then
-  \`navigateTo('other-page-id')\` — works standalone and during flow playback, no branching
+  \`navigateTo('other-page-id')\` — works standalone and during story playback, no branching
   needed.
 - **TO** read or write mock data from inside a page **→** \`const db = useDb()\`, then
   \`db.get(path, fallback)\` / \`db.set(path, value)\` / \`db.update(path, updater)\`.
 - **TO** gate access to a page **→** export \`canEnter\` on \`pageMeta\`: \`({ db }) => boolean\`.
 - **TO** add a reviewer-facing toggle **→** add a \`SimulatorControl\` object
   (\`{ label, path, type, ... }\`) to the flowStory's \`simulator.controls\` array — this is
-  plain data, not a JSX component.
+  story data, not a JSX component.
 - **TO** check workspace health **→** \`npx flowkit status\` / \`npx flowkit check\`.
 - **TO** find anything not listed here **→** \`npx flowkit -h\`, then \`docs/CLI.md\`.
 

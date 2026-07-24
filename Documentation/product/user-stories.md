@@ -49,7 +49,7 @@ FlowKit is a browser-based UI prototyping platform built around three values:
 - As a workspace author, I want the platform to define strict file and code conventions (`PageProps`, `defineFlow`, `pageMeta`) so agents produce consistent, correct output every time — not improvised variations.
 - As a workspace author, I want `flowkit watch` to hot-reload workspace changes so I can see agent-authored screens appear in real time without restarting anything.
 - As a workspace author, I want platform files locked in the `deployment` environment so agents I direct cannot accidentally edit the engine — only workspace files are in play.
-- As a workspace author, I want `flowkit status` and `flowkit plan:ls` so I can understand what exists in my workspace at a glance, without reading code.
+- As a workspace author, I want `flowkit status` and `flowkit flowStory:ls` so I can understand what exists in my workspace at a glance, without reading code.
 - As a workspace author, I want `flowkit export` to produce a standalone HTML file so I can share a working prototype with stakeholders instantly — no server, no setup on their end.
 - As a workspace author, I want `flowkit handoff` to package my workspace into a structured deliverable so the workspace recipient gets everything they need to implement the real product.
 - As a workspace author, I want the prototype to support real data states via the mock DB so the flows I author feel grounded and believable, not placeholder-filled.

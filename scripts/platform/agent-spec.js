@@ -221,7 +221,8 @@ export function indexRows(_ctx) {
     },
     {
       task: 'Wire a tap / interaction',
-      action: 'give the element an `id`, add a matching step (`{ pageId, on }`) in `flowStories/<c>.ts`',
+      action:
+        'give the element an `id`, add a matching step (`{ pageId, on }`) in `flowStories/<c>.ts`',
       detail: 'platform.md → Chapters · docs/FLOWMASTER.md',
     },
     {
@@ -355,7 +356,7 @@ export function platformSurfaces(ctx) {
 
 export function cliRows(_ctx) {
   return [
-    { cmd: 'flowkit plan:ls', what: 'list all flowStories in the workspace' },
+    { cmd: 'flowkit flowStory:ls', what: 'list all flowStories in the workspace' },
     {
       cmd: 'flowkit check / flowkit check:<domain>',
       what: 'validate authored content — pages/config/components/db/flowStories',

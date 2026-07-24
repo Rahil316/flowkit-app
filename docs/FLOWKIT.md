@@ -52,7 +52,7 @@ flowkit/
     main.tsx / App.tsx          ← React entry
   workspaces/                   ← One folder per workspace (repo mode only)
     <name>/
-      flowStories/                ← Flowplan files (defineFlow) — was `flowplans/`
+      flowStories/                ← FlowStory files (defineFlow) — was `flowplans/`
         <flow>.ts
       flowBook/              ← Flow screen folders — was `flows/`; variable depth, see below
         <flow>/
@@ -116,7 +116,7 @@ If a page folder contains 2+ unprefixed candidate `.tsx`/`.jsx` files, the syste
 
 ### Visibility: `_` (hidden) vs. `__` (non-existent)
 
-A single underscore prefix on a file or folder segment (`_name`) marks it **Hidden**: fully real — parsed, compiled, checked, playable, referenceable by flowplans — just excluded from the default Screens-tab browsing UI. A double underscore prefix (`__name`) marks it **non-existent**: excluded from everything — parsing, checks, flowplan reference resolution, and `flowkit status` counts.
+A single underscore prefix on a file or folder segment (`_name`) marks it **Hidden**: fully real — parsed, compiled, checked, playable, referenceable by flowStories — just excluded from the default Screens-tab browsing UI. A double underscore prefix (`__name`) marks it **non-existent**: excluded from everything — parsing, checks, flowStory reference resolution, and `flowkit status` counts.
 
 Visibility resolves across the whole path with **parent dominance**: if any ancestor segment in the chain has a `__` prefix, the entire subtree is non-existent regardless of what's inside it; otherwise, if any ancestor has a single `_`, the whole subtree is hidden. `flowkit list:pages` exposes this via `--hidden` (include hidden), `--all` (show every tier, labeled), and `--gone` (show only non-existent items — the one listing mode that scans disk directly, since non-existent items are excluded from `workspace.ts`'s `pageOrder` by definition).
 
@@ -530,9 +530,9 @@ For how an agent actually _works_ a workspace — the cold-start sequence, task 
 
 ```bash
 flowkit nw:<name>                    # Create workspace
-flowkit plan:ls                      # List all flowplans
-flowkit check:flowplans              # Validate flowplans — also runs as prebuild gate
-flowkit status                       # Workspace health: chapters, pages, flowplans, sessions
+flowkit flowStory:ls                 # List all flowStories
+flowkit check:flowStories            # Validate flowStories — also runs as prebuild gate
+flowkit status                       # Workspace health: chapters, pages, flowStories, sessions
 flowkit export                       # Export as standalone HTML viewer
 flowkit handoff                      # Build developer handoff zip
 ```
@@ -544,7 +544,7 @@ Workspace switching is done via the browser UI.
 ```bash
 npm create flowkit-app@latest my-app     # or: npm create flowkit-workspace@latest my-project
 cd my-app
-flowkit check:flowplans
+flowkit check:flowStories
 flowkit status
 npm run dev / npm run build               # export/handoff are repo-mode only
 ```

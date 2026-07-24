@@ -258,9 +258,9 @@ Cursor positions are sampled (rAF, throttled) when the `cursorTracking` channel 
 ## CLI
 
 ```bash
-flowkit plan:ls            # list all flowplans
-flowkit check:flowplans    # validates flowplan structure/step references; also runs as prebuild gate
-flowkit status             # workspace health: chapters, pages, flowplans, sessions
+flowkit flowStory:ls       # list all flowStories
+flowkit check:flowStories  # validates flowStory structure/step references; also runs as prebuild gate
+flowkit status             # workspace health: chapters, pages, flowStories, sessions
 ```
 
 Add pages manually: create `flowBook/<flow>/<screen>/<ScreenName>.tsx` (the filename doesn't need the `Screen`/`Page` suffix — identity comes from the folder, not the file), add a step to `flowStories/<flow>.ts`. `useWorkspaceHierarchy()` discovers pages automatically — no build step needed.
