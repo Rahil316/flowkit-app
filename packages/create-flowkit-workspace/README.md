@@ -7,13 +7,13 @@ Scaffold a new [FlowKit](https://github.com/rahil-avj/flowkit-app) multi-workspa
 ## Usage
 
 ```bash
-npm create flowkit-workspace@latest <project-name> [-- --lang:ts|js]
+npm create flowkit-workspace@latest <project-name> [-- --empty]
 ```
 
 Example:
 
 ```bash
-npm create flowkit-workspace@latest my-project -- --lang:js
+npm create flowkit-workspace@latest my-project -- --empty
 ```
 
 This scaffolds a project with one initial workspace and a root `vite.config.ts` pre-wired for multi-workspace mode. Each workspace gets its own:
@@ -34,7 +34,7 @@ npm run dev
 Add, remove, or rename workspaces afterward with the `flowkit` CLI:
 
 ```bash
-npx flowkit create:workspace --name:<id> [--lang:ts|js]
+npx flowkit create:workspace --name:<id> [--empty]
 npx flowkit remove:workspace --name:<id>
 npx flowkit rename:workspace <old> <new>
 ```

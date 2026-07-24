@@ -181,7 +181,7 @@ npm run dev
 
 **CLI (flowkit)**
 
-- `flowkit nw:<name>` — scaffold new workspace ✅ (rollback on failure) — **repo mode only**
+- `flowkit nw:<name> [--kit:<name>] [--empty]` — scaffold new workspace ✅ (rollback on failure) — **repo mode only**. Default content is a 7-chapter playable game demo (Blackjack, Dice, Tic-Tac-Toe, 2048, Memory Match, Math Quiz behind a hub); `--empty` scaffolds a bare, valid workspace instead (zero chapters, empty db/simulator stubs) — see `scripts/helpers/game-demo-scaffold.js`, the single shared source for this demo content also used by `create:workspace`/`create-flowkit-app`/`create-flowkit-workspace`. No `--lang:` flag anymore — scaffolding is TypeScript-only
 - `flowkit rw:<name>` — remove workspace — **repo mode only**
 - `flowkit status` — health snapshot: flows, sessions, feedback, agent
 - `flowkit watch` — watch workspace for file changes (help shows `watch:flows`; dispatcher matches `watch`) — **repo mode only**
@@ -197,7 +197,7 @@ npm run dev
 - `flowkit create/remove/list/rename/move/add/page/flowStory/components/promote:chapter` — lower-level scaffolding sub-verbs used internally by `nw`/other commands (router.js) — prefer the higher-level commands above unless you need fine-grained control. Work correctly in repo, flat, and multi-workspace consumer mode; accept `--workspace:<name>` to target a non-default workspace in multi-workspace mode (default: the first entry, by key order, in `flowkit.workspaces`)
 - `flowkit convert:multi [--name:<id>]` — convert a flat-mode consumer project to multi-workspace mode — **flat/multi consumer mode only**
 - `flowkit convert:flat [--from:<id>] [--all]` — collapse a multi-workspace consumer project back to flat mode — **flat/multi consumer mode only**
-- `flowkit create:workspace [--name:<id>] [--lang:ts|js]` / `remove:workspace [--name:<id>]` / `rename:workspace <old> <new>` — add/remove/rename a workspace in a multi-workspace consumer project (`scripts/platform/workspace-flat.js`) — **flat/multi consumer mode only**, distinct from repo-mode's `nw`/`rw`
+- `flowkit create:workspace [--name:<id>] [--empty]` / `remove:workspace [--name:<id>]` / `rename:workspace <old> <new>` — add/remove/rename a workspace in a multi-workspace consumer project (`scripts/platform/workspace-flat.js`) — **flat/multi consumer mode only**, distinct from repo-mode's `nw`/`rw`
 
 ---
 

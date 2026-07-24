@@ -13,7 +13,6 @@ dist-standalone/
 scripts/.flowkit-state.json
 .vscode
 tests
-tests/*
 # FlowLens generated reports (per-workspace, gitignored)
 workspaces/*/lib/flowLens/reports/
 

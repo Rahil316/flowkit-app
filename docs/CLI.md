@@ -46,12 +46,12 @@ Every command has a **short alias** and a **long-form name** — both always wor
 flowkit nw              # short alias, guided
 flowkit new-workspace   # long form, guided
 flowkit nw:<name>       # express: value after colon, guided fallback for missing flags
-flowkit new-workspace:<name> --kit:apple --lang:ts   # fully express
+flowkit new-workspace:<name> --kit:apple   # fully express
 ```
 
 `--agent:` and per-tool memory-file targets (Claude/Cursor/etc.) previously existed here and were removed — every workspace now gets one agent-agnostic `AGENTS.md`, matching the consumer-mode scaffolders (`create-flowkit-app`/`create-flowkit-workspace`), which never offered a per-tool choice.
 
-**Flags** follow the same `:` pattern: `--kit:apple`, `--lang:ts`.
+**Flags** follow the same `:` pattern: `--kit:apple`. Workspaces are TypeScript-only — there is no language flag.
 
 **Help** — any of these work:
 
@@ -80,28 +80,38 @@ flowkit version
 ```bash
 flowkit nw
 flowkit nw:<name>
-flowkit nw:<name> --kit:<name> --lang:ts
+flowkit nw:<name> --kit:<name> --empty
 ```
 
-Creates a new workspace under `workspaces/<name>/` with the full folder structure, mock db, design tokens, and a demo chapter. Switches the active workspace immediately and builds the router.
+Creates a new workspace under `workspaces/<name>/` with the full folder structure, mock db, design tokens, and demo content. Switches the active workspace immediately and builds the router.
 
-**Scaffolded structure:**
+By default the demo content is a playable 7-chapter arcade ("Game Zone" — a splash/welcome
+intro into a hub of 6 mini-games: Blackjack, Dice, Tic-Tac-Toe, 2048, Memory Match, Math
+Quiz), sourced from `scripts/helpers/game-demo-scaffold.js` — the single shared module also
+used by `create:workspace`/`create-flowkit-app`/`create-flowkit-workspace`, so all four
+scaffolding entry points ship byte-identical demo content. Pass `--empty` for a bare,
+zero-chapter workspace instead (see the flags table below).
+
+**Scaffolded structure (default, non-`--empty`):**
 
 ```
 workspaces/<name>/
-  flowBook/            ← demo chapter + page (was `flows/`)
-  components/
-    ui/
-    layout/
-    navigation/
-    forms/
-    feedback/
-  data/db.ts
-  data/simulator.tsx
-  design-system/tokens.css
+  flowBook/
+    intro-flow/{splash,welcome,hub}-screen/
+    tic-tac-toe-flow/, dice-flow/, blackjack-flow/, 2048-flow/,
+    memory-match-flow/, math-quiz-flow/    ← one folder per page, <PageName>.tsx inside
+  flowStories/                            ← intro-flow.ts + 4 journey-*.ts named playback scripts
   lib/
-  hooks/
-  assets/
+    components/ui/          ← 10 shared game-UI components (PrimaryButton, ScoreBadge, ...)
+    components/{layout,navigation,forms}/  ← empty, .gitkeep only
+    game-logic/              ← pure logic, one file per game (deck.ts, blackjack.ts, ...)
+    data/db.ts
+    data/simulator.tsx
+    design-system/tokens.css
+    docs/overview.md
+    hooks/                  ← empty, .gitkeep only
+    assets/logo.png          ← stub, replace with your own
+  .flowkit/components.json   ← pre-registers the 10 shared UI components
   .agent/
     INDEX.md
     rules.md
@@ -115,6 +125,11 @@ workspaces/<name>/
 workspaces/<name>/lib/flowLens/       ← committed session library + studies.json (created alongside workspace)
 ```
 
+`--empty` skips `flowBook/`, `flowStories/`, `lib/game-logic/`, and `lib/components/ui/`
+entirely — `workspace.ts` declares zero chapters (an author's first `flowkit
+create:chapter` populates it), and `lib/data/db.ts`/`lib/data/simulator.tsx` are minimal
+stubs. Still a fully valid, buildable workspace — `flowkit check` passes clean either way.
+
 **Optional flags:**
 
 | Flag                  | Description                                                                          |
@@ -123,7 +138,7 @@ workspaces/<name>/lib/flowLens/       ← committed session library + studies.js
 | `--kit:material`      | Material Design 3 — purple brand, Roboto, tonal surfaces                             |
 | `--kit:neo-brutalism` | Sharp edges, black borders, hard offset shadows                                      |
 | `--kit:none`          | No kit — base structural styles only (default)                                       |
-| `--lang:js`           | Scaffold screen files as `.jsx` / flowStory files as `.js` instead of `.tsx` / `.ts` |
+| `--empty`             | Bare scaffold — no demo chapters/pages/flowStories/components                        |
 
 Kits are applied via the `@flowkit-kit` CSS alias — no files are copied into the workspace. The selected kit is stored in `src/workspaces.ts` and applied as a `data-kit` attribute on the preview canvas at runtime.
 
@@ -270,8 +285,9 @@ Moves the chosen workspace's content back up to project root, rewrites `vite.con
 ### `create:workspace` — Add a workspace
 
 ```bash
-flowkit create:workspace --name:app-b --lang:ts
-flowkit create:workspace          # prompts for name and language interactively
+flowkit create:workspace --name:app-b
+flowkit create:workspace          # prompts for name interactively
+flowkit create:workspace --name:app-b --empty  # bare scaffold, no demo content
 ```
 
 Multi-workspace mode only. Scaffolds a new sibling folder with the same demo content as `create-flowkit-workspace`'s own initial workspace, and appends it to `package.json`'s `flowkit.workspaces`. This is the primary way to add a workspace — hand-creating a folder and manually editing `flowkit.workspaces` works too, but there's no discovery: an unlisted folder is not a workspace no matter what's inside it.

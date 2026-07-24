@@ -17,7 +17,7 @@ import {
 import { FLOW_STORIES_DIRNAME } from '../helpers/config-filenames.js'
 
 const WS = 'twscheck'
-const NW_FLAGS = ['--lang:ts', '--kit:none']
+const NW_FLAGS = ['--kit:none']
 
 describe('Suite C — flowkit check', () => {
   let snapshot
@@ -35,7 +35,10 @@ describe('Suite C — flowkit check', () => {
     cleanupWorkspace(WS)
   })
 
-  it('C1 — check on a freshly scaffolded workspace → exit 0, "all clean"', async () => {
+  it('C1 — check on a freshly scaffolded workspace → exit 0, all clean', async () => {
+    // The game-demo scaffold pre-registers every lib/components/ui/*.tsx file in
+    // .flowkit/components.json (see game-demo-scaffold.js), so a fresh scaffold
+    // has zero findings of any kind.
     const result = await spawnCLI(['check', `--workspace:${WS}`])
     assert.equal(result.code, 0, `stderr: ${result.stderr}`)
     assert.match(result.stdout, /all clean/)
@@ -61,18 +64,23 @@ describe('Suite C — flowkit check', () => {
     const parsed = JSON.parse(result.stdout)
     assert.equal(parsed.workspace, WS)
     assert.equal(parsed.errors, 0)
-    assert.deepEqual(parsed.results, [])
+    // A freshly scaffolded workspace has zero findings of any kind — see C1.
+    assert.equal(parsed.results.length, 0)
   })
 
   it('C5 — check:flowStories catches a step referencing a nonexistent pageId → exit 1', async () => {
-    const fpPath = path.join(ROOT, 'workspaces', WS, FLOW_STORIES_DIRNAME, 'home-flow.ts')
+    const fpPath = path.join(ROOT, 'workspaces', WS, FLOW_STORIES_DIRNAME, 'intro-flow.ts')
     const original = fs.readFileSync(fpPath, 'utf8')
     try {
       const broken = original.replace(
-        /pageId: 'home-flow-home-screen'/,
+        /pageId: 'intro-flow-splash-screen'/,
         "pageId: 'nonexistent-screen'"
       )
-      assert.notEqual(broken, original, 'fixture setup failed — pattern not found in home-flow.ts')
+      assert.notEqual(
+        broken,
+        original,
+        'fixture setup failed — pattern not found in intro-flow.ts'
+      )
       fs.writeFileSync(fpPath, broken)
 
       const result = await spawnCLI([`check:flowStories:${WS}`])

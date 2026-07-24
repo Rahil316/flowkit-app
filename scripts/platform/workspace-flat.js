@@ -232,29 +232,11 @@ export async function cmdAddWorkspace(_val, args = []) {
     process.exit(1)
   }
 
-  let selectedLang = 'ts'
-  const langFlag = parseStringFlag(args, 'lang')
-  if (langFlag) {
-    const clean = langFlag.toLowerCase().trim()
-    if (clean === 'ts' || clean === 'js') {
-      selectedLang = clean
-    } else {
-      console.error(r(`✗ Invalid lang: ${langFlag}. Supported: ts, js.`))
-      process.exit(1)
-    }
-  } else {
-    console.log(c('? ') + 'Language (↑↓ Enter):')
-    const langSelection = await selectFromList([
-      'TypeScript — .tsx / .ts  (recommended)',
-      'JavaScript — .jsx / .js',
-    ])
-    console.log('\n')
-    selectedLang = langSelection.startsWith('JavaScript') ? 'js' : 'ts'
-  }
+  const emptyFlag = args.includes('--empty')
 
   try {
     fs.mkdirSync(wsDir, { recursive: true })
-    writeWorkspaceContent(wsDir, name, selectedLang)
+    writeWorkspaceContent(wsDir, name, emptyFlag)
   } catch (err) {
     console.error(r(`✗ Scaffold failed: ${err.message}`))
     fs.rmSync(wsDir, { recursive: true, force: true })
@@ -264,11 +246,7 @@ export async function cmdAddWorkspace(_val, args = []) {
   writeFlowkitManifest({ workspaces: { ...manifest.workspaces, [name]: { path: name } } }, cwd)
 
   console.log(g('✓') + ' Workspace created: ' + b(`${name}/`))
-  console.log(
-    g('✓') +
-      ' Language: ' +
-      b(selectedLang === 'js' ? 'JavaScript (.jsx / .js)' : 'TypeScript (.tsx / .ts)')
-  )
+  console.log(g('✓') + ' Demo content: ' + b(emptyFlag ? 'empty (--empty)' : 'game demo'))
   console.log(d(`  package.json flowkit.workspaces updated.`))
 }
 

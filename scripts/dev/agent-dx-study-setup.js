@@ -113,7 +113,7 @@ if (run.reuseExisting) {
   console.log(d(`  via create-flowkit-app --local-dev${nameFlag}`))
   try {
     execSync(
-      `FLOWKIT_LOCAL_DEV=1 node "${path.join(ROOT, 'packages/create-flowkit-app/index.js')}" ${run.dirName} --lang:ts`,
+      `FLOWKIT_LOCAL_DEV=1 node "${path.join(ROOT, 'packages/create-flowkit-app/index.js')}" ${run.dirName}`,
       { cwd: ROOT, stdio: 'inherit' }
     )
   } catch (e) {

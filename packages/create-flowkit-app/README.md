@@ -7,13 +7,13 @@ Scaffold a new [FlowKit](https://github.com/rahil-avj/flowkit-app) author projec
 ## Usage
 
 ```bash
-npm create flowkit-app@latest <project-name> [-- --lang:ts|js]
+npm create flowkit-app@latest <project-name> [-- --empty]
 ```
 
 Example:
 
 ```bash
-npm create flowkit-app@latest my-prototype -- --lang:js
+npm create flowkit-app@latest my-prototype -- --empty
 ```
 
 This scaffolds a new project with:

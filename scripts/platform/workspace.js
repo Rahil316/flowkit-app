@@ -75,28 +75,7 @@ export async function cmdNewWorkspace(val) {
   const THEMES_DIR = path.join(ROOT, 'src/kits/shared/tokens/themes')
   const STANDALONE_DIR = path.join(ROOT, 'src/kits/standalone')
 
-  // ── Language (first — filters available kits) ──────────────────────────────
-  let selectedLang = 'ts'
-  const langFlag = parseStringFlag(process.argv, 'lang')
-  if (langFlag) {
-    const cleanLang = langFlag.toLowerCase().trim()
-    if (cleanLang === 'ts' || cleanLang === 'js') {
-      selectedLang = cleanLang
-    } else {
-      console.error(r(`✗ Invalid lang: ${langFlag}. Supported: ts, js.`))
-      process.exit(1)
-    }
-  } else {
-    console.log(c('? ') + 'Language (↑↓ Enter):')
-    const langSelection = await selectFromList(
-      ['TypeScript — .tsx / .ts  (recommended)', 'JavaScript — .jsx / .js'],
-      null
-    )
-    console.log('\n')
-    selectedLang = langSelection.startsWith('JavaScript') ? 'js' : 'ts'
-  }
-
-  // ── Kit (filtered by language compatibility) ───────────────────────────────
+  // ── Kit ──────────────────────────────────────────────────────────────────
   const sharedKits = fs.existsSync(THEMES_DIR)
     ? fs
         .readdirSync(THEMES_DIR)
@@ -105,23 +84,12 @@ export async function cmdNewWorkspace(val) {
         .sort()
     : []
 
-  // Read each standalone kit's kit.json; skip if it doesn't support selectedLang
   const standaloneKits = fs.existsSync(STANDALONE_DIR)
     ? fs
         .readdirSync(STANDALONE_DIR)
         .filter(d => {
           const p = path.join(STANDALONE_DIR, d)
-          if (!fs.statSync(p).isDirectory() || !fs.existsSync(path.join(p, 'index.css')))
-            return false
-          const metaPath = path.join(p, 'kit.json')
-          if (!fs.existsSync(metaPath)) return true // no restriction — assume both
-          try {
-            const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'))
-            if (!meta.languages) return true // no restriction declared
-            return meta.languages.includes(selectedLang)
-          } catch {
-            return true
-          }
+          return fs.statSync(p).isDirectory() && fs.existsSync(path.join(p, 'index.css'))
         })
         .sort()
     : []
@@ -151,16 +119,8 @@ export async function cmdNewWorkspace(val) {
     if (cleanFlag === 'none' || allKitSlugs.includes(cleanFlag)) {
       selectedKit = cleanFlag
     } else {
-      const excluded =
-        cleanFlag !== 'none' &&
-        !sharedKits.includes(cleanFlag) &&
-        !standaloneKits.includes(cleanFlag)
-          ? ` (may be incompatible with ${selectedLang})`
-          : ''
       console.error(
-        r(
-          `✗ Invalid kit: ${kitFlag}. Supported: ${[...allKitSlugs, 'none'].join(', ')}.${excluded}`
-        )
+        r(`✗ Invalid kit: ${kitFlag}. Supported: ${[...allKitSlugs, 'none'].join(', ')}.`)
       )
       process.exit(1)
     }
@@ -172,7 +132,8 @@ export async function cmdNewWorkspace(val) {
   }
 
   const isStandaloneKit = standaloneKits.includes(selectedKit)
-  const scaffold = workspaceScaffold(wsName, selectedKit, isStandaloneKit, selectedLang)
+  const emptyFlag = process.argv.includes('--empty')
+  const scaffold = workspaceScaffold(wsName, selectedKit, isStandaloneKit, emptyFlag)
   for (const [relPath, content] of Object.entries(scaffold)) {
     const fullPath = path.join(wsDir, relPath)
     try {
@@ -245,7 +206,6 @@ export async function cmdNewWorkspace(val) {
     name: wsName,
     kit: selectedKit,
     isStandalone: isStandaloneKit,
-    language: selectedLang,
   })
   const agentFiles = renderAgentFiles(agentCtx)
   for (const [rel, content] of Object.entries(agentFiles)) {
@@ -267,11 +227,7 @@ export async function cmdNewWorkspace(val) {
       : '@kit/index.css'
     console.log(g('✓') + ' Kit: ' + b(`[${selectedKit}]`) + d(` — ${kitType}, via ${cssPath}`))
   }
-  console.log(
-    g('✓') +
-      ' Language: ' +
-      b(selectedLang === 'js' ? 'JavaScript (.jsx / .js)' : 'TypeScript (.tsx / .ts)')
-  )
+  console.log(g('✓') + ' Demo content: ' + b(emptyFlag ? 'empty (--empty)' : 'game demo'))
 
   const existing = listWorkspaceDirs()
   const kitMap = {}
@@ -279,8 +235,7 @@ export async function cmdNewWorkspace(val) {
   writeWorkspaceRegistry(
     existing.includes(wsName) ? existing : [...existing, wsName],
     wsName,
-    kitMap,
-    selectedLang
+    kitMap
   )
   console.log('')
   console.log(g('✓') + ' Workspace created: ' + b(`workspaces/${wsName}/`))

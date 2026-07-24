@@ -258,38 +258,14 @@ Set via the CLI at workspace creation: `flowkit nw:my-app --kit:material` (repo 
 
 ---
 
-## JavaScript workspaces
+## Workspace language
 
-Workspaces can be authored in plain JavaScript/JSX instead of TypeScript. The platform core (`src/`) always stays strictly typed — only workspace files are affected.
+All scaffolders (`flowkit nw`, `flowkit create:workspace`, `create-flowkit-app`, `create-flowkit-workspace`) are TypeScript-only — there is no language flag. Screen files are always `.tsx`, flowStory files always `.ts`.
 
-### Setting a workspace to JS
-
-Set via the CLI: `flowkit nw:my-workspace --lang:js` (repo mode) — stores `language: "js"` on the workspace's entry in `src/workspaces.json`. The platform then picks up `.jsx` screen files and `.js` flowplan files.
-
-### Writing pages in JSX
-
-```jsx
-// flowBook/home/home/HomePage.jsx
-export default function HomePage({ db }) {
-  return (
-    <div>
-      <button id="continue-btn">Continue</button>
-    </div>
-  )
-}
-```
-
-For page props:
-
-```js
-/** @param {import('@flowkit/types').PageProps} props */
-export default function HomePage({ db }) { ... }
-```
-
-### Isolation guarantee
+Workspaces scaffolded by an older version of the platform in plain JavaScript/JSX continue to work — the CLI's authoring commands (`create:page`, `create:component`) detect an existing workspace's language from what's already on disk (`detectWorkspaceLanguage()` in `scripts/helpers/paths.js`) and keep emitting `.jsx`/`.js` for that workspace rather than silently switching it to TS mid-project. New workspaces always default to TS.
 
 - `src/` is compiled by `tsconfig.app.json` (`strict: true`, no `allowJs`).
-- `workspaces/` is compiled under **both** `tsconfig.app.json` (strict, as part of the main app build) and a separate composite project, `tsconfig.workspace.json` (`allowJs: true`, `checkJs: false`, `strict: false`, extends `tsconfig.app.json`). This isn't file-exclusive isolation — `workspaces` legitimately appears in both configs' `include` arrays — it's two different strictness passes over the same files, so JS/mixed-language workspace content doesn't fail the main app's strict build while still getting checked under looser rules via the second project.
+- `workspaces/` is compiled under **both** `tsconfig.app.json` (strict, as part of the main app build) and a separate composite project, `tsconfig.workspace.json` (`allowJs: true`, `checkJs: false`, `strict: false`, extends `tsconfig.app.json`). This isn't file-exclusive isolation — `workspaces` legitimately appears in both configs' `include` arrays — it's two different strictness passes over the same files, so any legacy JS/mixed-language workspace content doesn't fail the main app's strict build while still getting checked under looser rules via the second project.
 
 ---
 

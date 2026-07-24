@@ -40,73 +40,17 @@ function prompt(rl, question) {
   return new Promise(resolve => rl.question(question, resolve))
 }
 
-function selectFromList(items) {
-  if (!process.stdin.isTTY) {
-    return new Promise(resolve => {
-      items.forEach((item, i) => console.log(`  ${d(String(i + 1) + '.')} ${item}`))
-      const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
-      rl.question(c('? ') + `Select (1-${items.length}): `, ans => {
-        rl.close()
-        const n = parseInt(ans.trim(), 10) - 1
-        resolve(items[Math.max(0, Math.min(isNaN(n) ? 0 : n, items.length - 1))])
-      })
-    })
-  }
-
-  return new Promise(resolve => {
-    let idx = 0
-    const render = () => {
-      process.stdout.write('\x1b[?25l')
-      items.forEach((item, i) => {
-        const prefix = i === idx ? c('  ❯ ') : '    '
-        const text = i === idx ? b(item) : d(item)
-        process.stdout.write(`\r${prefix}${text}\n`)
-      })
-      process.stdout.write(`\x1b[${items.length}A`)
-    }
-    render()
-    process.stdin.setRawMode(true)
-    process.stdin.resume()
-    process.stdin.setEncoding('utf8')
-    const onData = key => {
-      if (key === '\x1b[A') {
-        idx = (idx - 1 + items.length) % items.length
-        render()
-      } else if (key === '\x1b[B') {
-        idx = (idx + 1) % items.length
-        render()
-      } else if (key === '\r' || key === '\n') {
-        process.stdin.setRawMode(false)
-        process.stdin.pause()
-        process.stdin.removeListener('data', onData)
-        process.stdout.write(`\x1b[${items.length}B`)
-        process.stdout.write('\x1b[?25h')
-        resolve(items[idx])
-      } else if (key === '\x03') {
-        process.stdout.write('\x1b[?25h')
-        process.exit()
-      }
-    }
-    process.stdin.on('data', onData)
-  })
-}
-
-function parseStringFlag(argv, name) {
-  const hit = argv.find(a => a.startsWith(`--${name}:`))
-  return hit ? hit.slice(name.length + 3) : null
-}
-
 function usage() {
   console.log(`
   ${b('create-flowkit-app')} — scaffold a new FlowKit author project
 
   ${b('Usage:')}
-    npm create flowkit-app@latest ${c('<project-name>')} ${d('[--lang:ts|js]')}
+    npm create flowkit-app@latest ${c('<project-name>')} ${d('[--empty]')}
     npx create-flowkit-app ${c('<project-name>')}
 
   ${b('Example:')}
     npm create flowkit-app@latest my-prototype
-    npm create flowkit-app@latest my-prototype -- --lang:js
+    npm create flowkit-app@latest my-prototype -- --empty
 
   ${d('flowkit contributors: --local-dev points the generated project at your')}
   ${d('local flowkit checkout instead of the published package. Only works when')}
@@ -174,24 +118,7 @@ function resolveFlowkitDependency() {
 
 const FLOWKIT_DEP = resolveFlowkitDependency()
 
-// ── Preferences — language, same flow as `flowkit nw` ──────────────────────────
-
-async function resolveLanguage() {
-  const flag = parseStringFlag(args, 'lang')
-  if (flag) {
-    const clean = flag.toLowerCase().trim()
-    if (clean === 'ts' || clean === 'js') return clean
-    console.error(r(`✗ Invalid lang: ${flag}. Supported: ts, js.`))
-    process.exit(1)
-  }
-  console.log(c('? ') + 'Language (↑↓ Enter):')
-  const selection = await selectFromList([
-    'TypeScript — .tsx / .ts  (recommended)',
-    'JavaScript — .jsx / .js',
-  ])
-  console.log('\n')
-  return selection.startsWith('JavaScript') ? 'js' : 'ts'
-}
+const EMPTY_FLAG = args.includes('--empty')
 
 // ── Copy templates ─────────────────────────────────────────────────────────────
 
@@ -210,8 +137,7 @@ function copyDir(src, dest) {
 
 // ── Write generated files ──────────────────────────────────────────────────────
 
-function writePackageJson(dir, name, language) {
-  const isJs = language === 'js'
+function writePackageJson(dir, name) {
   const pkg = {
     name,
     version: '0.0.1',
@@ -232,13 +158,9 @@ function writePackageJson(dir, name, language) {
       '@vitejs/plugin-react': '^6.0.0',
       tailwindcss: '^4.0.0',
       '@tailwindcss/postcss': '^4.0.0',
-      ...(isJs
-        ? {}
-        : {
-            typescript: '~6.0.0',
-            '@types/react': '^19.0.0',
-            '@types/react-dom': '^19.0.0',
-          }),
+      typescript: '~6.0.0',
+      '@types/react': '^19.0.0',
+      '@types/react-dom': '^19.0.0',
     },
   }
   fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify(pkg, null, 2) + '\n')
@@ -341,25 +263,31 @@ guessing from adjacent code.
 ## Project layout
 
 - \`${FLOW_BOOK_DIRNAME}/<flow>/<page-id>/<PageName>.tsx\` — one component per page, default-exports
-  the page and a named \`pageMeta\` (\`{ id, label, desc? }\`, optional
-  \`canEnter\`/\`canNotEnter\`: \`({ db }) => boolean\`). Receives \`PageProps\` from
-  \`'flowkit'\` — \`onAction?\`, \`onNext?\`, \`onBack?\`, \`isChapter?\`, \`flowState?\`, and a
-  **read-only** \`db?\`. **All of these are \`undefined\` when the page is previewed
-  standalone** (outside an active flow) — always optional-chain (\`db?.user?.name\`), never
-  assume they're present.
+  the page and a named \`pageMeta\` (\`{ label, desc? }\`, optional \`canEnter\`:
+  \`({ db }) => boolean\`, \`tags?\`, \`isStandalone?\`). The scaffolded demo pages call
+  \`useAppNav()\` (from \`'flowkit'\`) for navigation — \`const { navigateTo } = useAppNav();
+  onClick={() => navigateTo('other-page-id')}\` — and, where a page reads or writes mock
+  data, \`useDb()\` (also from \`'flowkit'\`) — \`const db = useDb(); db.get('path', fallback)\`,
+  \`db.set('path', value)\`, \`db.update('path', (v = fallback) => next)\`. Both hooks work
+  whether the page is being previewed standalone or played back inside a flowStory, so
+  there's no \`isChapter\` branch to write by hand. \`PageProps\` (\`onAction?\`, \`onNext?\`,
+  \`onBack?\`, \`isChapter?\`, \`db?\`) still exists and is injected during flow playback for
+  pages that prefer that convention instead — pick one convention per page, don't mix
+  \`useAppNav()\`'s \`navigateTo\` and an unguarded \`onAction\` call on the same element.
 - \`${FLOW_STORIES_DIRNAME}/<flow>.ts\` — playback scripts authored with \`defineFlow()\` from \`'flowkit'\`:
   an ordered \`steps[]\` of \`{ pageId, on?, actionNote? }\` (\`on\` matches a DOM element id
-  in the page, wired via event delegation — no \`onClick\` needed on that element), or a
-  richer \`interactions\` map keyed by element id (\`{ trigger, goTo, do?, animation?, delay? }\`).
-  Conditional forks (\`forks[]\`) and db mutation both live here, not in the page component
-  — see \`docs/CLI.md\` for the full shape.
-- \`lib/data/db.ts\` — the mock database: plain named exports, the initial state only. A
-  page never mutates it directly — mutation happens via \`ctx.updateDb(db => { ... })\`
-  inside a flowStory's \`interactions[id].do\`, never as a module-level singleton edit.
-- \`lib/design-system/tokens.css\` — CSS custom properties for theming. Starts **empty** (no
-  UI kit pre-installed) even though scaffolded demo pages already reference \`theme-*\`
-  Tailwind classes — this is expected pre-kit state, not a bug. Resolve it in your first
-  session (see below), not by inventing token values ad hoc.
+  in the page, wired via event delegation — no \`onClick\` needed on that element for the
+  step to advance, though the scaffolded demo pages also wire an explicit \`onClick\` via
+  \`useAppNav()\` so the same button works during standalone preview too). Conditional
+  \`forks[]\` live here, not in the page component — see \`docs/CLI.md\` for the full shape.
+- \`lib/data/db.ts\` — the mock database: plain named exports are the *initial* state only.
+  Pages read/write live state via \`useDb()\` (\`get\`/\`set\`/\`has\`/\`remove\`/\`update\`), not by
+  editing this file at runtime or importing its exports directly into a page.
+- \`lib/data/simulator.tsx\` — the always-visible simulator panel (\`ControlAccordion\`/
+  \`SimControl\`/\`SimAction\`/etc. from \`'flowkit'\`) — lets a reviewer poke at \`db\` state
+  live without touching code.
+- \`lib/design-system/tokens.css\` — CSS custom properties for theming, additive on top of
+  the platform's own \`bg-theme-*\`/\`text-theme-*\` Tailwind classes.
 - \`${WORKSPACE_CONFIG_FILENAME}\` — the manifest (\`defineConfig()\` from \`'flowkit'\`): flow/page
   ordering, \`startPage\`, \`defaultDevice\`/\`defaultOrientation\`. Check this first when a flow
   or page seems "missing" from the UI — it's usually an ordering/registration issue here,
@@ -412,33 +340,35 @@ default behavior, no exceptions. **TO** \`<task>\` **→** \`<action>\` = the on
 a common task — check here before improvising.
 
 - **NEVER** edit \`node_modules/flowkit/\` — that's the platform engine, not workspace content.
-- **NEVER** mutate \`db\` from inside a page component — there is no mutate function on
-  \`PageProps\`; \`db\` there is read-only. Mutation only happens via \`ctx.updateDb()\`
-  inside a flowStory's \`interactions[id].do\`.
+- **NEVER** import \`lib/data/db.ts\`'s exports directly into a page to read or write live
+  state — that file is the *initial* seed only. Use \`useDb()\` (\`get\`/\`set\`/\`update\`/\`has\`/
+  \`remove\`) for anything at runtime.
 - **NEVER** hand-write a new flow/page file from scratch — copy an existing page's
   boilerplate (or use \`flowkit create:page\`) so exports stay consistent with what the
   Vite plugin expects.
 - **NEVER** hardcode hex colors — use \`lib/design-system/tokens.css\` vars.
 - **NEVER** assume a bare \`flowkit\` binary resolves — prefer \`npx flowkit\` unless you've
   confirmed (\`which flowkit\`) a global link.
-- **ALWAYS** optional-chain \`db\`/\`onAction\`/\`onNext\`/\`onBack\`/\`flowState\` in a page —
-  every one of them is \`undefined\` when that page is previewed standalone, not just
-  during flow playback.
+- **NEVER** mix \`useAppNav()\`'s \`navigateTo\` and an unguarded \`onAction\`/\`PageProps\` call
+  as two navigation paths on the same element — pick one convention per page.
+- **ALWAYS** optional-chain \`onAction\`/\`onNext\`/\`onBack\` if a page also destructures
+  \`PageProps\` — they're \`undefined\` outside flow playback. \`useAppNav()\`/\`useDb()\` need no
+  such guard; both work standalone and during playback.
 - **ALWAYS** use Tailwind utility classes for static styling; reach for \`style={{}}\` only
   for runtime-computed values.
 - **ALWAYS** route structural changes (new page, new flowStory step, workspace conversion)
   through the \`flowkit\` CLI rather than hand-editing generated wiring.
 - **TO** add a page **→** \`flowkit create:page --chapter:<id> --name:<page-id>\`, then
   \`flowkit add:step --flowStory:<id> --page:<page-id>\` to wire it into playback.
-- **TO** wire a tap interaction **→** give the element a plain DOM \`id\` and add a matching
-  \`{ pageId, on: '<id>' }\` step in the flowStory (no \`onClick\` needed) — or, for
-  conditional/db-mutating logic, add an \`interactions['<id>']\` entry with \`goTo\`/\`do\` in
-  the flowStory instead.
-- **TO** navigate imperatively from inside a page (async/state-driven, not a tap) **→**
-  call the injected \`onAction?.('name')\` / \`onNext?.()\` / \`onBack?.()\` — these only fire
-  during flow playback (\`isChapter\` is true); they're safely no-ops (undefined) otherwise.
-- **TO** gate access to a page **→** export \`canEnter\`/\`canNotEnter\` on \`pageMeta\`:
-  \`({ db }) => boolean\`.
+- **TO** wire a tap interaction **→** give the element a plain DOM \`id\`, add a matching
+  \`{ pageId, on: '<id>' }\` step in the flowStory, and (for the button to also work during
+  standalone preview) call \`navigateTo(...)\`/mutate via \`useDb()\` in the same \`onClick\`.
+- **TO** navigate from inside a page **→** \`const { navigateTo } = useAppNav()\`, then
+  \`navigateTo('other-page-id')\` — works standalone and during flow playback, no branching
+  needed.
+- **TO** read or write mock data from inside a page **→** \`const db = useDb()\`, then
+  \`db.get(path, fallback)\` / \`db.set(path, value)\` / \`db.update(path, updater)\`.
+- **TO** gate access to a page **→** export \`canEnter\` on \`pageMeta\`: \`({ db }) => boolean\`.
 - **TO** add a reviewer-facing toggle **→** add a \`SimulatorControl\` object
   (\`{ label, path, type, ... }\`) to the flowStory's \`simulator.controls\` array — this is
   plain data, not a JSX component.
@@ -577,31 +507,25 @@ async function main() {
   console.log(`  ${b('Creating FlowKit project:')} ${c(projectName)}`)
   console.log('')
 
-  const language = await resolveLanguage()
-
   try {
     fs.mkdirSync(targetDir, { recursive: true })
 
-    // Static, language-agnostic files
+    // Static files
     fs.copyFileSync(
       path.join(__dirname, 'templates', 'index.html'),
       path.join(targetDir, 'index.html')
     )
 
     // Generated files that don't need flowkit installed yet.
-    writePackageJson(targetDir, projectName, language)
+    writePackageJson(targetDir, projectName)
     writeViteConfig(targetDir)
-    if (language === 'ts') writeTsConfig(targetDir)
+    writeTsConfig(targetDir)
     writePostcssConfig(targetDir)
     writeAgentsMd(targetDir)
     writeGitignore(targetDir)
     writeReadme(targetDir, projectName)
 
     console.log(`  ${g('✓')} Scaffolded project files`)
-    console.log(
-      `  ${g('✓')} Language: ` +
-        b(language === 'js' ? 'JavaScript (.jsx / .js)' : 'TypeScript (.tsx / .ts)')
-    )
     // Install dependencies BEFORE writing workspace content: the demo
     // pages/flowStories/config are generated by writeWorkspaceContent(),
     // which lives in flowkit itself (scripts/helpers/workspace-template.js —
@@ -634,7 +558,7 @@ async function main() {
       path.join(targetDir, 'node_modules', 'flowkit', 'scripts', 'helpers', 'workspace-template.js')
     ).href
     const { writeWorkspaceContent } = await import(templateUrl)
-    writeWorkspaceContent(targetDir, projectName, language)
+    writeWorkspaceContent(targetDir, projectName, EMPTY_FLAG)
     console.log(`  ${g('✓')} Workspace content generated`)
 
     // Copy docs from installed flowkit

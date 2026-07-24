@@ -69,7 +69,7 @@ Convert between the two shapes any time, and manage workspaces in a multi-worksp
 ```bash
 flowkit convert:multi              # flat → multi (wraps root into workspace-1/)
 flowkit convert:flat               # multi → flat (collapses back to root)
-flowkit create:workspace --name:app-b --lang:ts
+flowkit create:workspace --name:app-b
 flowkit remove:workspace --name:app-b
 flowkit rename:workspace app-b app-c
 ```

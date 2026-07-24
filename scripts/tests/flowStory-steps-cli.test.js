@@ -18,9 +18,9 @@ import {
 } from './helpers.js'
 
 const WS = 'twsfpsteps'
-const NW_FLAGS = ['--lang:ts', '--kit:none']
+const NW_FLAGS = ['--kit:none']
 const FORKED_PLAN_PATH = path.join(ROOT, 'workspaces', WS, FLOW_STORIES_DIRNAME, 'forked-plan.ts')
-// F3 needs a fork-free flowStory — the real scaffolded 'onboarding-flow' plan already has
+// F3 needs a fork-free flowStory — the real scaffolded 'intro-flow' plan already has
 // steps wired for the fork guard tests above, so a second, separate fixture plan is written
 // alongside forked-plan.ts to isolate F3's add:step assertion from F1/F2's fork-guard fixture.
 const FORKFREE_PLAN_PATH = path.join(ROOT, 'workspaces', WS, FLOW_STORIES_DIRNAME, 'forkfree-plan.ts')
@@ -33,10 +33,10 @@ export default defineFlow({
   steps: [
     { screenId: 'welcome-screen', on: 'get-started' },
     {
-      screenId: 'setup-screen',
+      screenId: 'hub-screen',
       on: 'continue',
       forks: [
-        { label: 'Skip setup', steps: [{ screenId: 'ready-screen' }] },
+        { label: 'Skip setup', steps: [{ screenId: 'splash-screen' }] },
       ],
     },
   ],
@@ -80,7 +80,7 @@ describe('Suite F — flowkit add:step / remove:step', () => {
     const result = await spawnCLI([
       'add:step',
       '--flowStory:forked-plan',
-      '--page:ready-screen',
+      '--page:splash-screen',
       `--workspace:${WS}`,
     ])
     assert.notEqual(result.code, 0)
@@ -107,7 +107,7 @@ describe('Suite F — flowkit add:step / remove:step', () => {
     const result = await spawnCLI([
       'add:step',
       '--flowStory:forkfree-plan',
-      '--page:ready-screen',
+      '--page:splash-screen',
       '--action:test step',
       `--workspace:${WS}`,
     ])

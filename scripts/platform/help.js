@@ -16,7 +16,7 @@ ${b('Syntax:')} short alias or long-form, both always work
   ${c('flowkit nw')}                         guided
   ${c('flowkit nw:<name>')}                  express — colon separates command from value
   ${c('flowkit new-workspace:<name>')}        same, long form
-  ${c('flowkit nw:<name> --kit:apple --lang:ts')}   with flags
+  ${c('flowkit nw:<name> --kit:apple --empty')}   with flags
 
 ${b('Workspaces (repo mode only')} ${d('— not available in flat/multi consumer projects, see below')}${b('):')}
   ${c('nw')} / ${c('new-workspace')}           Create workspace (guided or express)
@@ -29,7 +29,7 @@ ${b('Workspaces (flat consumer projects):')}
 
 ${b('Workspaces (multi-workspace consumer projects only):')}
   ${c('convert:flat')} ${d('[--from:<id>] [--all]')}  Collapse multi-workspace mode back to flat
-  ${c('create:workspace')} ${d('[--name:<id>] [--lang:ts|js]')}   Add a workspace
+  ${c('create:workspace')} ${d('[--name:<id>] [--empty]')}   Add a workspace
   ${c('remove:workspace')} ${d('[--name:<id>]')}     Remove a workspace (requires confirmation)
   ${c('rename:workspace')} ${d('<old> <new>')}       Rename a workspace
 

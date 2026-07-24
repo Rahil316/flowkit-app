@@ -51,9 +51,14 @@ async function resolveProfile(args, exportProfiles) {
   } else {
     const profileKeys = Object.keys(exportProfiles)
     const options = [DEFAULT_PROFILE_LABEL, ...profileKeys]
-    console.log(c('? ') + 'Select export profile (↑↓ Enter):')
-    const selection = await selectFromList(options)
-    console.log('\n')
+    let selection
+    if (options.length === 1) {
+      selection = options[0]
+    } else {
+      console.log(c('? ') + 'Select export profile (↑↓ Enter):')
+      selection = await selectFromList(options)
+      console.log('\n')
+    }
     profileName = selection === DEFAULT_PROFILE_LABEL ? 'default' : selection
   }
   const profile = profileName === 'default' ? {} : exportProfiles[profileName]

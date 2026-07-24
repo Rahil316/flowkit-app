@@ -23,7 +23,7 @@ import {
 
 const WS_ONE = 'twsone'
 const WS_TWO = 'twstwo'
-const NW_FLAGS = ['--lang:ts', '--kit:none']
+const NW_FLAGS = ['--kit:none']
 
 async function createWorkspace(name) {
   const result = await spawnCLI([`-nw:${name}`, ...NW_FLAGS])
@@ -59,13 +59,15 @@ describe('Suite B — Workspace CLI lifecycle', () => {
       path.join(base, 'lib/data/db.ts'),
       path.join(base, 'lib/data/simulator.tsx'),
       path.join(base, 'lib/design-system/tokens.css'),
-      path.join(base, `${FLOW_STORIES_DIRNAME}/onboarding-flow.ts`),
-      path.join(base, `${FLOW_STORIES_DIRNAME}/home-flow.ts`),
-      path.join(base, `${FLOW_BOOK_DIRNAME}/onboarding-flow/welcome-screen/WelcomePage.tsx`),
-      path.join(base, `${FLOW_BOOK_DIRNAME}/onboarding-flow/setup-screen/SetupPage.tsx`),
-      path.join(base, `${FLOW_BOOK_DIRNAME}/onboarding-flow/ready-screen/ReadyPage.tsx`),
-      path.join(base, `${FLOW_BOOK_DIRNAME}/home-flow/home-screen/HomePage.tsx`),
-      path.join(base, `${FLOW_BOOK_DIRNAME}/home-flow/detail-screen/DetailPage.tsx`),
+      path.join(base, `${FLOW_STORIES_DIRNAME}/intro-flow.ts`),
+      path.join(base, `${FLOW_STORIES_DIRNAME}/journey-play-tic-tac-toe.ts`),
+      path.join(base, `${FLOW_BOOK_DIRNAME}/intro-flow/splash-screen/SplashScreen.tsx`),
+      path.join(base, `${FLOW_BOOK_DIRNAME}/intro-flow/welcome-screen/WelcomeScreen.tsx`),
+      path.join(base, `${FLOW_BOOK_DIRNAME}/intro-flow/hub-screen/HubScreen.tsx`),
+      path.join(
+        base,
+        `${FLOW_BOOK_DIRNAME}/tic-tac-toe-flow/tic-tac-toe-game-screen/TicTacToeGameScreen.tsx`
+      ),
       path.join(base, 'lib/docs/overview.md'),
       path.join(base, 'lib/flowLens/studies.json'),
       path.join(base, 'lib/flowLens/sessions/initial-study'),
@@ -83,14 +85,14 @@ describe('Suite B — Workspace CLI lifecycle', () => {
     assert.equal(reg.active, WS_ONE)
   })
 
-  it('B4 — WelcomePage passes ESLint', () => {
-    const target = `workspaces/${WS_ONE}/${FLOW_BOOK_DIRNAME}/onboarding-flow/welcome-screen/WelcomePage.tsx`
-    assert.equal(runLint(target), 0, 'ESLint failed on WelcomePage.tsx')
+  it('B4 — WelcomeScreen passes ESLint', () => {
+    const target = `workspaces/${WS_ONE}/${FLOW_BOOK_DIRNAME}/intro-flow/welcome-screen/WelcomeScreen.tsx`
+    assert.equal(runLint(target), 0, 'ESLint failed on WelcomeScreen.tsx')
   })
 
-  it('B5 — WelcomePage passes Prettier', () => {
-    const target = `workspaces/${WS_ONE}/${FLOW_BOOK_DIRNAME}/onboarding-flow/welcome-screen/WelcomePage.tsx`
-    assert.equal(runFormatCheck(target), 0, 'Prettier failed on WelcomePage.tsx')
+  it('B5 — WelcomeScreen passes Prettier', () => {
+    const target = `workspaces/${WS_ONE}/${FLOW_BOOK_DIRNAME}/intro-flow/welcome-screen/WelcomeScreen.tsx`
+    assert.equal(runFormatCheck(target), 0, 'Prettier failed on WelcomeScreen.tsx')
   })
 
   it('B6 — Scaffold TypeScript files pass ESLint', () => {
