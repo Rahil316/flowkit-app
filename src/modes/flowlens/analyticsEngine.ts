@@ -97,7 +97,7 @@ export function aggregateSessions(
 
 export function computeFunnel(session: SessionExport, pageOrder: string[]): FunnelStep[] {
   const screenVisitSet = new Set(
-    session.events.filter(e => e.type === 'screen.visited').map(e => e.payload.pageId as string)
+    session.events.filter(e => e.type === 'page.visited').map(e => e.payload.pageId as string)
   )
 
   const steps: FunnelStep[] = []
@@ -121,7 +121,7 @@ export function computeFunnel(session: SessionExport, pageOrder: string[]): Funn
 // ─── Path explorer ────────────────────────────────────────────────────────────
 
 export function buildPathGraph(events: SessionEvent[]): PathNode[] {
-  const screenEvents = events.filter(e => e.type === 'screen.visited')
+  const screenEvents = events.filter(e => e.type === 'page.visited')
   const nodes: Record<string, PathNode> = {}
 
   for (let i = 0; i < screenEvents.length; i++) {

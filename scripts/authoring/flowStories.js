@@ -17,12 +17,12 @@ function toDisplayName(kebab) {
     .join(' ')
 }
 
-function flowplanPath(wsDir, id) {
+function flowStoryPath(wsDir, id) {
   return path.join(wsDir, FLOW_STORIES_DIRNAME, `${id}.ts`)
 }
 
 /** Parse a flowStory .ts file into a plain object. Returns null on failure. */
-function parseFlowplan(filePath) {
+function parseFlowStory(filePath) {
   if (!fs.existsSync(filePath)) return null
   let src = fs.readFileSync(filePath, 'utf8')
   src = src.replace(/^import\s+.*\n/gm, '')
@@ -71,7 +71,7 @@ function rewriteSteps(filePath, steps) {
   fs.writeFileSync(filePath, src)
 }
 
-function flowplanTemplate(id, displayName) {
+function flowStoryTemplate(id, displayName) {
   return `${resolveDefineImport('defineFlow')}
 
 export default defineFlow({
@@ -86,7 +86,7 @@ export default defineFlow({
 `
 }
 
-export async function cmdCreateFlowplan(_val, args = []) {
+export async function cmdCreateFlowStory(_val, args = []) {
   const wsName = resolveWorkspace(parseStringFlag(args, 'workspace'))
   const wsDir = workspacePath(wsName)
   assertScopedWorkspaceDir(wsDir, wsName)
@@ -105,9 +105,9 @@ export async function cmdCreateFlowplan(_val, args = []) {
     process.exit(1)
   }
 
-  const fpPath = flowplanPath(wsDir, id)
+  const fpPath = flowStoryPath(wsDir, id)
   if (fs.existsSync(fpPath)) {
-    console.error(r(`✗ Flowplan '${id}' already exists: ${FLOW_STORIES_DIRNAME}/${id}.ts`))
+    console.error(r(`✗ FlowStory '${id}' already exists: ${FLOW_STORIES_DIRNAME}/${id}.ts`))
     process.exit(1)
   }
 
@@ -115,16 +115,16 @@ export async function cmdCreateFlowplan(_val, args = []) {
   if (!fs.existsSync(fpDir)) fs.mkdirSync(fpDir, { recursive: true })
 
   const displayName = toDisplayName(id)
-  fs.writeFileSync(fpPath, flowplanTemplate(id, displayName))
+  fs.writeFileSync(fpPath, flowStoryTemplate(id, displayName))
 
-  console.log(g(`✓ Flowplan: ${FLOW_STORIES_DIRNAME}/${id}.ts`))
+  console.log(g(`✓ FlowStory: ${FLOW_STORIES_DIRNAME}/${id}.ts`))
   console.log('')
   console.log(d(`Next:`))
   console.log(d(`  flowkit add:step --flowStory:${id} --page:<pageId> --action:"User arrives"`))
   console.log(d(`  flowkit list:steps --flowStory:${id}`))
 }
 
-export async function cmdRemoveFlowplan(_val, args = []) {
+export async function cmdRemoveFlowStory(_val, args = []) {
   const wsName = resolveWorkspace(parseStringFlag(args, 'workspace'))
   const wsDir = workspacePath(wsName)
   assertScopedWorkspaceDir(wsDir, wsName)
@@ -136,9 +136,9 @@ export async function cmdRemoveFlowplan(_val, args = []) {
     process.exit(1)
   }
 
-  const fpPath = flowplanPath(wsDir, id)
+  const fpPath = flowStoryPath(wsDir, id)
   if (!fs.existsSync(fpPath)) {
-    console.error(r(`✗ Flowplan not found: ${FLOW_STORIES_DIRNAME}/${id}.ts`))
+    console.error(r(`✗ FlowStory not found: ${FLOW_STORIES_DIRNAME}/${id}.ts`))
     process.exit(1)
   }
 
@@ -185,9 +185,9 @@ export async function cmdAddStep(_val, args = []) {
   }
   const compositePageId = makePageId(owningFlow, pageId)
 
-  const fpPath = flowplanPath(wsDir, fpId)
+  const fpPath = flowStoryPath(wsDir, fpId)
   if (!fs.existsSync(fpPath)) {
-    console.error(r(`✗ Flowplan not found: ${FLOW_STORIES_DIRNAME}/${fpId}.ts`))
+    console.error(r(`✗ FlowStory not found: ${FLOW_STORIES_DIRNAME}/${fpId}.ts`))
     console.error(d(`  Create it first: flowkit create:flowStory --name:${fpId}`))
     process.exit(1)
   }
@@ -196,7 +196,7 @@ export async function cmdAddStep(_val, args = []) {
   if (on) step.on = on
   if (actionNote) step.actionNote = actionNote
 
-  const fp = parseFlowplan(fpPath)
+  const fp = parseFlowStory(fpPath)
   if (!fp) {
     console.error(
       r(`✗ Failed to parse ${FLOW_STORIES_DIRNAME}/${fpId}.ts — check for syntax errors`)
@@ -239,13 +239,13 @@ export async function cmdRemoveStep(_val, args = []) {
     process.exit(1)
   }
 
-  const fpPath = flowplanPath(wsDir, fpId)
+  const fpPath = flowStoryPath(wsDir, fpId)
   if (!fs.existsSync(fpPath)) {
-    console.error(r(`✗ Flowplan not found: ${FLOW_STORIES_DIRNAME}/${fpId}.ts`))
+    console.error(r(`✗ FlowStory not found: ${FLOW_STORIES_DIRNAME}/${fpId}.ts`))
     process.exit(1)
   }
 
-  const fp = parseFlowplan(fpPath)
+  const fp = parseFlowStory(fpPath)
   if (!fp) {
     console.error(r(`✗ Failed to parse ${FLOW_STORIES_DIRNAME}/${fpId}.ts`))
     process.exit(1)
@@ -268,7 +268,7 @@ export async function cmdRemoveStep(_val, args = []) {
 
   console.log(g(`✓ Removed step [${idx}]: pageId '${removed.pageId}'`))
   if (steps.length > 0) {
-    console.log(d(`  Flowplan now has ${steps.length} step${steps.length !== 1 ? 's' : ''}`))
+    console.log(d(`  FlowStory now has ${steps.length} step${steps.length !== 1 ? 's' : ''}`))
   }
 }
 
@@ -283,13 +283,13 @@ export async function cmdListSteps(_val, args = []) {
     process.exit(1)
   }
 
-  const fpPath = flowplanPath(wsDir, fpId)
+  const fpPath = flowStoryPath(wsDir, fpId)
   if (!fs.existsSync(fpPath)) {
-    console.error(r(`✗ Flowplan not found: ${FLOW_STORIES_DIRNAME}/${fpId}.ts`))
+    console.error(r(`✗ FlowStory not found: ${FLOW_STORIES_DIRNAME}/${fpId}.ts`))
     process.exit(1)
   }
 
-  const fp = parseFlowplan(fpPath)
+  const fp = parseFlowStory(fpPath)
   if (!fp) {
     console.error(
       r(`✗ Failed to parse ${FLOW_STORIES_DIRNAME}/${fpId}.ts — check for syntax errors`)
@@ -316,7 +316,7 @@ export async function cmdListSteps(_val, args = []) {
   console.log(d(`Total: ${steps.length} step${steps.length !== 1 ? 's' : ''}`))
 }
 
-export async function cmdFlowplanInfo(_val, args = []) {
+export async function cmdFlowStoryInfo(_val, args = []) {
   const wsName = resolveWorkspace(parseStringFlag(args, 'workspace'))
   const wsDir = workspacePath(wsName)
   assertScopedWorkspaceDir(wsDir, wsName)
@@ -327,13 +327,13 @@ export async function cmdFlowplanInfo(_val, args = []) {
     process.exit(1)
   }
 
-  const fpPath = flowplanPath(wsDir, fpId)
+  const fpPath = flowStoryPath(wsDir, fpId)
   if (!fs.existsSync(fpPath)) {
-    console.error(r(`✗ Flowplan not found: ${FLOW_STORIES_DIRNAME}/${fpId}.ts`))
+    console.error(r(`✗ FlowStory not found: ${FLOW_STORIES_DIRNAME}/${fpId}.ts`))
     process.exit(1)
   }
 
-  const fp = parseFlowplan(fpPath)
+  const fp = parseFlowStory(fpPath)
   if (!fp) {
     console.error(
       r(`✗ Failed to parse ${FLOW_STORIES_DIRNAME}/${fpId}.ts — check for syntax errors`)
@@ -342,7 +342,7 @@ export async function cmdFlowplanInfo(_val, args = []) {
   }
 
   const steps = fp.steps || []
-  console.log(b(`Flowplan: ${fpId}\n`))
+  console.log(b(`FlowStory: ${fpId}\n`))
   console.log(`  ID:          ${fp.id || fpId}`)
   console.log(`  Name:        ${fp.name || d('(not set)')}`)
   console.log(`  Description: ${fp.description || d('(not set)')}`)

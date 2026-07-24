@@ -1,4 +1,4 @@
-// Platform command: read-only flowStory/project discovery (plan:ls, project:ls). Flowplan
+// Platform command: read-only flowStory/project discovery (plan:ls, project:ls). FlowStory
 // validation lives in scripts/checks/flowStories.js — see `flowkit check:flowStories`.
 import fs from 'fs'
 import path from 'path'
@@ -22,7 +22,7 @@ function listProjects(ws) {
 // to the legacy nested layout (workspaces/<ws>/projects/<proj>/flowStories/).
 // This is the single source of truth for ALL plan-discovery commands.
 
-function resolveFlowplans(ws, project) {
+function resolveFlowStories(ws, project) {
   const results = []
 
   // Flat layout — used by nClarity and all post-refactor workspaces
@@ -52,8 +52,8 @@ function resolveFlowplans(ws, project) {
   return results
 }
 
-function listFlowplans(ws, project) {
-  return resolveFlowplans(ws, project)
+function listFlowStories(ws, project) {
+  return resolveFlowStories(ws, project)
 }
 
 // ─── plan:ls ──────────────────────────────────────────────────────────────────
@@ -61,7 +61,7 @@ function listFlowplans(ws, project) {
 export function cmdPlanLs(val, args) {
   const ws = resolveWorkspace(val)
   const projectFlag = (args.find(a => a.startsWith('--project:')) || '').slice('--project:'.length)
-  const plans = listFlowplans(ws, projectFlag || null)
+  const plans = listFlowStories(ws, projectFlag || null)
 
   console.log('')
   console.log(b(` FlowStories — ${ws}`) + (projectFlag ? d(`  (project: ${projectFlag})`) : ''))
@@ -97,7 +97,7 @@ export function cmdProjectLs(val) {
   console.log(d(' ────────────────────────────────────────────'))
 
   if (projects.length === 0) {
-    const plans = resolveFlowplans(ws, null)
+    const plans = resolveFlowStories(ws, null)
     if (plans.length > 0 && plans[0].flat) {
       console.log(
         d(

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-// ── useFlowplanElementCheck ──────────────────────────────────────────────────────
+// ── useFlowStoryElementCheck ──────────────────────────────────────────────────────
 //
 // Authoring-time diagnostic: a flowStory step's `on` field names a DOM element id
 // the screen is expected to render. If the screen never actually sets that id
@@ -17,21 +17,21 @@ import { useEffect, useState } from 'react'
 //   2. a boolean return value FlowMaster renders as a small in-app banner when
 //      the broken step is actually reached during playback.
 
-export interface FlowplanElementCheckResult {
+export interface FlowStoryElementCheckResult {
   /** True when `on` is set but no matching element exists on the active screen. */
   missing: boolean
 }
 
-export function useFlowplanElementCheck(
+export function useFlowStoryElementCheck(
   screenContainerRef: React.RefObject<HTMLElement | null>,
   params: {
-    flowplanId?: string
+    flowStoryId?: string
     stepIndex: number
     pageId: string
     on: string | undefined
   }
-): FlowplanElementCheckResult {
-  const { flowplanId, stepIndex, pageId, on } = params
+): FlowStoryElementCheckResult {
+  const { flowStoryId, stepIndex, pageId, on } = params
   const [missing, setMissing] = useState(false)
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export function useFlowplanElementCheck(
       setMissing(isMissing)
       if (isMissing && import.meta.env.DEV) {
         console.warn(
-          `[Flowkit] flowStory "${flowplanId ?? '?'}" step ${stepIndex + 1} expects ` +
+          `[Flowkit] flowStory "${flowStoryId ?? '?'}" step ${stepIndex + 1} expects ` +
             `#${on} on screen "${pageId}" but no matching element exists. ` +
             `Add id="${on}" to the element that should advance this step, or update ` +
             `the flowStory's "on" field to match the screen's real element id.`
@@ -56,7 +56,7 @@ export function useFlowplanElementCheck(
       }
     }, 0)
     return () => clearTimeout(t)
-  }, [screenContainerRef, flowplanId, stepIndex, pageId, on])
+  }, [screenContainerRef, flowStoryId, stepIndex, pageId, on])
 
   return { missing }
 }

@@ -30,7 +30,7 @@ export function combinedFunnel(sessions: SessionExport[]): CombinedFunnelStep[] 
     const order: string[] = []
     const seen = new Set<string>()
     for (const e of s.events) {
-      if (e.type !== 'screen.visited') continue
+      if (e.type !== 'page.visited') continue
       const sid = e.payload.pageId as string
       if (!sid || seen.has(sid)) continue
       seen.add(sid)

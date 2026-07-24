@@ -12,7 +12,7 @@ import type { GoToItemMeta } from './types'
 // Pages  = blue [0], Chapters = green [1], flowStories = purple [2]
 const PAGE_COLOR = PALETTE_ACCENT_COLORS[0]
 const CHAPTER_COLOR = PALETTE_ACCENT_COLORS[1]
-const FLOWPLAN_COLOR = PALETTE_ACCENT_COLORS[2]
+const FLOWSTORY_COLOR = PALETTE_ACCENT_COLORS[2]
 
 interface Options {
   chapters: Chapter[]
@@ -114,7 +114,7 @@ export function useGoToItems({ chapters, activeViewId, query }: Options): Palett
       }
     }
 
-    const flowplanItems: PaletteItem[] = []
+    const flowStoryItems: PaletteItem[] = []
     for (const summary of summaries) {
       if (
         q &&
@@ -125,12 +125,12 @@ export function useGoToItems({ chapters, activeViewId, query }: Options): Palett
       const meta: GoToItemMeta = { kind: 'flowStory' }
       const subtitle =
         summary.tags.length > 0 ? summary.tags.slice(0, 3).join(', ') : `${summary.stepCount} steps`
-      flowplanItems.push({
+      flowStoryItems.push({
         id: summary.id,
         label: summary.name,
         subtitle,
         icon: GitBranch,
-        iconColor: FLOWPLAN_COLOR,
+        iconColor: FLOWSTORY_COLOR,
         tags: summary.tags,
         meta: meta as unknown as Record<string, unknown>,
       })
@@ -139,7 +139,7 @@ export function useGoToItems({ chapters, activeViewId, query }: Options): Palett
     return [
       { id: 'pages', label: 'Pages', items: pageItems, color: PAGE_COLOR },
       { id: 'flows', label: 'Chapters', items: chapterItems, color: CHAPTER_COLOR },
-      { id: 'flowStories', label: 'Flow Plans', items: flowplanItems, color: FLOWPLAN_COLOR },
+      { id: 'flowStories', label: 'Flow Stories', items: flowStoryItems, color: FLOWSTORY_COLOR },
     ]
   }, [chapters, tree, hasHierarchy, summaries, q, activeViewId])
 }

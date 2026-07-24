@@ -97,8 +97,8 @@ export default function SessionInspect({ sessionId, onBack }: Props) {
   }
 
   const duration = meta.endTime ? meta.endTime - meta.startTime : null
-  const pageVisits = events.filter(e => e.type === 'screen.visited')
-  const flowEntries = events.filter(e => e.type === 'flow.entered')
+  const pageVisits = events.filter(e => e.type === 'page.visited')
+  const flowEntries = events.filter(e => e.type === 'chapter.entered')
   const firstTs = events[0]?.timestamp ?? 0
 
   const pagePath: { id: string; dwell: number | null }[] = []

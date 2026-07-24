@@ -13,7 +13,7 @@ export default function FunnelView({ session }: Props) {
 
   const visitedScreens = Array.from(
     new Set(
-      session.events.filter(e => e.type === 'screen.visited').map(e => e.payload.pageId as string)
+      session.events.filter(e => e.type === 'page.visited').map(e => e.payload.pageId as string)
     )
   )
 

@@ -31,8 +31,8 @@ declare module 'virtual:flowkit/pages' {
 }
 
 declare module 'virtual:flowkit/flowStories' {
-  import type { FlowplanDef } from '@flowkit/types/index'
-  export const flowStories: FlowplanDef[]
+  import type { FlowStoryDef } from '@flowkit/types/index'
+  export const flowStories: FlowStoryDef[]
 }
 
 declare module 'virtual:flowkit/workspace' {

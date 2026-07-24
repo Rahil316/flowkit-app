@@ -10,7 +10,7 @@ import { after, before, describe, it } from 'node:test'
 import { createReport } from '../checks/reporter.js'
 import { checkPages } from '../checks/pages.js'
 import { checkDb } from '../checks/db.js'
-import { checkFlowplans } from '../checks/flowStories.js'
+import { checkFlowStories } from '../checks/flowStories.js'
 import { checkConfig } from '../checks/config.js'
 import { checkComponents } from '../checks/components.js'
 import { FLOW_BOOK_DIRNAME, FLOW_STORIES_DIRNAME } from '../helpers/config-filenames.js'
@@ -85,7 +85,7 @@ export const pageMeta = { label: 'Welcome' }
     assert.ok(ruleIds(report).includes('db/no-exports'))
   })
 
-  it('D6 — checkFlowplans: step referencing a real screen → no findings', async () => {
+  it('D6 — checkFlowStories: step referencing a real screen → no findings', async () => {
     // Reuses the same screen fixture from D1 (flowBook/onboarding/welcome),
     // whose composite id is makePageId('onboarding', 'welcome').
     write(
@@ -100,11 +100,11 @@ export const pageMeta = { label: 'Welcome' }
 `
     )
     const report = createReport()
-    await checkFlowplans(wsDir, report)
+    await checkFlowStories(wsDir, report)
     assert.deepEqual(ruleIds(report), [])
   })
 
-  it('D7 — checkFlowplans: step referencing a nonexistent screen → flowplan/invalid-page', async () => {
+  it('D7 — checkFlowStories: step referencing a nonexistent screen → flowStory/invalid-page', async () => {
     write(
       `${FLOW_STORIES_DIRNAME}/broken.ts`,
       `export default {
@@ -117,11 +117,11 @@ export const pageMeta = { label: 'Welcome' }
 `
     )
     const report = createReport()
-    await checkFlowplans(wsDir, report)
-    assert.ok(ruleIds(report).includes('flowplan/invalid-page'))
+    await checkFlowStories(wsDir, report)
+    assert.ok(ruleIds(report).includes('flowStory/invalid-page'))
   })
 
-  it('D8 — checkFlowplans: id/filename mismatch → flowplan/id-filename-mismatch', async () => {
+  it('D8 — checkFlowStories: id/filename mismatch → flowStory/id-filename-mismatch', async () => {
     write(
       `${FLOW_STORIES_DIRNAME}/mismatched.ts`,
       `export default {
@@ -132,27 +132,27 @@ export const pageMeta = { label: 'Welcome' }
 `
     )
     const report = createReport()
-    await checkFlowplans(wsDir, report)
-    assert.ok(ruleIds(report).includes('flowplan/id-filename-mismatch'))
+    await checkFlowStories(wsDir, report)
+    assert.ok(ruleIds(report).includes('flowStory/id-filename-mismatch'))
   })
 
-  it('D9 — checkFlowplans: empty flowStories/ dir → flowplan/empty-workspace', async () => {
+  it('D9 — checkFlowStories: empty flowStories/ dir → flowStory/empty-workspace', async () => {
     const emptyWs = fs.mkdtempSync(path.join(os.tmpdir(), 'flowkit-check-empty-'))
     fs.mkdirSync(path.join(emptyWs, FLOW_STORIES_DIRNAME))
     try {
       const report = createReport()
-      await checkFlowplans(emptyWs, report)
-      assert.ok(ruleIds(report).includes('flowplan/empty-workspace'))
+      await checkFlowStories(emptyWs, report)
+      assert.ok(ruleIds(report).includes('flowStory/empty-workspace'))
     } finally {
       fs.rmSync(emptyWs, { recursive: true, force: true })
     }
   })
 
-  it('D10 — checkFlowplans: no flowplans/ dir at all → no findings (not suspicious)', async () => {
+  it('D10 — checkFlowStories: no flowStories/ dir at all → no findings (not suspicious)', async () => {
     const noDirWs = fs.mkdtempSync(path.join(os.tmpdir(), 'flowkit-check-nodir-'))
     try {
       const report = createReport()
-      await checkFlowplans(noDirWs, report)
+      await checkFlowStories(noDirWs, report)
       assert.deepEqual(ruleIds(report), [])
     } finally {
       fs.rmSync(noDirWs, { recursive: true, force: true })
@@ -233,7 +233,7 @@ export const pageMeta = { label: 'Root', id: '${makePageId('misc', 'RootScreen')
     }
   })
 
-  it('D15 — checkFlowplans/collectAllScreenIds: same screen folder name under two different flows → distinct composite ids, no collision', async () => {
+  it('D15 — checkFlowStories/collectAllScreenIds: same screen folder name under two different flows → distinct composite ids, no collision', async () => {
     const dualWs = fs.mkdtempSync(path.join(os.tmpdir(), 'flowkit-check-dual-'))
     const writeIn = (relPath, content) => {
       const full = path.join(dualWs, relPath)
@@ -262,9 +262,9 @@ export const pageMeta = { label: 'Root', id: '${makePageId('misc', 'RootScreen')
 `
       )
       const report = createReport()
-      await checkFlowplans(dualWs, report)
+      await checkFlowStories(dualWs, report)
       assert.ok(
-        !ruleIds(report).includes('flowplan/invalid-page'),
+        !ruleIds(report).includes('flowStory/invalid-page'),
         `expected both distinct composite ids to resolve, got: ${JSON.stringify(report.findings)}`
       )
     } finally {
@@ -296,7 +296,7 @@ export const pageMeta = { label: 'Root', id: '${makePageId('misc', 'RootScreen')
     }
   })
 
-  it('D17 — checkPages/checkFlowplans: `__`-prefixed folder fully excluded; single `_`-prefix still checked', async () => {
+  it('D17 — checkPages/checkFlowStories: `__`-prefixed folder fully excluded; single `_`-prefix still checked', async () => {
     const hideWs = fs.mkdtempSync(path.join(os.tmpdir(), 'flowkit-check-hide-'))
     try {
       // `__`-prefixed folder — should be pruned entirely, no findings at all, not even valid ones.
@@ -328,7 +328,7 @@ export const pageMeta = { label: 'Root', id: '${makePageId('misc', 'RootScreen')
       )
       assert.ok(report.findings.some(f => f.file.includes('_hidden') && f.ruleId === 'page/missing-meta'))
 
-      // Also verify checkFlowplans: a step referencing the __-hidden screen must fail invalid-screen
+      // Also verify checkFlowStories: a step referencing the __-hidden screen must fail invalid-screen
       // (as if the screen doesn't exist), while one referencing the _-hidden screen must resolve fine.
       fs.mkdirSync(path.join(hideWs, FLOW_STORIES_DIRNAME), { recursive: true })
       fs.writeFileSync(
@@ -344,8 +344,8 @@ export const pageMeta = { label: 'Root', id: '${makePageId('misc', 'RootScreen')
 `
       )
       const planReport = createReport()
-      await checkFlowplans(hideWs, planReport)
-      const invalidScreenFindings = planReport.findings.filter(f => f.ruleId === 'flowplan/invalid-page')
+      await checkFlowStories(hideWs, planReport)
+      const invalidScreenFindings = planReport.findings.filter(f => f.ruleId === 'flowStory/invalid-page')
       assert.equal(invalidScreenFindings.length, 1, `expected exactly 1 invalid-screen finding (for __gone), got: ${JSON.stringify(planReport.findings)}`)
       assert.match(invalidScreenFindings[0].message, /__gone/)
     } finally {

@@ -8,13 +8,13 @@ import { useSessionRecorderOptional } from '@flowkit-features/flowTracer/context
 import { TransitionLogEntry, useDashboard } from '@flowkit-shared/contexts/DashboardContext'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-// ─── Flowplan gating (optional — engine stays flowStory-agnostic otherwise) ────
+// ─── FlowStory gating (optional — engine stays flowStory-agnostic otherwise) ────
 //
 // FlowMaster passes this in when the active flow is a compiled flowStory. The
 // engine never imports flowStory types — it only reads the three primitives it
 // needs to gate a "user"-origin navigation against the planned step.
 
-export interface FlowplanGate {
+export interface FlowStoryGate {
   /** Planned tap target element id for the current step, or undefined (tap-anywhere). */
   currentOn?: string
   /** Resolved advance target for the current step — a screen id, "__complete__",
@@ -24,7 +24,7 @@ export interface FlowplanGate {
 }
 
 export interface FlowEngineOptions {
-  flowplanGate?: FlowplanGate | null
+  flowStoryGate?: FlowStoryGate | null
   /**
    * Delay (ms) before the completion navigateTo/onComplete fires, once the
    * flow reaches '__complete__' or runs out of screens on 'next'. Default 0
@@ -39,7 +39,7 @@ export interface FlowEngineOptions {
 /** Distinguishes navigation the engine drives itself (auto-play/auto-advance —
  *  never gated) from navigation triggered by the user (tap/keyboard/programmatic —
  *  gated when Strict Mode is on). Defaults to 'user' so existing call sites that
- *  don't pass it keep their current (ungated unless flowplanGate says otherwise)
+ *  don't pass it keep their current (ungated unless flowStoryGate says otherwise)
  *  behavior. */
 export type NavigationOrigin = 'engine' | 'user'
 
@@ -109,7 +109,7 @@ export interface FlowEngineReturn {
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions): FlowEngineReturn {
-  const flowplanGate = options?.flowplanGate ?? null
+  const flowStoryGate = options?.flowStoryGate ?? null
   const completionDelayMs = options?.completionDelayMs ?? 0
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(
@@ -182,11 +182,11 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
 
   useEffect(() => {
     if (!isAllowed) {
-      recorder.current?.logEvent('flow.blocked', { flowId: flow.id })
+      recorder.current?.logEvent('chapter.blocked', { flowId: flow.id })
       navigateTo(flow.canEnterFallback || firstViewId || 'home')
     } else {
       screenEntryTimeRef.current = performance.now()
-      recorder.current?.logEvent('flow.entered', { flowId: flow.id, label: flow.label })
+      recorder.current?.logEvent('chapter.entered', { flowId: flow.id, label: flow.label })
     }
     // Stable refs (recorder, navigateTo, flow.id) intentionally omitted — only
     // the guard result should trigger entry/redirect logic.
@@ -248,7 +248,7 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
         const name = s.id || s.label
         // Emit dwell-end for the screen we're leaving
         const dwell = performance.now() - screenEntryTimeRef.current
-        recorder.current?.logEvent('screen.dwell-end', {
+        recorder.current?.logEvent('page.dwell-end', {
           pageId: logEntry.fromPage,
           dwellMs: Math.round(dwell),
           flowId: flow.id,
@@ -259,7 +259,7 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
         // so history shrinks instead of duplicating the target.
         setHistory(h => (historyMode === 'pop' ? h.slice(0, -1) : [...h, name]))
         setTransitionLog(prev => [...prev, { ...logEntry, toPage: name }])
-        recorder.current?.logEvent('screen.visited', {
+        recorder.current?.logEvent('page.visited', {
           pageId: name,
           flowId: flow.id,
           from: logEntry.fromPage,
@@ -318,18 +318,18 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
     ) => {
       if (target === '__state__') return
 
-      // ─── Flowplan Strict Mode gate ─────────────────────────────────────────
+      // ─── FlowStory Strict Mode gate ─────────────────────────────────────────
       // Only gates user-origin navigation (tap/keyboard/programmatic) — the
       // engine's own auto-play/auto-advance timers pass origin:'engine' and are
       // never gated, since they're the flow advancing itself, not a bypass.
-      if (flowplanGate?.strictMode && origin === 'user' && target !== 'back') {
+      if (flowStoryGate?.strictMode && origin === 'user' && target !== 'back') {
         // Fork-aware: currentNext may be a resolver function (forking step) —
         // call it fresh against live db/flowState rather than string-comparing,
         // since a forking step has no single static "the" planned target.
         const resolvedPlanned =
-          typeof flowplanGate.currentNext === 'function'
-            ? flowplanGate.currentNext({ db, flowState: localState })
-            : flowplanGate.currentNext
+          typeof flowStoryGate.currentNext === 'function'
+            ? flowStoryGate.currentNext({ db, flowState: localState })
+            : flowStoryGate.currentNext
         if (resolvedPlanned !== undefined && target !== resolvedPlanned) {
           warnings.push(`Navigation to "${target}" blocked — outside the planned flowStory step.`)
           setTransitionLog(prev => [
@@ -342,7 +342,7 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
               warnings,
             },
           ])
-          recorder.current?.logEvent('screen.blocked', {
+          recorder.current?.logEvent('page.blocked', {
             pageId: target,
             flowId: flow.id,
             fromPage: activeScreenLabel,
@@ -363,7 +363,7 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
             warnings,
           },
         ])
-        recorder.current?.logEvent('flow.completed', {
+        recorder.current?.logEvent('chapter.completed', {
           flowId: flow.id,
           fromPage: activeScreenLabel,
         })
@@ -447,7 +447,7 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
             warnings,
           },
         ])
-        recorder.current?.logEvent('flow.exited-early', {
+        recorder.current?.logEvent('chapter.exited-early', {
           flowId: flow.id,
           fromPage: activeScreenLabel,
           to: target,
@@ -480,12 +480,12 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
             warnings,
           },
         ])
-        recorder.current?.logEvent('screen.blocked', {
+        recorder.current?.logEvent('page.blocked', {
           pageId: target,
           flowId: flow.id,
           fromPage: activeScreenLabel,
         })
-        recorder.current?.logEvent('flow.transition', {
+        recorder.current?.logEvent('chapter.transition', {
           flowId: flow.id,
           action: actionName,
           from: activeScreenLabel,
@@ -518,7 +518,7 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
       navigateTo,
       navigateToScreen,
       screenPassesGuard,
-      flowplanGate,
+      flowStoryGate,
       localState,
       db,
       completionDelayMs,
@@ -610,7 +610,7 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
       // Surface rule-level errors (do()/goTo() exceptions) to FlowLens so a
       // replay shows WHY a tap misbehaved, not just that it happened.
       if (warnings.length > 0) {
-        recorder.current?.logEvent('flow.transition', {
+        recorder.current?.logEvent('chapter.transition', {
           flowId: flow.id,
           action: `${triggerName} → ${elementId}`,
           from: activeScreenLabel,

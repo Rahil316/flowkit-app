@@ -46,7 +46,7 @@ function useGoToHandlers({ chapters, activeViewId, navigateTo, onClose }: Props)
         }
       } else if (meta?.kind === 'flowStory') {
         dispatchExplorerCommand({ type: 'switchTab', tab: 'chapters' })
-        dispatchExplorerCommand({ type: 'openFlowplanDetail', flowplanId: item.id })
+        dispatchExplorerCommand({ type: 'openFlowStoryDetail', flowStoryId: item.id })
       }
 
       onClose()

@@ -57,7 +57,7 @@ export function computeSessionMetrics(session: SessionExport): SessionMetrics {
   let currentPageEnterTime = 0
 
   for (const ev of events) {
-    if (ev.type === 'screen.visited') {
+    if (ev.type === 'page.visited') {
       if (currentPageId && currentPageEnterTime > 0) {
         pageDwells[currentPageId] =
           (pageDwells[currentPageId] ?? 0) + (ev.timestamp - currentPageEnterTime)
@@ -67,7 +67,7 @@ export function computeSessionMetrics(session: SessionExport): SessionMetrics {
       currentPageEnterTime = ev.timestamp
       pageVisits[sid] = pageVisits[sid] ?? []
       pageVisits[sid].push(ev.timestamp)
-    } else if (ev.type === 'screen.dwell-end') {
+    } else if (ev.type === 'page.dwell-end') {
       const sid = ev.payload.pageId as string
       const dwell = (ev.payload.dwellMs as number) ?? 0
       pageDwells[sid] = (pageDwells[sid] ?? 0) + dwell
@@ -81,17 +81,17 @@ export function computeSessionMetrics(session: SessionExport): SessionMetrics {
       interactionBreakdown[ev.type] = (interactionBreakdown[ev.type] ?? 0) + 1
     } else if (ev.type.startsWith('interaction.')) {
       interactionBreakdown[ev.type] = (interactionBreakdown[ev.type] ?? 0) + 1
-    } else if (ev.type === 'flow.entered') {
+    } else if (ev.type === 'chapter.entered') {
       const fid = ev.payload.flowId as string
       chaptersEntered.add(fid)
       flowEntryTimes[fid] = flowEntryTimes[fid] ?? []
       flowEntryTimes[fid].push(ev.timestamp)
-    } else if (ev.type === 'flow.completed') {
+    } else if (ev.type === 'chapter.completed') {
       const fid = ev.payload.flowId as string
       chaptersCompleted.add(fid)
       flowCompletionTimes[fid] = flowCompletionTimes[fid] ?? []
       flowCompletionTimes[fid].push(ev.timestamp)
-    } else if (ev.type === 'flow.blocked') {
+    } else if (ev.type === 'chapter.blocked') {
       const fid = ev.payload.flowId as string
       flowBlockedSet.add(fid)
     } else if (ev.type.startsWith('navigation.')) {

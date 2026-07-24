@@ -1,8 +1,8 @@
 import {
-  type FlowplanDef,
+  type FlowStoryDef,
   type FlowStep,
   type Fork,
-  isFlowplanRef,
+  isFlowStoryRef,
   type WireframeView,
 } from '@flowkit/types/index'
 import { useActiveWorkspace } from '@flowkit-shared/contexts/ActiveWorkspaceContext'
@@ -12,9 +12,9 @@ import { useMemo } from 'react'
 
 // ── useFlowLibrary ──────────────────────────────────────────────────────────────
 //
-// Reads the discovered Flowplan registry (from the workspace hierarchy) and
+// Reads the discovered FlowStory registry (from the workspace hierarchy) and
 // derives display summaries for the Flow Library UI. Pure-ish: counts are computed
-// from the raw FlowplanDef, no compilation needed for the list view.
+// from the raw FlowStoryDef, no compilation needed for the list view.
 
 export interface FlowSummary {
   id: string
@@ -27,18 +27,18 @@ export interface FlowSummary {
   pageIds: string[]
   /** First step's pageId (for the "Starts" group). */
   firstPageId?: string
-  def: FlowplanDef
+  def: FlowStoryDef
 }
 
 /** Recursively count steps + forks and collect screen ids in a flowStory. */
 function analyze(
-  steps: FlowplanDef['steps'],
-  registry: Map<string, FlowplanDef>,
+  steps: FlowStoryDef['steps'],
+  registry: Map<string, FlowStoryDef>,
   seen: Set<string>,
   acc: { steps: number; forks: number; pages: Set<string> }
 ): void {
   for (const entry of steps) {
-    if (isFlowplanRef(entry)) {
+    if (isFlowStoryRef(entry)) {
       if (seen.has(entry.ref)) continue
       const ref = registry.get(entry.ref)
       if (ref) analyze(ref.steps, registry, new Set([...seen, entry.ref]), acc)
@@ -57,13 +57,13 @@ function analyze(
 }
 
 function firstPageId(
-  def: FlowplanDef,
-  registry: Map<string, FlowplanDef>,
+  def: FlowStoryDef,
+  registry: Map<string, FlowStoryDef>,
   seen: Set<string>
 ): string | undefined {
   const first = def.steps[0]
   if (!first) return undefined
-  if (isFlowplanRef(first)) {
+  if (isFlowStoryRef(first)) {
     if (seen.has(first.ref)) return undefined
     const ref = registry.get(first.ref)
     return ref ? firstPageId(ref, registry, new Set([...seen, first.ref])) : undefined

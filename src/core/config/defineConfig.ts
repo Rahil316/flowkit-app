@@ -1,4 +1,4 @@
-import type { AnnotationTag, FlowkitConfig, FlowplanDef } from '../../types/index'
+import type { AnnotationTag, FlowkitConfig, FlowStoryDef } from '../../types/index'
 
 // ── Authoring helpers ───────────────────────────────────────────────────────────
 //
@@ -36,7 +36,7 @@ export function defineConfig(config: FlowkitConfig): FlowkitConfig {
 }
 
 /**
- * Author a Flowplan with full type-checking + autocomplete.
+ * Author a FlowStory with full type-checking + autocomplete.
  *
  * Identity function — returns `flow` unchanged, same rationale as
  * {@link defineConfig}.
@@ -51,7 +51,7 @@ export function defineConfig(config: FlowkitConfig): FlowkitConfig {
  * export default defineFlow({ id: "checkout", name: "Checkout", steps: [...] });
  * ```
  */
-export function defineFlow(flow: FlowplanDef): FlowplanDef {
+export function defineFlow(flow: FlowStoryDef): FlowStoryDef {
   return flow
 }
 

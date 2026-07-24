@@ -48,7 +48,7 @@ export const DEFAULT_FILTERS: ReportFilters = {
 function screensVisited(s: SessionExport): Set<string> {
   return new Set(
     s.events
-      .filter(e => e.type === 'screen.visited')
+      .filter(e => e.type === 'page.visited')
       .map(e => e.payload.pageId as string)
       .filter(Boolean)
   )
@@ -76,7 +76,7 @@ function connectionsUsed(s: SessionExport): Set<string> {
 
 /** A session "completed" if it logged any flow.completed. */
 function isCompleted(s: SessionExport): boolean {
-  return s.events.some(e => e.type === 'flow.completed')
+  return s.events.some(e => e.type === 'chapter.completed')
 }
 
 // ── The predicate ───────────────────────────────────────────────────────────────

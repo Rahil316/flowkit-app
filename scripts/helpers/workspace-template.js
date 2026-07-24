@@ -53,7 +53,7 @@ export default defineConfig({
   )
 }
 
-export function writeFlowplans(dir) {
+export function writeFlowStories(dir) {
   fs.mkdirSync(path.join(dir, FLOW_STORIES_DIRNAME), { recursive: true })
   fs.writeFileSync(
     path.join(dir, FLOW_STORIES_DIRNAME, 'onboarding.ts'),
@@ -439,7 +439,7 @@ ${VITE_CONFIG_BUILD_BLOCK}
 /** Writes the full demo content set (config, flowStories, five screens, db, tokens) for one workspace folder. */
 export function writeWorkspaceContent(dir, workspaceName, language) {
   writeFlowkitConfig(dir, workspaceName)
-  writeFlowplans(dir)
+  writeFlowStories(dir)
   writeWelcomeScreen(dir, language)
   writeSetupScreen(dir, language)
   writeReadyScreen(dir, language)

@@ -283,14 +283,14 @@ export default function MobileCanvas({ chapters, views }: MobileCanvasProps) {
         {ActiveComponent && <ActiveComponent />}
       </div>
 
-      {/* Flowplan playback bar — mobile has no side-panel Play/Stop button
+      {/* FlowStory playback bar — mobile has no side-panel Play/Stop button
           (see desktop's FlowLibrary.tsx), so this sticky top bar is the mobile
           Stop control. Only renders while a flowStory is actively gating. */}
       <MobilePlaybackBar
         onStop={() => {
           if (!playback?.isGating) return
           const sourcePageId =
-            playback.activeFlowplan?.__flowplan.steps[playback.currentStepIndex]?.sourcePageId
+            playback.activeFlowStory?.__flowStory.steps[playback.currentStepIndex]?.sourcePageId
           playback.exit()
           navigateTo(sourcePageId ?? firstViewId ?? 'home')
         }}

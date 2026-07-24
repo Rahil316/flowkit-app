@@ -1,4 +1,4 @@
-import type { CompiledFlowplan, CompiledStep } from '@flowkit-features/flowStory/compileFlowStory'
+import type { CompiledFlowStory, CompiledStep } from '@flowkit-features/flowStory/compileFlowStory'
 import { useDashboard } from '@flowkit-shared/contexts/DashboardContext'
 import { useFlowLensModeOptional } from '@flowkit-shared/contexts/FlowLensModeContext'
 import { useSessionRecorderShared } from '@flowkit-shared/contexts/SessionRecorderContext'
@@ -7,7 +7,7 @@ import React, { createContext, useCallback, useContext, useMemo, useRef, useStat
 
 // ── FlowPlaybackContext ─────────────────────────────────────────────────────────
 //
-// Holds the state for an ACTIVE Flowplan playback session — kept separate from the
+// Holds the state for an ACTIVE FlowStory playback session — kept separate from the
 // already-overloaded DashboardContext. This is the cohesive home that F4/F5 and
 // Phase 2 (visual editor) keep extending.
 //
@@ -23,8 +23,8 @@ import React, { createContext, useCallback, useContext, useMemo, useRef, useStat
 
 export interface FlowPlaybackValue {
   /** The compiled flowStory currently playing, or null. */
-  activeFlowplan: CompiledFlowplan | null
-  /** Index into __flowplan.steps of the current step, or -1. */
+  activeFlowStory: CompiledFlowStory | null
+  /** Index into __flowStory.steps of the current step, or -1. */
   currentStepIndex: number
   /** The current step's metadata (db patch, actionNote, …), or null. */
   currentStep: CompiledStep | null
@@ -34,7 +34,7 @@ export interface FlowPlaybackValue {
   canPlay: boolean
 
   /** Begin playback of a compiled flowStory: inject its baseline db, gate on. */
-  enter: (compiled: CompiledFlowplan, rawDb: Record<string, unknown>) => void
+  enter: (compiled: CompiledFlowStory, rawDb: Record<string, unknown>) => void
   /** End playback: restore workspace db, clear state. */
   exit: () => void
   /**
@@ -69,7 +69,7 @@ export function FlowPlaybackProvider({ children }: { children: React.ReactNode }
   const recorder = useSessionRecorderShared()
   const replayActive = flowLens?.replayActive ?? false
 
-  const [activeFlowplan, setActiveFlowplan] = useState<CompiledFlowplan | null>(null)
+  const [activeFlowStory, setActiveFlowStory] = useState<CompiledFlowStory | null>(null)
   const [currentStepIndex, setCurrentStepIndex] = useState(-1)
   const [restartSignal, setRestartSignal] = useState(0)
 
@@ -80,7 +80,7 @@ export function FlowPlaybackProvider({ children }: { children: React.ReactNode }
   const baselineDbRef = useRef<Record<string, unknown>>({})
 
   const enter = useCallback(
-    (compiled: CompiledFlowplan, rawDb: Record<string, unknown>) => {
+    (compiled: CompiledFlowStory, rawDb: Record<string, unknown>) => {
       if (replayActive) return // RB4: don't fight FlowLens replay.
       // Inject a deep copy of the baseline db (source flowStory is never mutated).
       // Step 0's patch is NOT applied here — FlowMaster's per-screen effect fires
@@ -90,8 +90,8 @@ export function FlowPlaybackProvider({ children }: { children: React.ReactNode }
       baselineDbRef.current = rawDb
       workingDbRef.current = copy
       flowPlaySetDb(copy)
-      setActiveFlowplan(compiled)
-      setActiveFlowHomeScreen(compiled.__flowplan.homeScreen ?? null)
+      setActiveFlowStory(compiled)
+      setActiveFlowHomeScreen(compiled.__flowStory.homeScreen ?? null)
       setCurrentStepIndex(0)
       // Auto-record: only fires when the ActionCenter toggle is ON (recorder.setAutoStartOnFlow syncs it).
       if (recorder && !recorder.isRecording) recorder.autoStartSession()
@@ -100,7 +100,7 @@ export function FlowPlaybackProvider({ children }: { children: React.ReactNode }
   )
 
   const exit = useCallback(() => {
-    setActiveFlowplan(null)
+    setActiveFlowStory(null)
     setActiveFlowHomeScreen(null)
     setCurrentStepIndex(-1)
     workingDbRef.current = {}
@@ -109,7 +109,7 @@ export function FlowPlaybackProvider({ children }: { children: React.ReactNode }
   }, [resetDb, setActiveFlowHomeScreen])
 
   const restart = useCallback(() => {
-    if (!activeFlowplan) return
+    if (!activeFlowStory) return
     // Re-inject a fresh clone of the baseline db so step patches start clean.
     const copy = applyDotPathPatch(baselineDbRef.current, {})
     workingDbRef.current = copy
@@ -119,7 +119,7 @@ export function FlowPlaybackProvider({ children }: { children: React.ReactNode }
     // calls engine.resetEngine(), which returns activeScreenIndex to 0 and clears
     // history/localState/log/effects/animClass without a navigateTo() call.
     setRestartSignal(s => s + 1)
-  }, [activeFlowplan, flowPlaySetDb])
+  }, [activeFlowStory, flowPlaySetDb])
 
   const applyStep = useCallback(
     (index: number, db?: Record<string, unknown>) => {
@@ -135,15 +135,15 @@ export function FlowPlaybackProvider({ children }: { children: React.ReactNode }
 
   const value = useMemo<FlowPlaybackValue>(() => {
     const currentStep =
-      activeFlowplan && currentStepIndex >= 0
-        ? (activeFlowplan.__flowplan.steps[currentStepIndex] ?? null)
+      activeFlowStory && currentStepIndex >= 0
+        ? (activeFlowStory.__flowStory.steps[currentStepIndex] ?? null)
         : null
     return {
-      activeFlowplan,
+      activeFlowStory,
       currentStepIndex,
       currentStep,
       restartSignal,
-      isGating: activeFlowplan !== null,
+      isGating: activeFlowStory !== null,
       canPlay: !replayActive,
       enter,
       exit,
@@ -151,7 +151,7 @@ export function FlowPlaybackProvider({ children }: { children: React.ReactNode }
       applyStep,
     }
   }, [
-    activeFlowplan,
+    activeFlowStory,
     currentStepIndex,
     restartSignal,
     replayActive,

@@ -36,12 +36,12 @@ import {
   cmdPageInfo,
 } from '../authoring/pages.js'
 import {
-  cmdCreateFlowplan,
-  cmdRemoveFlowplan,
+  cmdCreateFlowStory,
+  cmdRemoveFlowStory,
   cmdAddStep,
   cmdRemoveStep,
   cmdListSteps,
-  cmdFlowplanInfo,
+  cmdFlowStoryInfo,
 } from '../authoring/flowStories.js'
 import {
   cmdCreateComponent,
@@ -184,7 +184,7 @@ export async function route(argv) {
       process.exit(1)
     }
 
-    // ── FlowPlan ──
+    // ── FlowStory ──
   } else if (p.cmd === 'plan' || p.cmd === 'fp') {
     const subColon = p.val.indexOf(':')
     const sub = subColon === -1 ? p.val : p.val.slice(0, subColon)
@@ -237,7 +237,7 @@ export async function route(argv) {
     const sub = p.val
     if (sub === 'chapter') await cmdCreateChapter('', rest)
     else if (sub === 'page') await cmdCreatePage('', rest)
-    else if (sub === 'flowStory') await cmdCreateFlowplan('', rest)
+    else if (sub === 'flowStory') await cmdCreateFlowStory('', rest)
     else if (sub === 'component') await cmdCreateComponent('', rest)
     else if (sub === 'workspace') await cmdAddWorkspace('', rest)
     else {
@@ -248,7 +248,7 @@ export async function route(argv) {
     const sub = p.val
     if (sub === 'chapter') await cmdRemoveChapter('', rest)
     else if (sub === 'page') await cmdRemovePage('', rest)
-    else if (sub === 'flowStory') await cmdRemoveFlowplan('', rest)
+    else if (sub === 'flowStory') await cmdRemoveFlowStory('', rest)
     else if (sub === 'component') await cmdRemoveComponent('', rest)
     else if (sub === 'step') await cmdRemoveStep('', rest)
     else if (sub === 'workspace') await cmdRemoveWorkspaceFlat('', rest)
@@ -307,7 +307,7 @@ export async function route(argv) {
       process.exit(1)
     }
   } else if (p.cmd === 'flowStory') {
-    if (p.val === 'info') await cmdFlowplanInfo('', rest)
+    if (p.val === 'info') await cmdFlowStoryInfo('', rest)
     else {
       console.error(r(`✗ Unknown: flowStory:${p.val}`))
       process.exit(1)

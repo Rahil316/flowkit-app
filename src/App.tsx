@@ -6,7 +6,7 @@ import { useAppShortcuts } from './core/shortcuts/useKeyboardShortcuts'
 import { FeedbackProvider } from './features/feedback/context/FeedbackContext'
 import { FigmaExportView } from './features/figma-export'
 import { DbHighlightSettingsProvider } from './features/flow-debugger'
-import { FlowplanSettingsProvider } from './features/flowStory/FlowplanSettingsContext'
+import { FlowStorySettingsProvider } from './features/flowStory/FlowStorySettingsContext'
 import { FlowPlaybackProvider } from './features/flowStory/FlowPlaybackContext'
 import { SessionRecorderProvider, useSessionRecorderOptional } from './features/flowTracer/context'
 import Forbidden from './shared/components/errors/Forbidden'
@@ -133,7 +133,7 @@ function WorkspaceRunner({ name, onSwitch }: WorkspaceRunnerProps) {
                       workspaceConfig={workspaceConfig}
                       onSwitchWorkspace={onSwitch}
                     >
-                      <FlowplanSettingsProvider>
+                      <FlowStorySettingsProvider>
                         <DbHighlightSettingsProvider>
                           <FlowPlaybackProvider>
                             <FeedbackProvider>
@@ -141,7 +141,7 @@ function WorkspaceRunner({ name, onSwitch }: WorkspaceRunnerProps) {
                             </FeedbackProvider>
                           </FlowPlaybackProvider>
                         </DbHighlightSettingsProvider>
-                      </FlowplanSettingsProvider>
+                      </FlowStorySettingsProvider>
                     </DashboardProvider>
                   )}
                 </ConnectedWorkspaceErrorBoundary>

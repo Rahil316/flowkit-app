@@ -101,8 +101,8 @@ export async function readWorkspaceConfig(wsDir) {
   return readTsModule(path.join(wsDir, WORKSPACE_CONFIG_FILENAME))
 }
 
-/** Reads an arbitrary flowStory .ts file, returning the evaluated FlowplanDef object, or null. */
-export async function readFlowplanModule(filePath) {
+/** Reads an arbitrary flowStory .ts file, returning the evaluated FlowStoryDef object, or null. */
+export async function readFlowStoryModule(filePath) {
   return readTsModule(filePath)
 }
 

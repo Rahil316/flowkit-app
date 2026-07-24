@@ -41,8 +41,8 @@ describe('Suite C — flowkit check', () => {
     assert.match(result.stdout, /all clean/)
   })
 
-  it('C2 — check:pages/check:config/check:components/check:db/check:flowplans each run only their own domain', async () => {
-    for (const domain of ['pages', 'config', 'components', 'db', 'flowplans']) {
+  it('C2 — check:pages/check:config/check:components/check:db/check:flowStories each run only their own domain', async () => {
+    for (const domain of ['pages', 'config', 'components', 'db', 'flowStories']) {
       const result = await spawnCLI([`check:${domain}:${WS}`])
       assert.equal(result.code, 0, `${domain} — stderr: ${result.stderr}`)
       assert.match(result.stdout, new RegExp(`check:${domain}`), `${domain} — heading missing`)
@@ -64,7 +64,7 @@ describe('Suite C — flowkit check', () => {
     assert.deepEqual(parsed.results, [])
   })
 
-  it('C5 — check:flowplans catches a step referencing a nonexistent pageId → exit 1', async () => {
+  it('C5 — check:flowStories catches a step referencing a nonexistent pageId → exit 1', async () => {
     const fpPath = path.join(ROOT, 'workspaces', WS, FLOW_STORIES_DIRNAME, 'home-flow.ts')
     const original = fs.readFileSync(fpPath, 'utf8')
     try {
@@ -75,23 +75,23 @@ describe('Suite C — flowkit check', () => {
       assert.notEqual(broken, original, 'fixture setup failed — pattern not found in home-flow.ts')
       fs.writeFileSync(fpPath, broken)
 
-      const result = await spawnCLI([`check:flowplans:${WS}`])
+      const result = await spawnCLI([`check:flowStories:${WS}`])
       assert.notEqual(result.code, 0)
-      assert.match(result.stdout, /flowplan\/invalid-page/)
+      assert.match(result.stdout, /flowStory\/invalid-page/)
     } finally {
       fs.writeFileSync(fpPath, original)
     }
   })
 
-  it('C6 — check:flowplans flags an existing-but-empty flowStories/ dir → exit 1', async () => {
+  it('C6 — check:flowStories flags an existing-but-empty flowStories/ dir → exit 1', async () => {
     const fpDir = path.join(ROOT, 'workspaces', WS, FLOW_STORIES_DIRNAME)
     const backupDir = path.join(ROOT, 'workspaces', WS, `${FLOW_STORIES_DIRNAME}.bak`)
     fs.renameSync(fpDir, backupDir)
     fs.mkdirSync(fpDir)
     try {
-      const result = await spawnCLI([`check:flowplans:${WS}`])
+      const result = await spawnCLI([`check:flowStories:${WS}`])
       assert.notEqual(result.code, 0)
-      assert.match(result.stdout, /flowplan\/empty-workspace/)
+      assert.match(result.stdout, /flowStory\/empty-workspace/)
     } finally {
       fs.rmSync(fpDir, { recursive: true, force: true })
       fs.renameSync(backupDir, fpDir)

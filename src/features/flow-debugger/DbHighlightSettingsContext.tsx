@@ -14,7 +14,7 @@ import React, { createContext, useCallback, useContext, useMemo, useState } from
 // values) and DbInspector (the already-mounted panel that renders them) are
 // simultaneously mounted, so two independent localStorage-backed useState
 // copies would desync: editing color in Settings wouldn't reach the still-open
-// Debug tab until it remounted. Same reasoning as FlowplanSettingsContext.
+// Debug tab until it remounted. Same reasoning as FlowStorySettingsContext.
 
 export const DEFAULT_HIGHLIGHT_BG = '#f59e0b' // amber
 export const DEFAULT_HIGHLIGHT_TEXT = '#f59e0b'

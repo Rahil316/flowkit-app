@@ -330,8 +330,8 @@ export function SessionRecorderProvider({
       const seq = nextSeq()
       eventCountRef.current += 1
 
-      if (type === 'flow.entered') flowEntryCountRef.current += 1
-      if (type === 'screen.visited') {
+      if (type === 'chapter.entered') flowEntryCountRef.current += 1
+      if (type === 'page.visited') {
         screenCountRef.current += 1
         setCurrentPageId((payload.pageId as string) ?? (payload.viewId as string) ?? null)
       }
@@ -541,8 +541,8 @@ export function SessionRecorderProvider({
       SessionDb.getEvents(id),
       SessionDb.getCursorSamples(id),
     ])
-    const flowEntryCount = events.filter(e => e.type === 'flow.entered').length
-    const screenCount = events.filter(e => e.type === 'screen.visited').length
+    const flowEntryCount = events.filter(e => e.type === 'chapter.entered').length
+    const screenCount = events.filter(e => e.type === 'page.visited').length
     // event.timestamp is performance.now() from the crashed page load, so it
     // can't be turned into a wall-clock end time on recovery. Estimate duration
     // from the span of recorded timestamps (intra-session deltas are valid).

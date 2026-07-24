@@ -4,7 +4,7 @@ import {
   FLOW_STORIES_DIRNAME,
 } from './config-filenames.js'
 
-// NOTE: packages/create-flowkit-app/index.js's write*Screen/writeDb/writeFlowplans
+// NOTE: packages/create-flowkit-app/index.js's write*Screen/writeDb/writeFlowStories
 // functions hand-port this same demo content for standalone publishing (it can't
 // import this file — see that file's own top-of-file comment on why). If you add
 // or remove a demo page/chapter here, update it there too — page/chapter id naming

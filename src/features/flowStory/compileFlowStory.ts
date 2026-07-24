@@ -1,19 +1,19 @@
 import type {
   ChapterConfig,
-  FlowplanDef,
+  FlowStoryDef,
   FlowStep,
   Fork,
   InteractionRule,
   SimulatorControl,
 } from '@flowkit/types/index'
-import { isFlowplanRef } from '@flowkit/types/index'
+import { isFlowStoryRef } from '@flowkit/types/index'
 import { get } from '@flowkit-shared/utils/dbHelpers'
 
 // ── compileFlowStory ─────────────────────────────────────────────────────────────
 //
-// Turns an authored FlowplanDef into the runtime ChapterConfig that the EXISTING
+// Turns an authored FlowStoryDef into the runtime ChapterConfig that the EXISTING
 // useFlowEngine/FlowMaster already accept. The engine is never modified — this
-// compiler is the single seam where Flowplan concepts (forks, refs, step db
+// compiler is the single seam where FlowStory concepts (forks, refs, step db
 // patches) map onto the engine's primitives:
 //
 //   • steps[]            → ChapterConfig.pages[]  (flat, ordered, deduped)
@@ -23,7 +23,7 @@ import { get } from '@flowkit-shared/utils/dbHelpers'
 //   • terminal fork      → last branch step advances to "__complete__"
 //   • flowStory refs      → referenced plan's steps inlined here, ids namespaced
 //
-// The compiler also emits a parallel `__flowplan.steps` array (CompiledStep[])
+// The compiler also emits a parallel `__flowStory.steps` array (CompiledStep[])
 // that the FlowPlaybackContext reads to apply per-step db patches, show
 // actionNotes, and drive gating. The engine ignores that extra field.
 //
@@ -67,10 +67,10 @@ export interface CompiledStep {
   next: InteractionRule['goTo']
 }
 
-/** A ChapterConfig plus the Flowplan playback metadata that rides alongside it. */
-export interface CompiledFlowplan extends ChapterConfig {
-  __flowplan: {
-    flowplanId: string
+/** A ChapterConfig plus the FlowStory playback metadata that rides alongside it. */
+export interface CompiledFlowStory extends ChapterConfig {
+  __flowStory: {
+    flowStoryId: string
     steps: CompiledStep[]
     /** Flow-level simulator controls shown during playback (F4.4). */
     simulatorControls: SimulatorControl[]
@@ -79,7 +79,7 @@ export interface CompiledFlowplan extends ChapterConfig {
   }
 }
 
-class FlowplanCompileError extends Error {}
+class FlowStoryCompileError extends Error {}
 
 // A fully-resolved linear step with an explicit advance target. `next` is either
 // a compiled page id, "__complete__", or a function (fork) returning one.
@@ -99,10 +99,10 @@ interface FlatStep {
  *                    (the parent sequence's continuation, or "__complete__")
  */
 function flatten(
-  entries: FlowplanDef['steps'],
+  entries: FlowStoryDef['steps'],
   parentNext: InteractionRule['goTo'],
   resolve: PageResolver,
-  registry: Map<string, FlowplanDef>,
+  registry: Map<string, FlowStoryDef>,
   visited: Set<string>,
   prefix: string,
   out: FlatStep[]
@@ -116,22 +116,22 @@ function flatten(
     step: FlowStep
   }[] = []
 
-  const expand = (es: FlowplanDef['steps'], pfx: string, vis: Set<string>) => {
+  const expand = (es: FlowStoryDef['steps'], pfx: string, vis: Set<string>) => {
     for (const entry of es) {
-      if (isFlowplanRef(entry)) {
+      if (isFlowStoryRef(entry)) {
         const refId = entry.ref
         if (vis.has(refId)) {
-          throw new FlowplanCompileError(
+          throw new FlowStoryCompileError(
             `circular flowStory reference: ${[...vis, refId].join(' → ')}`
           )
         }
         const refPlan = registry.get(refId)
-        if (!refPlan) throw new FlowplanCompileError(`flowStory not found: "${refId}"`)
+        if (!refPlan) throw new FlowStoryCompileError(`flowStory not found: "${refId}"`)
         expand(refPlan.steps, `${pfx}${refId}::`, new Set([...vis, refId]))
         continue
       }
       const page = resolve(entry.pageId)
-      if (!page) throw new FlowplanCompileError(`page not found: "${entry.pageId}"`)
+      if (!page) throw new FlowStoryCompileError(`page not found: "${entry.pageId}"`)
       level.push({
         compiledId: `${pfx}${entry.pageId}`,
         sourcePageId: entry.pageId,
@@ -187,7 +187,7 @@ function buildForkResolver(
   forks: Fork[],
   fallback: InteractionRule['goTo'],
   resolve: PageResolver,
-  registry: Map<string, FlowplanDef>,
+  registry: Map<string, FlowStoryDef>,
   visited: Set<string>,
   prefix: string
 ): InteractionRule['goTo'] {
@@ -211,16 +211,16 @@ function buildForkResolver(
 function firstCompiledPageId(
   fork: Fork,
   _resolve: PageResolver,
-  registry: Map<string, FlowplanDef>,
+  registry: Map<string, FlowStoryDef>,
   _visited: Set<string>,
   prefix: string
 ): string | undefined {
   const first = fork.steps[0]
   if (!first) return undefined
-  if (isFlowplanRef(first)) {
+  if (isFlowStoryRef(first)) {
     const refPlan = registry.get(first.ref)
     const firstStep = refPlan?.steps[0]
-    if (!firstStep || isFlowplanRef(firstStep)) return undefined
+    if (!firstStep || isFlowStoryRef(firstStep)) return undefined
     return `${prefix}${first.ref}::${firstStep.pageId}`
   }
   return `${prefix}${first.pageId}`
@@ -242,21 +242,21 @@ function forkMatches(fork: Fork, db: Record<string, any>): boolean {
 }
 
 /**
- * Compile a Flowplan into a runtime CompiledFlowplan (ChapterConfig + playback
- * metadata). Throws FlowplanCompileError on missing screen, missing ref, or a
+ * Compile a FlowStory into a runtime CompiledFlowStory (ChapterConfig + playback
+ * metadata). Throws FlowStoryCompileError on missing screen, missing ref, or a
  * circular ref.
  */
 export function compileFlowStory(
-  plan: FlowplanDef,
+  plan: FlowStoryDef,
   resolve: PageResolver,
-  registry: Map<string, FlowplanDef>,
+  registry: Map<string, FlowStoryDef>,
   visited: Set<string> = new Set([plan.id])
-): CompiledFlowplan {
+): CompiledFlowStory {
   const flat: FlatStep[] = []
   flatten(plan.steps, '__complete__', resolve, registry, visited, '', flat)
 
   if (flat.length === 0) {
-    throw new FlowplanCompileError(`flowStory "${plan.id}" has no steps`)
+    throw new FlowStoryCompileError(`flowStory "${plan.id}" has no steps`)
   }
 
   // pages[] — dedupe compiled ids (a page may repeat; engine matches by id).
@@ -318,8 +318,8 @@ export function compileFlowStory(
     // sequential mode can also work as a fallback.
     interactions: Object.keys(interactions).length > 0 ? interactions : undefined,
     initialPage: flat[0].compiledId,
-    __flowplan: {
-      flowplanId: plan.id,
+    __flowStory: {
+      flowStoryId: plan.id,
       steps,
       simulatorControls: plan.simulator?.controls ?? [],
       homeScreen: plan.homeScreen,
@@ -327,4 +327,4 @@ export function compileFlowStory(
   }
 }
 
-export { FlowplanCompileError }
+export { FlowStoryCompileError }

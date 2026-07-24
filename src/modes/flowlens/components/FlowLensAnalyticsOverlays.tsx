@@ -54,7 +54,7 @@ export default function FlowLensAnalyticsOverlays({
           nodes={pathNodes}
           onScreenClick={sid => {
             const ev = session.events.find(
-              e => e.type === 'screen.visited' && e.payload.pageId === sid
+              e => e.type === 'page.visited' && e.payload.pageId === sid
             )
             if (ev) {
               onSeek(ev.sequenceId)

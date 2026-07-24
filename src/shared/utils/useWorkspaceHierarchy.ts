@@ -21,13 +21,13 @@ import type {
   AnnotationTag,
   Chapter,
   FlowkitConfig,
-  FlowplanDef,
+  FlowStoryDef,
   PageMeta,
   WireframeView,
   WorkspaceHierarchyNode,
 } from '@flowkit/types/index'
 import {
-  type CompiledFlowplan,
+  type CompiledFlowStory,
   compileFlowStory,
   type PageResolver,
   type ResolvedPage,
@@ -44,7 +44,7 @@ const isSingle = import.meta.env.VITE_SINGLE_WORKSPACE === 'true'
 
 // ─── Flat mode: virtual module imports ────────────────────────────────────────
 
-import { flowStories as _virtualFlowplans } from 'virtual:flowkit/flowStories'
+import { flowStories as _virtualFlowStories } from 'virtual:flowkit/flowStories'
 import { pageMeta as _virtualPageMeta, screenList as _virtualPageList } from 'virtual:flowkit/pages'
 
 // ─── Repo mode: Vite glob maps (string literals only) ────────────────────────
@@ -52,8 +52,8 @@ import { pageMeta as _virtualPageMeta, screenList as _virtualPageList } from 'vi
 // Broad globs match both old (projects/<proj>/...) and new (flat) layouts.
 // These return empty objects in flat mode (no workspaces/ dir on disk).
 
-type FlowplanModule = { default: FlowplanDef }
-type FlowplanGlobMap = Record<string, FlowplanModule>
+type FlowStoryModule = { default: FlowStoryDef }
+type FlowStoryGlobMap = Record<string, FlowStoryModule>
 type PageGlobMap = Record<
   string,
   () => Promise<{ default: React.ComponentType; pageMeta?: PageMeta }>
@@ -61,7 +61,7 @@ type PageGlobMap = Record<
 
 const flowStoryModules = import.meta.glob('/workspaces/**/[fF]low[sS]tories/*.ts', {
   eager: true,
-}) as FlowplanGlobMap
+}) as FlowStoryGlobMap
 
 const flowBookModules = import.meta.glob('/workspaces/**/[fF]low[bB]ook/**/*.tsx') as PageGlobMap
 
@@ -163,14 +163,14 @@ function buildLazyComponent(
 // ─── Result shape ───────────────────────────────────────────────────────────────
 
 export interface WorkspaceHierarchyResult {
-  /** Flow library: one Chapter per Flowplan (with a `-play` runner child). */
+  /** Flow library: one Chapter per FlowStory (with a `-play` runner child). */
   stories: Chapter[]
   /** All screens as flat views (merged into ALL_VIEWS by App). */
   views: WireframeView[]
   /** Project → flow → screen tree for the Screens tab. */
   tree: WorkspaceHierarchyNode[]
-  /** id → raw FlowplanDef (for the Flow Library + ref resolution). */
-  registry: Map<string, FlowplanDef>
+  /** id → raw FlowStoryDef (for the Flow Library + ref resolution). */
+  registry: Map<string, FlowStoryDef>
   /** Whether this workspace uses the hierarchy at all. */
   hasHierarchy: boolean
   /** pageId → active annotation tags (expiresAt filtered). */
@@ -247,9 +247,9 @@ function buildFlatHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
     })
   }
 
-  // 2. Flowplan registry from virtual:flowkit/flowStories
-  const registry = new Map<string, FlowplanDef>()
-  for (const def of _virtualFlowplans) {
+  // 2. FlowStory registry from virtual:flowkit/flowStories
+  const registry = new Map<string, FlowStoryDef>()
+  for (const def of _virtualFlowStories) {
     if (def?.id) registry.set(def.id, def)
   }
 
@@ -276,7 +276,7 @@ function buildFlatHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
     const playNode: WireframeView = {
       id: `${def.id}-play`,
       label: 'Play Flow ➔',
-      component: makeFlowplanRunner(def, resolve, registry),
+      component: makeFlowStoryRunner(def, resolve, registry),
     }
     stories.push({ id: def.id, label: def.name, children: [playNode] })
   }
@@ -427,8 +427,8 @@ function buildHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
     })
   }
 
-  // 3. Flowplan registry for this workspace.
-  const registry = new Map<string, FlowplanDef>()
+  // 3. FlowStory registry for this workspace.
+  const registry = new Map<string, FlowStoryDef>()
   for (const [path, mod] of Object.entries(flowStoryModules)) {
     if (!path.startsWith(wsPrefix)) continue
     const def = mod.default
@@ -459,7 +459,7 @@ function buildHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
     const playNode: WireframeView = {
       id: `${def.id}-play`,
       label: 'Play Flow ➔',
-      component: makeFlowplanRunner(def, resolve, registry),
+      component: makeFlowStoryRunner(def, resolve, registry),
     }
     stories.push({ id: def.id, label: def.name, children: [playNode] })
   }
@@ -564,16 +564,16 @@ function buildTree(
   return projectNodes
 }
 
-// ─── Play-time FlowplanRunner (compiles on mount, renders FlowMaster) ───────────
+// ─── Play-time FlowStoryRunner (compiles on mount, renders FlowMaster) ───────────
 
-function makeFlowplanRunner(
-  def: FlowplanDef,
+function makeFlowStoryRunner(
+  def: FlowStoryDef,
   resolve: PageResolver,
-  registry: Map<string, FlowplanDef>
+  registry: Map<string, FlowStoryDef>
 ): React.ComponentType {
-  return function FlowplanRunner() {
+  return function FlowStoryRunner() {
     const [FlowMasterComp, setComp] = React.useState<React.ComponentType<{
-      flow: CompiledFlowplan
+      flow: CompiledFlowStory
     }> | null>(null)
     const [error, setError] = React.useState<string | null>(null)
     const playback = useFlowPlaybackOptional()
@@ -593,7 +593,7 @@ function makeFlowplanRunner(
 
     React.useEffect(() => {
       import('@flowkit-core/layout/FlowMaster')
-        .then(m => setComp(() => m.default as React.ComponentType<{ flow: CompiledFlowplan }>))
+        .then(m => setComp(() => m.default as React.ComponentType<{ flow: CompiledFlowStory }>))
         .catch(err => setError(String(err)))
     }, [])
 
@@ -610,7 +610,7 @@ function makeFlowplanRunner(
       return React.createElement(
         'div',
         { style: { padding: 16, color: 'red', fontSize: 13 } },
-        `Flowplan error: ${error}`
+        `FlowStory error: ${error}`
       )
     }
     if (!FlowMasterComp || !compiled) return null

@@ -9,16 +9,16 @@ export type EventType =
   | 'session.remark'
   | 'session.presentation-mode-toggled'
   | 'session.error'
-  // Flow lifecycle
-  | 'flow.entered'
-  | 'flow.completed'
-  | 'flow.exited-early'
-  | 'flow.blocked'
-  | 'flow.transition' // navigation resolved WITH A PROBLEM (blocked or resolver threw/warned) — never fires on a clean nav
-  // Screen
-  | 'screen.visited'
-  | 'screen.dwell-end'
-  | 'screen.blocked'
+  // Chapter lifecycle
+  | 'chapter.entered'
+  | 'chapter.completed'
+  | 'chapter.exited-early'
+  | 'chapter.blocked'
+  | 'chapter.transition' // navigation resolved WITH A PROBLEM (blocked or resolver threw/warned) — never fires on a clean nav
+  // Page
+  | 'page.visited'
+  | 'page.dwell-end'
+  | 'page.blocked'
   // Interaction
   | 'interaction.tap'
   | 'interaction.double-tap'
@@ -35,7 +35,7 @@ export type EventType =
   | 'navigation.flow-map-click'
   | 'navigation.mobile-gesture'
   // State
-  | 'state.flow-set'
+  | 'state.chapter-set'
   | 'state.db-init'
   | 'state.db-patch'
   | 'state.db-reset'
@@ -52,7 +52,7 @@ export type EventType =
   | 'panel.debug-subtab-changed'
   // Sidebar
   | 'sidebar.search-used'
-  | 'sidebar.flow-expanded'
+  | 'sidebar.chapter-expanded'
   | 'sidebar.page-clicked'
 
 export interface SessionEvent {

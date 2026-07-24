@@ -1,5 +1,5 @@
 /* @vitest-environment jsdom */
-import type { FlowNode } from '@flowkit/types/index'
+import type { Chapter } from '@flowkit/types/index'
 import type { InspectorTab } from '@flowkit-core/layout/inspectorTabs'
 import {
   useAppShortcuts,
@@ -96,7 +96,7 @@ describe('usePanelShortcuts', () => {
     const setIsOpen = vi.fn()
     const setSimSubTab = vi.fn()
     const setDebugSubTab = vi.fn()
-    const visibleTabs = ['feedback', 'info', 'simulator', 'flow'] as const
+    const visibleTabs = ['feedback', 'info', 'simulator', 'chapter'] as const
 
     function Comp() {
       usePanelShortcuts({
@@ -118,7 +118,7 @@ describe('usePanelShortcuts', () => {
   it('Shift+3 activates third visible tab', () => {
     const setActiveTab = vi.fn()
     const setIsOpen = vi.fn()
-    const visibleTabs = ['feedback', 'info', 'simulator', 'flow'] as const
+    const visibleTabs = ['feedback', 'info', 'simulator', 'chapter'] as const
 
     function Comp() {
       usePanelShortcuts({
@@ -198,8 +198,8 @@ describe('usePanelShortcuts', () => {
     const setDebugSubTab = vi.fn()
     function Comp() {
       usePanelShortcuts({
-        activeTab: 'flow',
-        visibleTabs: ['flow'] as unknown as InspectorTab[],
+        activeTab: 'chapter',
+        visibleTabs: ['chapter'] as unknown as InspectorTab[],
         setActiveTab: vi.fn(),
         setIsOpen: vi.fn(),
         setSimSubTab: vi.fn(),
@@ -314,7 +314,7 @@ describe('useSidebarShortcuts', () => {
 // ─── useNavigationShortcuts ───────────────────────────────────────────────────
 
 describe('useNavigationShortcuts', () => {
-  const flows = [
+  const chapters = [
     {
       id: 'onboarding',
       children: [
@@ -327,12 +327,12 @@ describe('useNavigationShortcuts', () => {
       id: 'home',
       children: [{ id: 'home-dashboard' }, { id: 'home-settings' }],
     },
-  ] as unknown as FlowNode[]
+  ] as unknown as Chapter[]
 
   it('ArrowRight navigates to the next screen', () => {
     const navigateTo = vi.fn()
     function Comp() {
-      useNavigationShortcuts({ flows, activeViewId: 'onboarding-welcome', navigateTo })
+      useNavigationShortcuts({ chapters, activeViewId: 'onboarding-welcome', navigateTo })
       return null
     }
     mount(React.createElement(Comp))
@@ -343,7 +343,7 @@ describe('useNavigationShortcuts', () => {
   it('ArrowLeft navigates to the previous screen', () => {
     const navigateTo = vi.fn()
     function Comp() {
-      useNavigationShortcuts({ flows, activeViewId: 'onboarding-setup', navigateTo })
+      useNavigationShortcuts({ chapters, activeViewId: 'onboarding-setup', navigateTo })
       return null
     }
     mount(React.createElement(Comp))
@@ -354,7 +354,7 @@ describe('useNavigationShortcuts', () => {
   it('Shift+ArrowRight jumps to next flow', () => {
     const navigateTo = vi.fn()
     function Comp() {
-      useNavigationShortcuts({ flows, activeViewId: 'onboarding-welcome', navigateTo })
+      useNavigationShortcuts({ chapters, activeViewId: 'onboarding-welcome', navigateTo })
       return null
     }
     mount(React.createElement(Comp))
@@ -365,7 +365,7 @@ describe('useNavigationShortcuts', () => {
   it('Shift+ArrowLeft on the first flow does nothing (no prev flow)', () => {
     const navigateTo = vi.fn()
     function Comp() {
-      useNavigationShortcuts({ flows, activeViewId: 'onboarding-welcome', navigateTo })
+      useNavigationShortcuts({ chapters, activeViewId: 'onboarding-welcome', navigateTo })
       return null
     }
     mount(React.createElement(Comp))
@@ -376,7 +376,7 @@ describe('useNavigationShortcuts', () => {
   it('-play screens are skipped', () => {
     const navigateTo = vi.fn()
     function Comp() {
-      useNavigationShortcuts({ flows, activeViewId: 'onboarding-setup', navigateTo })
+      useNavigationShortcuts({ chapters, activeViewId: 'onboarding-setup', navigateTo })
       return null
     }
     mount(React.createElement(Comp))
@@ -388,7 +388,7 @@ describe('useNavigationShortcuts', () => {
   it('does not fire with Cmd modifier', () => {
     const navigateTo = vi.fn()
     function Comp() {
-      useNavigationShortcuts({ flows, activeViewId: 'onboarding-welcome', navigateTo })
+      useNavigationShortcuts({ chapters, activeViewId: 'onboarding-welcome', navigateTo })
       return null
     }
     mount(React.createElement(Comp))
@@ -399,7 +399,7 @@ describe('useNavigationShortcuts', () => {
   it('does not fire inside an input', () => {
     const navigateTo = vi.fn()
     function Comp() {
-      useNavigationShortcuts({ flows, activeViewId: 'onboarding-welcome', navigateTo })
+      useNavigationShortcuts({ chapters, activeViewId: 'onboarding-welcome', navigateTo })
       return null
     }
     mount(React.createElement(Comp))
@@ -751,7 +751,7 @@ describe('useCanvasShortcuts', () => {
     expect(a.resetToFirst).toHaveBeenCalled()
   })
 
-  it('R restarts flowplan when gating', () => {
+  it('R restarts flowStory when gating', () => {
     const restart = vi.fn()
     const a = makeActions({ flowPlayback: { isGating: true, restart } })
     mount(
@@ -765,7 +765,7 @@ describe('useCanvasShortcuts', () => {
     expect(a.resetToFirst).not.toHaveBeenCalled()
   })
 
-  it('R calls resetToFirst when flowplan not gating', () => {
+  it('R calls resetToFirst when flowStory not gating', () => {
     const a = makeActions({ flowPlayback: { isGating: false, restart: vi.fn() } })
     mount(
       React.createElement(() => {

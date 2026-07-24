@@ -1,8 +1,8 @@
 import type { ChapterConfig, Hotspot, PageProps } from '@flowkit/types/index'
-import type { CompiledFlowplan } from '@flowkit-features/flow-library'
-import { useFlowplanSettings } from '@flowkit-features/flowStory/FlowplanSettingsContext'
+import type { CompiledFlowStory } from '@flowkit-features/flow-library'
+import { useFlowStorySettings } from '@flowkit-features/flowStory/FlowStorySettingsContext'
 import { useFlowPlaybackOptional } from '@flowkit-features/flowStory/FlowPlaybackContext'
-import { useFlowplanElementCheck } from '@flowkit-features/flowStory/useFlowplanElementCheck'
+import { useFlowStoryElementCheck } from '@flowkit-features/flowStory/useFlowStoryElementCheck'
 import { useSessionRecorderOptional } from '@flowkit-features/flowTracer/context'
 import PanelErrorBoundary from '@flowkit-shared/components/errors/PanelErrorBoundary'
 import { type FlowNavContextValue, FlowNavCtx } from '@flowkit-shared/contexts/FlowNavContext'
@@ -10,7 +10,7 @@ import { useTheme } from '@flowkit-shared/contexts/ThemeContext'
 import { useSwipeGesture } from '@flowkit-shared/utils/useSwipeGesture'
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
-import { ANIM_DURATION, type FlowplanGate, useFlowEngine } from './FlowEngine'
+import { ANIM_DURATION, type FlowStoryGate, useFlowEngine } from './FlowEngine'
 
 const WRONG_CLICK_HEX: Record<string, string> = {
   orange: '#f97316',
@@ -22,12 +22,12 @@ const WRONG_CLICK_HEX: Record<string, string> = {
 export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
   const { theme } = useTheme()
 
-  // ─── Flowplan playback integration ───────────────────────────────────────────
-  // A compiled flowStory carries a `__flowplan` field; flows without it leave
+  // ─── FlowStory playback integration ───────────────────────────────────────────
+  // A compiled flowStory carries a `__flowStory` field; flows without it leave
   // the entire playback branch dormant. Derived from `flow` directly (not from
   // the engine's activePageId) so this is available BEFORE useFlowEngine is
   // called — the engine needs currentOn/currentNext/strictMode to build its gate.
-  const flowStory = (flow as Partial<CompiledFlowplan>).__flowplan
+  const flowStory = (flow as Partial<CompiledFlowStory>).__flowStory
   const playback = useFlowPlaybackOptional()
   const {
     strictMode,
@@ -37,7 +37,7 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
     showWrongClickHighlight,
     wrongClickColor,
     hintPosition,
-  } = useFlowplanSettings()
+  } = useFlowStorySettings()
 
   // The engine needs the flowStory gate (which depends on the CURRENT step, i.e.
   // activePageId) but activePageId is only known once the engine itself has
@@ -49,10 +49,10 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
   // (built during THIS call to useFlowEngine) can look up an up-to-date step.
   const currentStepRef = useRef<{
     currentOn?: string
-    currentNext: CompiledFlowplan['__flowplan']['steps'][number]['next'] | undefined
+    currentNext: CompiledFlowStory['__flowStory']['steps'][number]['next'] | undefined
   }>({ currentOn: undefined, currentNext: undefined })
 
-  const flowplanGate: FlowplanGate | null = useMemo(() => {
+  const flowStoryGate: FlowStoryGate | null = useMemo(() => {
     if (!flowStory) return null
     return {
       get currentOn() {
@@ -70,7 +70,7 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
   // navigateTo fires synchronously in the same tick as the completion
   // transitionLog entry and FlowMaster unmounts before anything can render.
   const engine = useFlowEngine(flow, {
-    flowplanGate,
+    flowStoryGate,
     completionDelayMs: flowStory && blindMode ? 4000 : 0,
   })
   const {
@@ -115,9 +115,9 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
 
   // Authoring diagnostic — independent of Show Hints/Blind Mode, since a
   // broken flowStory↔screen id contract is a signal for the author, not a
-  // hint for the tester. See useFlowplanElementCheck for the full rationale.
-  const { missing: elementCheckMissing } = useFlowplanElementCheck(screenContainerRef, {
-    flowplanId: flowStory?.flowplanId,
+  // hint for the tester. See useFlowStoryElementCheck for the full rationale.
+  const { missing: elementCheckMissing } = useFlowStoryElementCheck(screenContainerRef, {
+    flowStoryId: flowStory?.flowStoryId,
     stepIndex: currentStepIndex,
     pageId: activePageId,
     on: currentOn,
@@ -292,7 +292,7 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
   // ─── Event delegation — click / double-click ──────────────────────────────
   const handleContainerClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>, isDouble = false) => {
-      // ── Flowplan advancement is driven ENTIRELY by the current step (not the
+      // ── FlowStory advancement is driven ENTIRELY by the current step (not the
       // engine's interactions map, which keys on element id and would collide
       // when the same screen/element appears at two journey positions, e.g. a
       // ref'd flow). Resolve the advance target from currentNext; forks resolve
@@ -635,7 +635,7 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
           </div>
         )}
 
-        {/* Flowplan: authoring diagnostic — visible regardless of Show Hints/
+        {/* FlowStory: authoring diagnostic — visible regardless of Show Hints/
             Blind Mode (this is a signal for the author, not a playback hint),
             dev-only since it's a build-time content issue, not a runtime state
             a shipped/exported build's viewer needs to see. */}
@@ -655,7 +655,7 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
           </div>
         )}
 
-        {/* Flowplan: actionNote caption for the current step (Show Hints only,
+        {/* FlowStory: actionNote caption for the current step (Show Hints only,
             hidden entirely in Blind Mode) */}
         {flowStory && showHints && !blindMode && currentStep?.actionNote && (
           <div
@@ -672,7 +672,7 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
           </div>
         )}
 
-        {/* Flowplan: off-script / blocked toast — hidden in Blind Mode (the
+        {/* FlowStory: off-script / blocked toast — hidden in Blind Mode (the
             Diverged Hint toast below is Blind Mode's equivalent soft signal).
             Copy reflects whether Strict Mode actually refused the navigation
             or this is just Guided-mode advisory feedback. */}

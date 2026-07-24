@@ -55,7 +55,7 @@ export async function cmdCreateChapter(_val, args = []) {
     console.log(g(`✓ Registered:       ${WORKSPACE_CONFIG_FILENAME} → chapters[] + pageOrder`))
     console.log('')
     console.log(
-      d(`Next: flowkit create:page --flow:${flowId} --name:<first-page> --label:"Page Name"`)
+      d(`Next: flowkit create:page --chapter:${flowId} --name:<first-page> --label:"Page Name"`)
     )
   } catch (e) {
     // Rollback on failure

@@ -8,7 +8,7 @@ import {
   HIGHLIGHT_SWATCHES,
   useDbHighlightSettings,
 } from '@flowkit-features/flow-debugger'
-import { type HighlightColor, useFlowplanSettings } from '@flowkit-features/flowStory'
+import { type HighlightColor, useFlowStorySettings } from '@flowkit-features/flowStory'
 import { useSessionSettings } from '@flowkit-features/flowTracer'
 import { LS_LEFT_PANEL_W, LS_RIGHT_PANEL_W } from '@flowkit-shared/constants/storageKeys'
 import {
@@ -404,7 +404,7 @@ function DebugSection() {
   )
 }
 
-function FlowPlansSection() {
+function FlowStoriesSection() {
   const {
     strictMode,
     setStrictMode,
@@ -420,7 +420,7 @@ function FlowPlansSection() {
     setWrongClickColor,
     hintPosition,
     setHintPosition,
-  } = useFlowplanSettings()
+  } = useFlowStorySettings()
 
   return (
     <div>
@@ -744,7 +744,7 @@ export default function Settings({ onClose, ctx, initialSection = 'interface' }:
   const panel = {
     interface: <InterfaceSection ctx={ctx} />,
     panel: <PanelSection />,
-    flowStories: <FlowPlansSection />,
+    flowStories: <FlowStoriesSection />,
     feedback: <FeedbackSection ctx={ctx} />,
     sessions: <SessionsSection ctx={ctx} />,
     debug: <DebugSection />,

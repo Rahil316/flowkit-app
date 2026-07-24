@@ -55,7 +55,7 @@ export function directives(ctx) {
       },
       {
         kind: 'never',
-        text: 'reference or edit `flowBook/router.tsx` or any `_playFlow.ts` — this workspace uses the Flowplan hierarchy format; those files do not exist here',
+        text: 'reference or edit `flowBook/router.tsx` or any `_playFlow.ts` — this workspace uses the FlowStory hierarchy format; those files do not exist here',
       },
       {
         kind: 'always',
@@ -65,7 +65,7 @@ export function directives(ctx) {
   }
 
   const flowsGroup = {
-    group: 'Flows & screens — Flowplan hierarchy',
+    group: 'Flows & screens — FlowStory hierarchy',
     preamble:
       "Screens live under `flowBook/<flow>/.../<screen>/` (any number of organizational folders between flow and screen are allowed — only the first and last segments count for identity). Journeys are declared in `flowStories/<flow>.ts` using `defineFlow`. There is no `_playFlow.ts` and no `flowBook/router.tsx`. Registered screen ids are the composite `<flow>-<screen>` form (e.g. `onboarding-flow-welcome-screen`) everywhere EXCEPT `workspace.ts`'s `pageOrder` map, which stays bare/flow-scoped.",
     rules: [
@@ -271,10 +271,10 @@ export function indexRows(_ctx) {
 
 export function platformSurfaces(ctx) {
   const flowsSurface = {
-    area: 'Flows (Flowplan hierarchy)',
+    area: 'Flows (FlowStory hierarchy)',
     api: '`defineFlow({ id, name, steps[], homeScreen? })` — authored in `flowStories/<flow>.ts`',
     from: '`@flowkit-core/config` → `defineFlow`',
-    note: "Page folders: `flowBook/<flow>/.../<screen>/` (variable depth — first/last segment count for identity, anything between is cosmetic). Flowplan step `pageId` values use the composite `<flow>-<screen>` id form; `workspace.ts`'s `pageOrder` stays bare. Ordering declared in `workspace.ts` → `projects.<proj>.chapters[]`. `homeScreen` overrides the device home button while that plan is playing; workspace-level default is `workspace.ts` → `startPage`.",
+    note: "Page folders: `flowBook/<flow>/.../<screen>/` (variable depth — first/last segment count for identity, anything between is cosmetic). FlowStory step `pageId` values use the composite `<flow>-<screen>` id form; `workspace.ts`'s `pageOrder` stays bare. Ordering declared in `workspace.ts` → `projects.<proj>.chapters[]`. `homeScreen` overrides the device home button while that plan is playing; workspace-level default is `workspace.ts` → `startPage`.",
     doc: 'FLOWMASTER.md',
   }
 

@@ -4,14 +4,14 @@
 //
 // Known gap, deliberate: fork-nested steps (the `label:`+`steps:[...]` sub-objects
 // scripts/authoring/promote-flow.js text-matches by regex) are NOT walked by
-// `flowStory/invalid-page` below — forks aren't part of FlowplanDef's typed `steps[]`
-// union (src/types/index.ts's FlowplanStepEntry is FlowStep | FlowplanRef, neither of
+// `flowStory/invalid-page` below — forks aren't part of FlowStoryDef's typed `steps[]`
+// union (src/types/index.ts's FlowStoryStepEntry is FlowStep | FlowStoryRef, neither of
 // which models a fork's nested structure), and promote-flow.js's own fork-detection is
 // itself regex-based rather than a stable, reusable AST shape. Revisit once forks have a
 // first-class typed representation to validate against.
 import fs from 'fs'
 import path from 'path'
-import { readFlowplanModule } from './config.js'
+import { readFlowStoryModule } from './config.js'
 import { FLOW_BOOK_DIRNAME, FLOW_STORIES_DIRNAME } from '../helpers/config-filenames.js'
 import { walkPageFiles } from '../helpers/page-walk.js'
 import {
@@ -20,7 +20,7 @@ import {
   makePageId,
 } from '../../src/shared/utils/pagePathIdentity.js'
 
-function listFlowplanFiles(wsDir) {
+function listFlowStoryFiles(wsDir) {
   const dir = path.join(wsDir, FLOW_STORIES_DIRNAME)
   if (!fs.existsSync(dir)) return []
   return fs
@@ -29,7 +29,7 @@ function listFlowplanFiles(wsDir) {
     .map(f => ({ file: f, fullPath: path.join(dir, f) }))
 }
 
-/** True for a plain FlowStep entry (has pageId) — excludes FlowplanRef ({ ref }) entries. */
+/** True for a plain FlowStep entry (has pageId) — excludes FlowStoryRef ({ ref }) entries. */
 function isPageStep(entry) {
   return entry && typeof entry === 'object' && typeof entry.pageId === 'string'
 }
@@ -50,8 +50,8 @@ function collectAllPageIds(wsDir) {
 }
 
 /** Runs flowStory-domain rules for one workspace. Appends findings to `report`. */
-export async function checkFlowplans(wsDir, report) {
-  const files = listFlowplanFiles(wsDir)
+export async function checkFlowStories(wsDir, report) {
+  const files = listFlowStoryFiles(wsDir)
   if (files.length === 0) {
     // A flowStories/ dir that exists but is empty is suspicious enough to fail the
     // prebuild gate rather than silently pass — mirrors plan:check's old behavior
@@ -72,7 +72,7 @@ export async function checkFlowplans(wsDir, report) {
 
   for (const { file, fullPath } of files) {
     const relPath = path.relative(wsDir, fullPath)
-    const flowStory = await readFlowplanModule(fullPath)
+    const flowStory = await readFlowStoryModule(fullPath)
     if (!flowStory) {
       report.add({
         ruleId: 'flowStory/unreadable',
@@ -100,14 +100,14 @@ export async function checkFlowplans(wsDir, report) {
         ruleId: 'flowStory/empty-steps',
         severity: 'warning',
         file: relPath,
-        message: 'Flowplan has zero steps.',
+        message: 'FlowStory has zero steps.',
         fix: `flowkit add:step --flowStory:${expectedId} --page:<id>`,
       })
       continue
     }
 
     steps.forEach((step, i) => {
-      if (!isPageStep(step)) return // a FlowplanRef ({ ref }) — nothing to validate here
+      if (!isPageStep(step)) return // a FlowStoryRef ({ ref }) — nothing to validate here
 
       if (!knownPageIds.has(step.pageId)) {
         report.add({

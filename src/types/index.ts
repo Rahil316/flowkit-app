@@ -115,13 +115,13 @@ export interface WireframeView {
   /** Workspace-relative path, e.g. flows/diagnostics/EquipmentListScreen.tsx */
   filePath?: string
   /**
-   * A/B variants of this screen (Flowplan hierarchy only). Always includes the
+   * A/B variants of this screen (FlowStory hierarchy only). Always includes the
    * "default" variant whose component === `component`. Absent for legacy views.
    */
   variants?: PageVariant[]
-  /** The chapter folder this page is grouped under (Flowplan hierarchy). */
+  /** The chapter folder this page is grouped under (FlowStory hierarchy). */
   chapter?: string
-  /** The project this screen belongs to (Flowplan hierarchy). */
+  /** The project this screen belongs to (FlowStory hierarchy). */
   project?: string
 }
 
@@ -493,9 +493,9 @@ export interface FeedbackComment {
   isImported?: boolean
 }
 
-// ─── Flowplan System (Phase 1) ──────────────────────────────────────────────────
+// ─── FlowStory System (Phase 1) ──────────────────────────────────────────────────
 //
-// A Flowplan is an authored user journey. It is COMPILED into the runtime
+// A FlowStory is an authored user journey. It is COMPILED into the runtime
 // ChapterConfig (see features/flow-library/compileFlowStory.ts) and run by the
 // existing FlowMaster/useFlowEngine — the engine is never modified.
 //
@@ -519,7 +519,7 @@ export type SimulatorControlType =
   | 'text' // free text input
   | 'null-toggle' // value present / null
 
-/** A single simulator control declared by a Flowplan (or a step override). */
+/** A single simulator control declared by a FlowStory (or a step override). */
 export interface SimulatorControl {
   label: string
   /** Dot-path into the flow db copy, e.g. "local.isOnline". */
@@ -565,12 +565,12 @@ export interface Fork {
   mergesTo?: 'next'
 }
 
-/** Call another Flowplan by id; its steps are inlined at this position. */
-export interface FlowplanRef {
+/** Call another FlowStory by id; its steps are inlined at this position. */
+export interface FlowStoryRef {
   ref: string
 }
 
-/** One step in a Flowplan — shows a screen, optionally patches db, may branch. */
+/** One step in a FlowStory — shows a screen, optionally patches db, may branch. */
 export interface FlowStep {
   /** Id of the screen to show. Must resolve to a registered workspace screen. */
   pageId: string
@@ -595,20 +595,20 @@ export interface FlowStep {
   forks?: Fork[]
 }
 
-/** A step entry is either a real step or a reference to another Flowplan. */
-export type FlowplanStepEntry = FlowStep | FlowplanRef
+/** A step entry is either a real step or a reference to another FlowStory. */
+export type FlowStoryStepEntry = FlowStep | FlowStoryRef
 
-/** Type guard: is this entry a Flowplan reference? */
-export function isFlowplanRef(entry: FlowplanStepEntry): entry is FlowplanRef {
-  return (entry as FlowplanRef).ref !== undefined
+/** Type guard: is this entry a FlowStory reference? */
+export function isFlowStoryRef(entry: FlowStoryStepEntry): entry is FlowStoryRef {
+  return (entry as FlowStoryRef).ref !== undefined
 }
 
 /**
- * The authored Flowplan shape. Written with defineFlow({ ... }).
+ * The authored FlowStory shape. Written with defineFlow({ ... }).
  * Developer-owned: pageId, db, simulator. Designer/PM-editable: name,
  * description, actionNote, decisionNote, annotation, tags.
  */
-export interface FlowplanDef {
+export interface FlowStoryDef {
   id: string
   name: string
   description?: string
@@ -627,7 +627,7 @@ export interface FlowplanDef {
    */
   homeScreen?: string
   /** Ordered steps (or refs to other flowStories). */
-  steps: FlowplanStepEntry[]
+  steps: FlowStoryStepEntry[]
 }
 
 // ─── Workspace Config & Hierarchy (Phase 1) ────────────────────────────────────

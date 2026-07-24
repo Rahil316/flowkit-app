@@ -8,11 +8,11 @@ export { readLastRun, writeLastRun } from './runHistory'
 export type { FlowLibraryData, FlowSummary } from './useFlowLibrary'
 export { useFlowLibrary } from './useFlowLibrary'
 // Compiler moved to @features/flowStory — re-exported here so existing consumers
-// of this barrel (e.g. FlowMaster's `CompiledFlowplan` type import) keep working.
+// of this barrel (e.g. FlowMaster's `CompiledFlowStory` type import) keep working.
 export type {
-  CompiledFlowplan,
+  CompiledFlowStory,
   CompiledStep,
   PageResolver,
   ResolvedPage,
 } from '../flowStory/compileFlowStory'
-export { compileFlowStory, FlowplanCompileError } from '../flowStory/compileFlowStory'
+export { compileFlowStory, FlowStoryCompileError } from '../flowStory/compileFlowStory'

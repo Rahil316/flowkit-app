@@ -87,7 +87,7 @@ export function replayFromSnapshot(session: SessionExport, targetSeq: number): R
 
 function applyEvent(base: ReplayState, ev: SessionEvent) {
   switch (ev.type) {
-    case 'screen.visited':
+    case 'page.visited':
       if (typeof ev.payload.pageId === 'string') base.activePageId = ev.payload.pageId
       break
     case 'navigation.programmatic':

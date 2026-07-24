@@ -1,6 +1,6 @@
 import { Square } from 'lucide-react'
 
-import { useFlowplanSettings } from '../FlowplanSettingsContext'
+import { useFlowStorySettings } from '../FlowStorySettingsContext'
 import { useFlowPlaybackOptional } from '../FlowPlaybackContext'
 
 // ── MobilePlaybackBar ───────────────────────────────────────────────────────────
@@ -18,7 +18,7 @@ interface MobilePlaybackBarProps {
 
 export default function MobilePlaybackBar({ onStop }: MobilePlaybackBarProps) {
   const playback = useFlowPlaybackOptional()
-  const { showHints, setShowHints } = useFlowplanSettings()
+  const { showHints, setShowHints } = useFlowStorySettings()
 
   if (!playback?.isGating) return null
 
@@ -33,7 +33,7 @@ export default function MobilePlaybackBar({ onStop }: MobilePlaybackBarProps) {
     >
       <span className="flex items-center gap-1.5 text-ui-xs font-semibold text-white/70">
         <span className="rounded-full bg-[#6366f1] animate-pulse size-1.5" />
-        Flowplan playing
+        FlowStory playing
       </span>
       <div className="flex items-center gap-1.5">
         <button

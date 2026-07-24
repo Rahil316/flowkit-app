@@ -1,4 +1,4 @@
-import { type FlowplanDef, type FlowStep, type Fork, isFlowplanRef } from '@flowkit/types/index'
+import { type FlowStoryDef, type FlowStep, type Fork, isFlowStoryRef } from '@flowkit/types/index'
 import { useFlowPlaybackOptional } from '@flowkit-features/flowStory/FlowPlaybackContext'
 import Button from '@flowkit-shared/components/ui/Button'
 import SharedEmptyState from '@flowkit-shared/components/ui/EmptyState'
@@ -50,7 +50,7 @@ export default function FlowLibrary({
 
   useExplorerCommands(
     useCallback(cmd => {
-      if (cmd.type === 'openFlowplanDetail') setSelectedId(cmd.flowplanId)
+      if (cmd.type === 'openFlowStoryDetail') setSelectedId(cmd.flowStoryId)
     }, [])
   )
 
@@ -85,9 +85,9 @@ export default function FlowLibrary({
 
   if (selected) {
     const isSelectedPlaying =
-      playback?.isGating && playback.activeFlowplan?.__flowplan.flowplanId === selected.id
+      playback?.isGating && playback.activeFlowStory?.__flowStory.flowStoryId === selected.id
     const activeSourcePageId = isSelectedPlaying
-      ? (playback?.activeFlowplan?.__flowplan.steps[playback.currentStepIndex]?.sourcePageId ??
+      ? (playback?.activeFlowStory?.__flowStory.steps[playback.currentStepIndex]?.sourcePageId ??
         null)
       : null
     return (
@@ -286,8 +286,8 @@ function FlowDetail({ summary, onBack, onPlay, onStop }: FlowDetailProps) {
   // sourcePageId is the authored id that matches def.steps entries.
   const activeSourcePageId = useMemo(() => {
     if (!playback?.isGating) return null
-    if (playback.activeFlowplan?.__flowplan.flowplanId !== summary.id) return null
-    const compiledSteps = playback.activeFlowplan.__flowplan.steps
+    if (playback.activeFlowStory?.__flowStory.flowStoryId !== summary.id) return null
+    const compiledSteps = playback.activeFlowStory.__flowStory.steps
     const idx = playback.currentStepIndex
     return compiledSteps[idx]?.sourcePageId ?? null
   }, [playback, summary.id])
@@ -414,7 +414,7 @@ function FlowDetail({ summary, onBack, onPlay, onStop }: FlowDetailProps) {
 // ─── StepList (recursive) ────────────────────────────────────────────────────────
 
 interface StepListProps {
-  steps: FlowplanDef['steps']
+  steps: FlowStoryDef['steps']
   depth: number
   index: number[]
   activeSourcePageId: string | null
@@ -426,7 +426,7 @@ function StepList({ steps, depth, index, activeSourcePageId }: StepListProps) {
       className={`flex flex-col gap-0 ${depth > 0 ? 'pl-3 border-l border-theme-border' : 'pl-0'}`}
     >
       {steps.map((entry, _i) => {
-        if (isFlowplanRef(entry)) {
+        if (isFlowStoryRef(entry)) {
           return (
             <div key={entry.ref} className="flex items-center gap-2 py-1.5">
               <span

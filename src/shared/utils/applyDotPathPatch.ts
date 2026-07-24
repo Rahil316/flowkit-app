@@ -3,10 +3,10 @@ import type { DotPathPatch } from '@flowkit/types/index'
 // ── applyDotPathPatch ───────────────────────────────────────────────────────────
 //
 // Applies a dot-path patch onto a db object and returns a NEW object — the input
-// is never mutated (important: the Flowplan playback setter replaces db state, so
+// is never mutated (important: the FlowStory playback setter replaces db state, so
 // callers must pass a fresh, fully-merged object).
 //
-// Rules (per the Flowplan spec):
+// Rules (per the FlowStory spec):
 //   • Dot-path keys: "local.cart" → db.local.cart, "user.profile.name" → nested.
 //   • Missing intermediate paths are created automatically (null-safe).
 //   • Object values DEEP-MERGE into the existing object at that path.

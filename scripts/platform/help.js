@@ -35,23 +35,23 @@ ${b('Workspaces (multi-workspace consumer projects only):')}
 
 ${b('Scaffold (authoring):')}
   ${c('create:chapter')} ${d('--name:<id>')}            Add a chapter + register in workspace.ts
-  ${c('create:page')} ${d('--flow:<id> --name:<id>')}  Add a page to a chapter
+  ${c('create:page')} ${d('--chapter:<id> --name:<id>')}  Add a page to a chapter
   ${c('create:flowStory')} ${d('--name:<id>')}         Add a flowStory script
   ${c('create:component')} ${d('--name:<PascalName> --path:<lib/components/...>')}   Add a workspace component
   ${c('remove:chapter')} ${d('--name:<flow-id> [--force]')}
-  ${c('remove:page')} ${d('--flow:<id> --name:<page-id>')}
+  ${c('remove:page')} ${d('--chapter:<id> --name:<page-id>')}
   ${c('remove:flowStory')} ${d('--name:<flowStory-id> [--force]')}
   ${c('remove:component')} ${d('--name:<ComponentName>')}
   ${c('remove:step')} ${d('--flowStory:<id> --index:<n>')}
-  ${c('rename:page')} ${d('--flow:<id> --name:<old-id> --to:<new-id>')}
+  ${c('rename:page')} ${d('--chapter:<id> --name:<old-id> --to:<new-id>')}
   ${c('move:page')} ${d('--name:<id> --from-flow:<id> --to-flow:<id>')}
-  ${c('add:step')} ${d('--flowStory:<id> --screen:<id>')}   Append a step to a flowStory
+  ${c('add:step')} ${d('--flowStory:<id> --page:<id>')}   Append a step to a flowStory
   ${c('add:export')} ${d('--barrel:<path> --name:<ExportName>')}   Add a barrel re-export
   ${c('list:chapters')}                        List chapters in the workspace
-  ${c('list:pages')} ${d('[--flow:<id>]')}         List pages, optionally filtered by chapter
+  ${c('list:pages')} ${d('[--chapter:<id>]')}         List pages, optionally filtered by chapter
   ${c('list:steps')} ${d('--flowStory:<id>')}         List a flowStory's steps
   ${c('list:exports')} ${d('--barrel:<path>')}       List a barrel's re-exports
-  ${c('page:info')} ${d('--flow:<id> --name:<id>')}   Show page metadata + flowStory refs
+  ${c('page:info')} ${d('--chapter:<id> --name:<id>')}   Show page metadata + flowStory refs
   ${c('flowStory:info')} ${d('--name:<id>')}          Show flowStory steps
   ${c('components:ls')} / ${c('components:scan')}
   ${c('components:find')} ${d('--name:<ComponentName>')}

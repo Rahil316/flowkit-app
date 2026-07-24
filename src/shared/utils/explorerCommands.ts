@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 export type ExplorerCommand =
   | { type: 'switchTab'; tab: 'screens' | 'chapters' }
   | { type: 'expandAndHighlight'; chapterId: string; pageId: string }
-  | { type: 'openFlowplanDetail'; flowplanId: string }
+  | { type: 'openFlowStoryDetail'; flowStoryId: string }
 
 const bus = new EventTarget()
 const EVENT = 'sidebar-command'

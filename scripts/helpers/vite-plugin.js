@@ -195,7 +195,7 @@ ${listLines.join(',\n')}
 ]`
 }
 
-async function genFlowplans(cwd) {
+async function genFlowStories(cwd) {
   const files = await globFiles(`${FLOW_STORIES_DIRNAME}/*.ts`, cwd)
   const lines = files.map((rel, i) => {
     const abs = path.resolve(cwd, rel)
@@ -325,7 +325,7 @@ export function flowkit(options = {}) {
     } else if (id === VIRTUALS.pages) {
       code = await genScreens(cfg, cwd)
     } else if (id === VIRTUALS.flowStories) {
-      code = await genFlowplans(cwd)
+      code = await genFlowStories(cwd)
     } else if (id === VIRTUALS.workspace) {
       code = await genWorkspace(cfg, cwd)
     }

@@ -10,7 +10,7 @@ import { checkPages } from './pages.js'
 import { checkConfig } from './config.js'
 import { checkComponents } from './components.js'
 import { checkDb } from './db.js'
-import { checkFlowplans } from './flowStories.js'
+import { checkFlowStories } from './flowStories.js'
 import { r, d } from '../helpers/colors.js'
 
 // Each fn takes (wsDir, report) and may be sync or async — awaited uniformly below.
@@ -19,7 +19,7 @@ const DOMAINS = {
   config: checkConfig,
   components: checkComponents,
   db: checkDb,
-  flowStories: checkFlowplans,
+  flowStories: checkFlowStories,
 }
 
 /**

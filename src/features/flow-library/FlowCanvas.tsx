@@ -1,4 +1,4 @@
-import { type FlowplanDef, type FlowStep, type Fork, isFlowplanRef } from '@flowkit/types/index'
+import { type FlowStoryDef, type FlowStep, type Fork, isFlowStoryRef } from '@flowkit/types/index'
 import { useTheme } from '@flowkit-shared/contexts/ThemeContext'
 import { GitFork } from 'lucide-react'
 import { useEffect, useRef } from 'react'
@@ -9,7 +9,7 @@ export default function FlowCanvas({
   steps,
   activeSourcePageId = null,
 }: {
-  steps: FlowplanDef['steps']
+  steps: FlowStoryDef['steps']
   activeSourcePageId?: string | null
 }) {
   const { theme, scale } = useTheme()
@@ -34,7 +34,7 @@ function Sequence({
   depth,
   activeSourcePageId,
 }: {
-  steps: FlowplanDef['steps']
+  steps: FlowStoryDef['steps']
   theme: ReturnType<typeof useTheme>['theme']
   scale: ReturnType<typeof useTheme>['scale']
   depth: number
@@ -43,7 +43,7 @@ function Sequence({
   return (
     <>
       {steps.map((entry, i) => {
-        if (isFlowplanRef(entry)) {
+        if (isFlowStoryRef(entry)) {
           return (
             <RefNode
               key={i}

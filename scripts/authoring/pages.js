@@ -100,7 +100,7 @@ export const pageMeta = { label: ${asJsStringLiteral(label)}, desc: '' }
 
 /** Scan all flowStory files for any step referencing pageId (composite chapter-page form,
  * since that's what add:step writes into steps). Returns list of flowStory ids. */
-function findFlowplanRefs(wsDir, chapterId, pageId) {
+function findFlowStoryRefs(wsDir, chapterId, pageId) {
   const compositePageId = makePageId(chapterId, pageId)
   const fpDir = path.join(wsDir, FLOW_STORIES_DIRNAME)
   if (!fs.existsSync(fpDir)) return []
@@ -120,18 +120,18 @@ export async function cmdCreatePage(_val, args = []) {
   const wsName = resolveWorkspace(parseStringFlag(args, 'workspace'))
   const wsDir = workspacePath(wsName)
   assertScopedWorkspaceDir(wsDir, wsName)
-  let flowId = parseStringFlag(args, 'flow')
+  let flowId = parseStringFlag(args, 'chapter')
   let pageId = parseStringFlag(args, 'name')
   let label = parseStringFlag(args, 'label')
 
   if (!flowId || !pageId) {
-    console.error(r('✗ --flow:<flow-id> and --name:<page-id> are required'))
-    console.error(d('  Example: flowkit create:page --flow:auth --name:sign-in --label:"Sign In"'))
+    console.error(r('✗ --chapter:<chapter-id> and --name:<page-id> are required'))
+    console.error(d('  Example: flowkit create:page --chapter:auth --name:sign-in --label:"Sign In"'))
     process.exit(1)
   }
 
   try {
-    flowId = assertKebab(flowId, 'flow')
+    flowId = assertKebab(flowId, 'chapter')
     pageId = assertKebab(pageId, 'page name')
   } catch (e) {
     console.error(r(`✗ ${e.message}`))
@@ -140,7 +140,7 @@ export async function cmdCreatePage(_val, args = []) {
 
   const config = readWorkspaceConfig(wsDir)
   if (!config.chapters.includes(flowId)) {
-    console.error(r(`✗ Flow '${flowId}' not found in workspace '${wsName}'`))
+    console.error(r(`✗ Chapter '${flowId}' not found in workspace '${wsName}'`))
     console.error(d(`  Create it first: flowkit create:chapter --name:${flowId}`))
     process.exit(1)
   }
@@ -198,22 +198,22 @@ export async function cmdRemovePage(_val, args = []) {
   const wsName = resolveWorkspace(parseStringFlag(args, 'workspace'))
   const wsDir = workspacePath(wsName)
   assertScopedWorkspaceDir(wsDir, wsName)
-  let flowId = parseStringFlag(args, 'flow')
+  let flowId = parseStringFlag(args, 'chapter')
   let pageId = parseStringFlag(args, 'name')
 
   if (!flowId || !pageId) {
-    console.error(r('✗ --flow:<flow-id> and --name:<page-id> are required'))
+    console.error(r('✗ --chapter:<chapter-id> and --name:<page-id> are required'))
     process.exit(1)
   }
   try {
-    flowId = assertKebab(flowId, 'flow')
+    flowId = assertKebab(flowId, 'chapter')
     pageId = assertKebab(pageId, 'page name')
   } catch (e) {
     console.error(r(`✗ ${e.message}`))
     process.exit(1)
   }
 
-  const refs = findFlowplanRefs(wsDir, flowId, pageId)
+  const refs = findFlowStoryRefs(wsDir, flowId, pageId)
   if (refs.length > 0) {
     console.log(r(`⚠  Warning: flowStory(s) reference '${pageId}': ${refs.join(', ')}`))
     console.log(r('   Update those flowStories after removing this page.'))
@@ -240,17 +240,17 @@ export async function cmdRenamePage(_val, args = []) {
   const wsName = resolveWorkspace(parseStringFlag(args, 'workspace'))
   const wsDir = workspacePath(wsName)
   assertScopedWorkspaceDir(wsDir, wsName)
-  let flowId = parseStringFlag(args, 'flow')
+  let flowId = parseStringFlag(args, 'chapter')
   let oldId = parseStringFlag(args, 'name')
   let newId = parseStringFlag(args, 'to')
 
   if (!flowId || !oldId || !newId) {
-    console.error(r('✗ --flow:<id> --name:<old-id> --to:<new-id> are required'))
+    console.error(r('✗ --chapter:<id> --name:<old-id> --to:<new-id> are required'))
     process.exit(1)
   }
 
   try {
-    flowId = assertKebab(flowId, 'flow')
+    flowId = assertKebab(flowId, 'chapter')
     oldId = assertKebab(oldId, 'name')
     newId = assertKebab(newId, 'new name')
   } catch (e) {
@@ -325,7 +325,7 @@ export async function cmdRenamePage(_val, args = []) {
     process.exit(1)
   }
 
-  const refs = findFlowplanRefs(wsDir, flowId, oldId)
+  const refs = findFlowStoryRefs(wsDir, flowId, oldId)
   if (refs.length > 0) {
     console.log(r(`⚠  Warning: flowStory(s) still reference '${oldId}': ${refs.join(', ')}`))
     console.log(r(`   Update step pageIds from '${oldId}' to '${newId}'.`))
@@ -478,7 +478,7 @@ export async function cmdListPages(_val, args = []) {
   const wsName = resolveWorkspace(parseStringFlag(args, 'workspace'))
   const wsDir = workspacePath(wsName)
   assertScopedWorkspaceDir(wsDir, wsName)
-  const filterFlow = parseStringFlag(args, 'flow')
+  const filterFlow = parseStringFlag(args, 'chapter')
   // Presence-flags, consistent with the `args.includes('--flag')` convention
   // used elsewhere in this codebase (e.g. scripts/checks/index.js's --json,
   // scripts/authoring/chapters.js's --force) — no dedicated boolean-flag helper
@@ -566,11 +566,11 @@ export async function cmdPageInfo(_val, args = []) {
   const wsName = resolveWorkspace(parseStringFlag(args, 'workspace'))
   const wsDir = workspacePath(wsName)
   assertScopedWorkspaceDir(wsDir, wsName)
-  const flowId = parseStringFlag(args, 'flow')
+  const flowId = parseStringFlag(args, 'chapter')
   const pageId = parseStringFlag(args, 'name')
 
   if (!flowId || !pageId) {
-    console.error(r('✗ --flow:<id> and --name:<page-id> are required'))
+    console.error(r('✗ --chapter:<id> and --name:<page-id> are required'))
     process.exit(1)
   }
 

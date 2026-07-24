@@ -79,7 +79,7 @@ export interface DashboardContextValue extends DashboardState {
 
   firstViewId: string
   workspaceConfig: WorkspaceConfig
-  /** Active flowStory's declared home screen (FlowplanDef.homeScreen), or null when unset/no flow active. */
+  /** Active flowStory's declared home screen (FlowStoryDef.homeScreen), or null when unset/no flow active. */
   activeFlowHomeScreen: string | null
   setActiveFlowHomeScreen: (pageId: string | null) => void
   activeFlowDebugInfo: FlowDebugInfo | null
@@ -103,7 +103,7 @@ export interface DashboardContextValue extends DashboardState {
   resetDb: () => void
   // FlowLens replay-only setters — drive state WITHOUT re-recording.
   replaySetDb: (next: Record<string, unknown>) => void
-  // Flowplan-playback db setter — sets the deep-copied flow db WITHOUT logging a
+  // FlowStory-playback db setter — sets the deep-copied flow db WITHOUT logging a
   // state.db-patch event (automated step patches must not pollute recordings).
   // Callers pass a FULL merged object (use applyDotPathPatch), never a partial.
   flowPlaySetDb: (next: Record<string, unknown>) => void
@@ -232,8 +232,8 @@ export function DashboardProvider({
     setDb(next)
   }, [])
 
-  // Flowplan-playback db setter — silent (no state.db-patch), so automated step
-  // patches during a Flowplan don't pollute a session recording. The caller owns
+  // FlowStory-playback db setter — silent (no state.db-patch), so automated step
+  // patches during a FlowStory don't pollute a session recording. The caller owns
   // the merge (flowPlaySetDb(applyDotPathPatch(db, patch))) and passes a full object.
   const flowPlaySetDb = useCallback((next: Record<string, unknown>) => {
     setDb(next)
@@ -250,9 +250,9 @@ export function DashboardProvider({
       setActiveFlowDebugInfo(null)
       setHistory(h => [...h, id])
       rec('navigation.programmatic', { to: id, from: activeViewId })
-      // state.flow-set fires whenever navigation targets a flow play node
+      // state.chapter-set fires whenever navigation targets a flow play node
       if (id.endsWith('-play') || id.endsWith('-flow')) {
-        rec('state.flow-set', { flowId: id })
+        rec('state.chapter-set', { flowId: id })
       }
     },
     [activeViewId, rec]

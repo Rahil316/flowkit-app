@@ -1,5 +1,5 @@
 // CLI-integration coverage for `flowkit add:step` / `remove:step` — specifically the guard
-// in scripts/authoring/flowplans.js's rewriteSteps() that refuses to rewrite a flowplan
+// in scripts/authoring/flowStories.js's rewriteSteps() that refuses to rewrite a flowStory
 // containing forks (formatStep() has no serialization path for forks, and the steps-array
 // regex only matches up to the first "]", so proceeding would silently corrupt the file).
 import assert from 'node:assert/strict'
@@ -20,7 +20,7 @@ import {
 const WS = 'twsfpsteps'
 const NW_FLAGS = ['--lang:ts', '--kit:none']
 const FORKED_PLAN_PATH = path.join(ROOT, 'workspaces', WS, FLOW_STORIES_DIRNAME, 'forked-plan.ts')
-// F3 needs a fork-free flowplan — the real scaffolded 'onboarding-flow' plan already has
+// F3 needs a fork-free flowStory — the real scaffolded 'onboarding-flow' plan already has
 // steps wired for the fork guard tests above, so a second, separate fixture plan is written
 // alongside forked-plan.ts to isolate F3's add:step assertion from F1/F2's fork-guard fixture.
 const FORKFREE_PLAN_PATH = path.join(ROOT, 'workspaces', WS, FLOW_STORIES_DIRNAME, 'forkfree-plan.ts')
@@ -75,38 +75,38 @@ describe('Suite F — flowkit add:step / remove:step', () => {
     cleanupWorkspace(WS)
   })
 
-  it('F1 — add:step on a flowplan with forks → exit 1, file byte-for-byte untouched', async () => {
+  it('F1 — add:step on a flowStory with forks → exit 1, file byte-for-byte untouched', async () => {
     const before = fs.readFileSync(FORKED_PLAN_PATH, 'utf8')
     const result = await spawnCLI([
       'add:step',
-      '--flowplan:forked-plan',
+      '--flowStory:forked-plan',
       '--screen:ready-screen',
       `--workspace:${WS}`,
     ])
     assert.notEqual(result.code, 0)
     assert.match(result.stderr, /has forks/)
     const after = fs.readFileSync(FORKED_PLAN_PATH, 'utf8')
-    assert.equal(after, before, 'flowplan file must be untouched when the fork guard fires')
+    assert.equal(after, before, 'flowStory file must be untouched when the fork guard fires')
   })
 
-  it('F2 — remove:step on a flowplan with forks → exit 1, file byte-for-byte untouched', async () => {
+  it('F2 — remove:step on a flowStory with forks → exit 1, file byte-for-byte untouched', async () => {
     const before = fs.readFileSync(FORKED_PLAN_PATH, 'utf8')
     const result = await spawnCLI([
       'remove:step',
-      '--flowplan:forked-plan',
+      '--flowStory:forked-plan',
       '--index:0',
       `--workspace:${WS}`,
     ])
     assert.notEqual(result.code, 0)
     assert.match(result.stderr, /has forks/)
     const after = fs.readFileSync(FORKED_PLAN_PATH, 'utf8')
-    assert.equal(after, before, 'flowplan file must be untouched when the fork guard fires')
+    assert.equal(after, before, 'flowStory file must be untouched when the fork guard fires')
   })
 
-  it('F3 — add:step on a fork-free flowplan still succeeds', async () => {
+  it('F3 — add:step on a fork-free flowStory still succeeds', async () => {
     const result = await spawnCLI([
       'add:step',
-      '--flowplan:forkfree-plan',
+      '--flowStory:forkfree-plan',
       '--screen:ready-screen',
       '--action:test step',
       `--workspace:${WS}`,

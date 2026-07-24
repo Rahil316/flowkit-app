@@ -105,7 +105,7 @@ export default function FlowLensMode({
       .then(sessions => {
         if (cancelled) return
         const n = sessions.length
-        const done = sessions.filter(s => s.events.some(e => e.type === 'flow.completed')).length
+        const done = sessions.filter(s => s.events.some(e => e.type === 'chapter.completed')).length
         const avgQ = n
           ? Math.round(sessions.reduce((sum, s) => sum + s.meta.qualityScore, 0) / n)
           : 0

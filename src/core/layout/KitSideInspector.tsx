@@ -689,11 +689,11 @@ export function SimulatorContent({
   const visibleSimTabs = hideDevice ? SIM_SUB_TABS.filter(t => t.id !== 'device') : SIM_SUB_TABS
   const isPlayNode = activeViewId.endsWith('-play')
 
-  // F4.4 — during Flowplan playback, swap workspace controls for flow-declared
+  // F4.4 — during FlowStory playback, swap workspace controls for flow-declared
   // ones. Device controls (the "device" sub-tab) are always available.
   const playback = useFlowPlaybackOptional()
-  const flowControls = playback?.activeFlowplan?.__flowplan.simulatorControls ?? []
-  const inFlowMode = !!playback?.activeFlowplan
+  const flowControls = playback?.activeFlowStory?.__flowStory.simulatorControls ?? []
+  const inFlowMode = !!playback?.activeFlowStory
 
   return (
     <>
@@ -734,7 +734,7 @@ export function SimulatorContent({
   )
 }
 
-// Maps a Flowplan's declared SimulatorControl[] onto the existing SimControl UI.
+// Maps a FlowStory's declared SimulatorControl[] onto the existing SimControl UI.
 // `path` ("local.isOnline") binds to db via SimControl's bind="db.<path>".
 function FlowDeclaredControls({
   controls,
