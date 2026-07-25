@@ -14,7 +14,7 @@ export const ZOOM_MIN = 0.25
 export const ZOOM_MAX = 5
 export const ZOOM_STEP = 0.1
 
-// Panel resize bounds — re-exported from panelConfig (the true single source of truth).
+// Panel resize bounds — re-exported from sidebarConfig (the true single source of truth).
 export {
   LEFT_PANEL_DEFAULT,
   LEFT_PANEL_MAX,

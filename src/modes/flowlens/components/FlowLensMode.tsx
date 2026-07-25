@@ -61,7 +61,6 @@ export default function FlowLensMode({
   const [tab, setTab] = useState<SessionTab>('overview')
 
   useFlowLensPanelShortcuts({
-    tab,
     setTab: t => setTab(t as SessionTab),
     setOpen: setRightOpen,
     hasCursorSamples: (selectedSession?.cursorSamples?.length ?? 0) > 0,

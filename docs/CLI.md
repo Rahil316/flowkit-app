@@ -580,7 +580,7 @@ flowkit add:step --flowStory:<flowStory-id> --page:<screen-id> [--on:<element-id
 
 Appends `{ pageId, on?, actionNote? }` to the flowStory's `steps[]`. `screen-id` must already be registered somewhere in the workspace (across any chapter) — on failure, prints a "did you mean" suggestion plus the full list of known pages. `--position` inserts at that 0-based index instead of the end; an unparseable or omitted `--position` appends to the end.
 
-⚠️ Rewrites the `steps: [...]` block with a non-greedy regex — on a flowStory whose first step array contains a nested `forks[].steps[...]`, this can match the wrong closing bracket. Review the file after running this on a flowStory with forks.
+⚠️️ Rewrites the `steps: [...]` block with a non-greedy regex — on a flowStory whose first step array contains a nested `forks[].steps[...]`, this can match the wrong closing bracket. Review the file after running this on a flowStory with forks.
 
 #### `remove:step` — Remove a step by index
 
@@ -588,7 +588,7 @@ Appends `{ pageId, on?, actionNote? }` to the flowStory's `steps[]`. `screen-id`
 flowkit remove:step --flowStory:<flowStory-id> --index:<n>
 ```
 
-Removes the step at the given 0-based index. ⚠️ **`--index` is required in practice but not enforced** — if omitted, the command does not error; it silently removes step **0** instead (via `steps.splice(NaN, 1)`, and `NaN` coerces to `0`) and still prints a "✓ Removed" confirmation naming whatever step actually sat at index 0. Always pass `--index` explicitly and double check with `list:steps` afterward.
+Removes the step at the given 0-based index. ⚠️️ **`--index` is required in practice but not enforced** — if omitted, the command does not error; it silently removes step **0** instead (via `steps.splice(NaN, 1)`, and `NaN` coerces to `0`) and still prints a "✓ Removed" confirmation naming whatever step actually sat at index 0. Always pass `--index` explicitly and double check with `list:steps` afterward.
 
 #### `list:steps` — List a flowStory's steps
 
@@ -960,7 +960,7 @@ Lists comments from the committed snapshot: reviewer, screen, status, short text
 
 Every workspace ships an **agent-ready** file set so a coding agent can start building immediately without reading the whole codebase. All files are generated from a single platform spec (`scripts/platform/agent-spec.js`).
 
-> ⚠️ **Known gap (as of 2026-07-10, alias names updated 2026-07-12): `agent:sync` generates repo-mode-only content even in consumer mode.** Confirmed live in a scaffolded flat-mode project — `.agent/platform.md` points at `Documentation/*.md` files that don't ship to consumer projects at all, and references `@flowkit-shared`/`@flowkit` path aliases that don't exist outside this repo (consumer-mode screens import from `'flowkit'` instead — see [Writing a screen](../README.md#writing-a-screen)). The command itself runs successfully and produces valid files (`INDEX.md`, `rules.md`, `platform.md`, memory file) — the _content_ of `platform.md` just assumes repo mode unconditionally. Treat its pointers/import-path examples as reference-only in consumer mode until this is fixed.
+> ⚠️️ **Known gap (as of 2026-07-10, alias names updated 2026-07-12): `agent:sync` generates repo-mode-only content even in consumer mode.** Confirmed live in a scaffolded flat-mode project — `.agent/platform.md` points at `Documentation/*.md` files that don't ship to consumer projects at all, and references `@flowkit-shared`/`@flowkit` path aliases that don't exist outside this repo (consumer-mode screens import from `'flowkit'` instead — see [Writing a screen](../README.md#writing-a-screen)). The command itself runs successfully and produces valid files (`INDEX.md`, `rules.md`, `platform.md`, memory file) — the _content_ of `platform.md` just assumes repo mode unconditionally. Treat its pointers/import-path examples as reference-only in consumer mode until this is fixed.
 
 **Read order for a cold agent:**
 

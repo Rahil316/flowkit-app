@@ -148,7 +148,7 @@ function turnOn(scope) {
 
   console.log(execSync('git diff --stat', { cwd: ROOT }).toString())
   console.log(
-    `\n⚠ Published as ${scope}/*@${canaryVersion}. FLOWKIT_PUBLISHED_RANGE in both scaffolders is pinned ` +
+    `\n⚠️️ Published as ${scope}/*@${canaryVersion}. FLOWKIT_PUBLISHED_RANGE in both scaffolders is pinned ` +
       `to this exact canary number. If ${scope}/flowkit is ever republished alone (a newer canary number) ` +
       `without republishing both scaffolders to match, every future 'npm create ${scope}/...' will keep ` +
       `installing the older pinned library version.`

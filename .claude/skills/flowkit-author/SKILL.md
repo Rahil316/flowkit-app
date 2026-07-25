@@ -55,10 +55,10 @@ Three modes, detected by `scripts/helpers/paths.js#isRepoMode()` (checks for `.f
 marker at repo root) and `scripts/helpers/flowkit-manifest.js#isMultiMode()` (reads `package.json`'s
 `flowkit.mode`):
 
-| Mode                                         | Workspace lives at                                                  | Create/remove workspace                                                                |
-| -------------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| Repo (this checkout)                         | `workspaces/<name>/`                                                | `flowkit nw:<name>` / `rw:<name>` (repo-mode only)                                     |
-| Flat (consumer, `create-flowkit-app`)        | project root itself                                                 | N/A — one implicit workspace, is `process.cwd()`                                       |
+| Mode                                    | Workspace lives at                                                  | Create/remove workspace                                                                |
+| --------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Repo (this checkout)                    | `workspaces/<name>/`                                                | `flowkit nw:<name>` / `rw:<name>` (repo-mode only)                                     |
+| Flat (consumer, `create-flowkit-app`)   | project root itself                                                 | N/A — one implicit workspace, is `process.cwd()`                                       |
 | Multi (consumer, `create-flowkit-mono`) | sibling folder per `package.json`'s `flowkit.workspaces[name].path` | `flowkit create:workspace` / `remove:workspace` / `rename:workspace` (flat/multi-only) |
 
 All other authoring commands (`create:chapter`, `create:page`, `add:step`, etc.) work in every mode
@@ -270,7 +270,7 @@ actually writes into steps. If found, prints a warning listing the referencing f
 does **not** block the removal or edit them for you:
 
 ```
-⚠  Warning: flowStory(s) reference '<page-id>': <flowStory-id>, ...
+⚠️  Warning: flowStory(s) reference '<page-id>': <flowStory-id>, ...
    Update those flowStories after removing this page.
 ```
 
@@ -669,7 +669,7 @@ applyDotPathPatch({ items: [1, 2, 3] }, { items: [9] })
 // → { items: [9] }  (arrays replace, never merge element-by-element)
 ```
 
-⚠️ Two distinct safety checks, not one: `setAtPath()` **throws** if any dot-path _segment_ is
+⚠️️ Two distinct safety checks, not one: `setAtPath()` **throws** if any dot-path _segment_ is
 `__proto__`/`prototype`/`constructor` (`Error: applyDotPathPatch: unsafe key in path "..."`) —
 this guards the path string itself. Separately, `deepMerge()` silently **skips** those same keys
 when merging _nested object values inside a patch_ (a different attack surface: a legitimate path
@@ -727,7 +727,7 @@ Every ruleId, its severity, and whether it requires acknowledgment (verified dir
 `ruleId:`/`severity:`/`requiresAcknowledgment:` in each `scripts/audits/*.js` file):
 
 | ruleId                       | severity | requiresAcknowledgment |
-| ----------------------------- | -------- | ---------------------- |
+| ---------------------------- | -------- | ---------------------- |
 | `page/ambiguous-folder`      | warning  | **true**               |
 | `page/no-default-export`     | error    | —                      |
 | `page/missing-meta`          | error    | —                      |

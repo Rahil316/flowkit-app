@@ -181,20 +181,44 @@ export interface WorkspaceHierarchyResult {
   defaultDeviceLabel?: string
   /** Author-set default orientation from manifest.ts (`defaultOrientation`), if any. */
   defaultOrientation?: 'portrait' | 'landscape'
+  /** First page id in declared order (config.chapters, then config.pageOrder) — same
+   *  ordering the Screens tab panel displays top-to-bottom. This is the panel's actual
+   *  "first" page, not just the first entry in `views`/`ALL_VIEWS` (glob/insertion order,
+   *  which is effectively alphabetical and unrelated to authored order). Used as the
+   *  fallback cold-start page when `startPageId` is unset or doesn't resolve. */
+  firstPageId?: string
+}
+
+/** Walks the tree depth-first (same order the Screens tab renders) and returns the
+ *  first leaf page's id. */
+function firstPageIdInTree(tree: WorkspaceHierarchyNode[]): string | undefined {
+  for (const node of tree) {
+    if (node.kind === 'page') return node.id
+    if (node.children) {
+      const found = firstPageIdInTree(node.children)
+      if (found) return found
+    }
+  }
+  return undefined
 }
 
 /** Resolves the author-set startPage/defaultDevice/defaultOrientation config fields
- *  against real screens/device presets. Shared by both the flat and nested builders. */
+ *  against real screens/device presets. Shared by both the flat and nested builders.
+ *  `startPage` is authored bare (no chapter field, e.g. 'splash-screen') — matched here
+ *  against each page's bare `pageId`, not the composite `id` map key. Ambiguous matches
+ *  (same bare page name in 2+ chapters) are a `flowkit audit` concern (book/invalid-start-page);
+ *  this resolver just needs one working page, so it takes the first match found. */
 function resolveConfigDefaults(
   config: FlowkitConfig,
-  pagesById: Map<string, unknown>
+  pagesById: Map<string, PageRec>
 ): {
   startPageId?: string
   defaultDeviceLabel?: string
   defaultOrientation?: 'portrait' | 'landscape'
 } {
-  const startPageId =
-    config.startPage && pagesById.has(config.startPage) ? config.startPage : undefined
+  const startPageId = config.startPage
+    ? [...pagesById.values()].find(rec => rec.pageId === config.startPage)?.id
+    : undefined
 
   const resolvedDevicePreset = config.defaultDevice
     ? DEVICE_PRESETS.find(p => p.label === config.defaultDevice)
@@ -238,6 +262,7 @@ function buildFlatHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
     }
     pagesById.set(id, {
       id,
+      pageId,
       label,
       project: activeWorkspace,
       chapter,
@@ -304,6 +329,7 @@ function buildFlatHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
     registry,
     hasHierarchy,
     tagsByPage,
+    firstPageId: firstPageIdInTree(tree),
     ...resolveConfigDefaults(config, pagesById),
   }
 }
@@ -312,6 +338,7 @@ function buildFlatHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
 
 interface PageRec {
   id: string // = `${chapter}-${screen}` — collision-proof across stories
+  pageId: string // bare screen segment (no chapter prefix) — used to resolve manifest's bare `startPage`
   label: string
   project: string
   chapter: string
@@ -418,6 +445,7 @@ function buildHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
     }
     pagesById.set(pageId, {
       id: pageId,
+      pageId: screen,
       label,
       project: def.project,
       chapter: def.chapter,
@@ -491,6 +519,7 @@ function buildHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
     registry,
     hasHierarchy,
     tagsByPage,
+    firstPageId: firstPageIdInTree(tree),
     ...resolveConfigDefaults(config, pagesById),
   }
 }

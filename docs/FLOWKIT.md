@@ -514,7 +514,7 @@ Agent-ready workspaces are a core value prop: drop a coding agent in and it buil
 | `.agent/project.md`       | Hand-owned product brief — flows, data model, decisions. **Never regenerated.**                                                                         |
 | `.agent/.agent-meta.json` | Formatter state (kit, language, spec version) for `agent:sync`.                                                                                         |
 
-> ⚠️ **Known gap (consumer mode):** `agent:sync` generates `.agent/platform.md` with repo-mode-only content (pointers to `Documentation/*.md`, `@flowkit`/`@flowkit-shared` aliases) even when run inside a flat/multi-workspace consumer project, where neither exists. Confirmed live 2026-07-10 — see [CLI.md](CLI.md#agent-onboarding) for the full note. Treat its pointers/import-path examples as reference-only in consumer mode until fixed.
+> ⚠️️ **Known gap (consumer mode):** `agent:sync` generates `.agent/platform.md` with repo-mode-only content (pointers to `Documentation/*.md`, `@flowkit`/`@flowkit-shared` aliases) even when run inside a flat/multi-workspace consumer project, where neither exists. Confirmed live 2026-07-10 — see [CLI.md](CLI.md#agent-onboarding) for the full note. Treat its pointers/import-path examples as reference-only in consumer mode until fixed.
 
 **Read order for a cold agent:** memory file → `rules.md` → `INDEX.md` → (depth only when a row points there) → `platform.md` / `Documentation/*`.
 

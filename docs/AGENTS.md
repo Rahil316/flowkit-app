@@ -12,7 +12,7 @@ Works the same across repo mode, flat mode, and multi-workspace mode — see [CL
 
 ## The agent file system
 
-> ⚠️ **This section describes repo mode only.** `.agent/INDEX.md`, `.agent/rules.md`,
+> ⚠️️ **This section describes repo mode only.** `.agent/INDEX.md`, `.agent/rules.md`,
 > `.agent/platform.md`, and `.agent/project.md` are all produced by
 > `scripts/platform/agent-sync.js`, which operates on this monorepo's own
 > `workspaces/<name>/` — it is not invoked by, and has no equivalent in,
@@ -44,7 +44,7 @@ instead.)
 | Product   | `.agent/project.md`       | Hand-owned brief: what the product is. **Never regenerated.**                           |
 | State     | `.agent/.agent-meta.json` | `{ kit, language, specVersion }` written by `agent:sync`.                               |
 
-> ⚠️ **Within repo mode**, confirmed live 2026-07-10: `.agent/platform.md`'s rows point at
+> ⚠️️ **Within repo mode**, confirmed live 2026-07-10: `.agent/platform.md`'s rows point at
 > `Documentation/*.md` files and `@flowkit`/`@shared` path aliases specific to this
 > monorepo. `agent:sync` runs successfully here; the note above is about consumer mode not
 > having this system at all, which is a separate, larger gap than platform.md's content

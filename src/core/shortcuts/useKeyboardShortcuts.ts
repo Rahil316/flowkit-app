@@ -250,14 +250,12 @@ export function useSidebarShortcuts({ tabs, setTab, focusSearch }: SidebarShortc
 //               Heatmap tab is only visible when the session has cursor samples.
 
 interface FlowLensPanelShortcutActions {
-  tab: string
   setTab: (t: string) => void
   setOpen: (v: boolean) => void
   hasCursorSamples: boolean
 }
 
 export function useFlowLensPanelShortcuts({
-  tab,
   setTab,
   setOpen,
   hasCursorSamples,
@@ -277,7 +275,7 @@ export function useFlowLensPanelShortcuts({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [tab, setTab, setOpen, hasCursorSamples])
+  }, [setTab, setOpen, hasCursorSamples])
 }
 
 // ─── FlowLens left-panel shortcuts ───────────────────────────────────────────
@@ -286,16 +284,12 @@ export function useFlowLensPanelShortcuts({
 
 interface FlowLensSidebarShortcutActions {
   tabs: string[]
-  tab: string
   activateTab: (t: string) => void
-  isOpen: boolean
 }
 
 export function useFlowLensSidebarShortcuts({
   tabs,
-  tab,
   activateTab,
-  isOpen,
 }: FlowLensSidebarShortcutActions) {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -309,7 +303,7 @@ export function useFlowLensSidebarShortcuts({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [tabs, tab, activateTab, isOpen])
+  }, [tabs, activateTab])
 }
 
 // ─── Canvas shortcuts ─────────────────────────────────────────────────────────

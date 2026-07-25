@@ -17,7 +17,7 @@ import {
   Tag as TagIcon,
   Zap,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useStoryLibrary } from './useStoryLibrary'
 
@@ -83,14 +83,57 @@ export default function PagesHierarchy({
 
   // Default-expand all on first load if nothing persisted.
   const allNodeIds = useMemo(() => collectExpandableIds(tree), [tree])
-  const effectiveExpanded = expanded.size === 0 ? new Set(allNodeIds) : expanded
+  const baseExpanded = useMemo(
+    () => (expanded.size === 0 ? new Set(allNodeIds) : expanded),
+    [expanded, allNodeIds]
+  )
+
+  // The active page's containing chapter(s) auto-expand on navigation, even if not in
+  // persisted `expanded` state — otherwise navigating to a page inside a collapsed
+  // chapter leaves no visual trail back to it. But this is a one-time nudge, not a
+  // standing rule: if the user then explicitly collapses that same chapter (tracked in
+  // collapsedWhileActive, reset whenever activeViewId changes), their click wins and it
+  // stays closed — otherwise the auto-expand would instantly re-open it every render,
+  // making the active chapter's accordion impossible to collapse.
+  const activeChain = useMemo(
+    () =>
+      findAncestorChain(
+        tree.flatMap(project => (project.kind === 'project' ? (project.children ?? []) : [project])),
+        activeViewId
+      ) ?? [],
+    [tree, activeViewId]
+  )
+  const [collapsedWhileActive, setCollapsedWhileActive] = useState<Set<string>>(new Set())
+  // Reset during render (not an effect) when activeViewId changes — the React-recommended
+  // pattern for state that should reset in response to a prop/derived-value change; calling
+  // both setters here is coalesced into the same render pass, no extra effect-triggered one.
+  const [lastActiveViewId, setLastActiveViewId] = useState(activeViewId)
+  if (activeViewId !== lastActiveViewId) {
+    setLastActiveViewId(activeViewId)
+    setCollapsedWhileActive(new Set())
+  }
+
+  const effectiveExpanded = useMemo(() => {
+    const next = new Set(baseExpanded)
+    activeChain.forEach(key => next.add(key))
+    collapsedWhileActive.forEach(key => next.delete(key))
+    return next
+  }, [baseExpanded, activeChain, collapsedWhileActive])
 
   function toggle(id: string) {
+    const willBeOpen = !effectiveExpanded.has(id)
+    if (activeChain.includes(id)) {
+      setCollapsedWhileActive(prev => {
+        const next = new Set(prev)
+        if (willBeOpen) next.delete(id)
+        else next.add(id)
+        return next
+      })
+    }
     setExpanded(() => {
-      const base = effectiveExpanded
-      const next = new Set(base)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
+      const next = new Set(baseExpanded)
+      if (willBeOpen) next.add(id)
+      else next.delete(id)
       try {
         localStorage.setItem(LS_EXPANDED, JSON.stringify([...next]))
       } catch {
@@ -99,6 +142,23 @@ export default function PagesHierarchy({
       return next
     })
   }
+
+  // Scroll the active row into view once per navigation. Depends on effectiveExpanded
+  // too (not just activeViewId) so it re-fires after the auto-expand above has painted
+  // the row into the DOM — but the scrolledForRef guard stops it from re-scrolling every
+  // time the user manually toggles some other, unrelated chapter afterward.
+  const navRef = useRef<HTMLElement>(null)
+  const scrolledForRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (scrolledForRef.current === activeViewId) return
+    const row = navRef.current?.querySelector(`[data-page-row="${CSS.escape(activeViewId)}"]`)
+    if (!row) return // containing chapter not yet expanded/painted — wait for next run
+    const raf = requestAnimationFrame(() => {
+      row.scrollIntoView({ block: 'nearest' })
+    })
+    scrolledForRef.current = activeViewId
+    return () => cancelAnimationFrame(raf)
+  }, [activeViewId, effectiveExpanded])
 
   const q = search.toLowerCase()
   function pageMatches(v: PageView): boolean {
@@ -138,7 +198,7 @@ export default function PagesHierarchy({
       )}
 
       {/* Tree */}
-      <nav className="flex-1 overflow-y-auto p-2">
+      <nav ref={navRef} className="flex-1 overflow-y-auto p-2">
         {tree
           .flatMap(project => (project.kind === 'project' ? (project.children ?? []) : [project]))
           .map(node => (
@@ -207,6 +267,7 @@ function TreeNode({
 
   const childHasComments = hasDescendantComment(node, commentedScreens)
   const childAnnotationTags = collectDescendantAnnotationTags(node, tagsByPage)
+  const containsActive = hasDescendantActive(node, activeViewId)
 
   return (
     <div className="mb-0.5">
@@ -218,9 +279,10 @@ function TreeNode({
             toggle(nodeKey)
           }
         }}
-        className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-left transition-colors duration-120 focus-visible:outline-none focus-visible:ring-1"
+        data-active-chapter={containsActive || undefined}
+        className="relative w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-left transition-colors duration-120 focus-visible:outline-none focus-visible:ring-1"
         style={{
-          color: theme.text.secondary,
+          color: containsActive ? theme.accent.blue : theme.text.secondary,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           ['--tw-ring-color' as any]: theme.accent.blue,
         }}
@@ -231,11 +293,17 @@ function TreeNode({
           ;(e.currentTarget as HTMLElement).style.background = 'transparent'
         }}
       >
+        {containsActive && (
+          <span
+            className="absolute left-0 inset-y-1.5 w-0.5 rounded-r"
+            style={{ background: theme.accent.blue }}
+          />
+        )}
         <ChevronDown
           size={12}
           className={`shrink-0 transition-transform duration-150 ${isOpen ? '' : '-rotate-90'}`}
         />
-        <span className="text-ui-sm font-semibold truncate" title={node.label}>
+        <span className="min-w-0 flex-1 text-ui-sm font-semibold truncate" title={node.label}>
           {node.label}
         </span>
         {!isOpen && childHasComments && (
@@ -295,9 +363,9 @@ function PageRow({
   const activeSerial = activeVariantByView[view.id] ?? 'default'
 
   return (
-    <div className="mb-0.5">
+    <div className="mb-0.5" data-page-row={view.id}>
       <div
-        className="group relative flex items-center rounded-md transition-colors duration-120"
+        className="group relative flex items-center rounded-md transition-colors duration-120 w-full"
         style={{
           background: active ? theme.accent.blueDim : 'transparent',
         }}
@@ -317,11 +385,11 @@ function PageRow({
         )}
         <button
           onClick={onNavigate}
-          className="flex-1 flex items-center gap-2 pl-3 pr-1 py-1.5 text-left focus-visible:outline-none"
+          className="flex-1 flex items-center gap-2 pl-3 pr-1 py-1.5 text-left focus-visible:outline-none w-full"
           style={{ color: active ? theme.accent.blue : theme.text.secondary }}
         >
           <Smartphone size={13} className="shrink-0" />
-          <span className="text-ui-sm truncate">{view.label}</span>
+          <span className="min-w-0 flex-1 text-ui-sm truncate">{view.label}</span>
           {hasComments && (
             <Tooltip content="Has feedback comments" placement="top">
               <MessageSquare size={11} className="shrink-0" style={{ color: theme.accent.green }} />
@@ -420,6 +488,25 @@ function hasVisiblePage(node: WorkspaceHierarchyNode, matches: (v: PageView) => 
   return (node.children ?? []).some(c => hasVisiblePage(c, matches))
 }
 
+/** Node-keys (`${kind}:${id}`) of every container ancestor of the page matching
+ *  `activeViewId`, root-first, or `null` if no page in the tree matches. */
+function findAncestorChain(
+  nodes: WorkspaceHierarchyNode[],
+  activeViewId: string,
+  path: string[] = []
+): string[] | null {
+  for (const node of nodes) {
+    if (node.kind === 'page') {
+      if (node.view?.id === activeViewId) return path
+      continue
+    }
+    const nodeKey = `${node.kind}:${node.id}`
+    const found = findAncestorChain(node.children ?? [], activeViewId, [...path, nodeKey])
+    if (found) return found
+  }
+  return null
+}
+
 function countPages(node: WorkspaceHierarchyNode): number {
   if (node.kind === 'page') return 1
   return (node.children ?? []).reduce((sum, c) => sum + countPages(c), 0)
@@ -428,6 +515,11 @@ function countPages(node: WorkspaceHierarchyNode): number {
 function hasDescendantComment(node: WorkspaceHierarchyNode, commented: Set<string>): boolean {
   if (node.kind === 'page' && node.view) return commented.has(node.view.id)
   return (node.children ?? []).some(c => hasDescendantComment(c, commented))
+}
+
+function hasDescendantActive(node: WorkspaceHierarchyNode, activeViewId: string): boolean {
+  if (node.kind === 'page' && node.view) return node.view.id === activeViewId
+  return (node.children ?? []).some(c => hasDescendantActive(c, activeViewId))
 }
 
 function collectDescendantAnnotationTags(

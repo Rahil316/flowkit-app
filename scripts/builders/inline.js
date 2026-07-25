@@ -66,7 +66,7 @@ if (activeWorkspace) {
 // Warn if a JSONBin master key was bundled into the output
 if (html.includes('X-Master-Key') || /\$2a\$\d+\$/.test(html)) {
   console.warn(
-    '\n⚠️  WARNING: A JSONBin master key may be embedded in the standalone output.\n' +
+    '\n⚠️️️  WARNING: A JSONBin master key may be embedded in the standalone output.\n' +
       '   This key grants full account access to anyone who views the HTML source.\n' +
       '   Remove the key from JSONBIN_CONFIG.providedKey before sharing.\n'
   )

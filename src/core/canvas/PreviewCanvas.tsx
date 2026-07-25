@@ -466,7 +466,9 @@ function DesktopCanvas({ chapters, views }: Props) {
     const onWheel = (e: WheelEvent) => {
       const inDevice = !!(e.target as HTMLElement).closest('[data-mockup]')
       if (e.ctrlKey) {
-        if (inDevice) return
+        // Trackpad pinch also fires as ctrl+wheel — always preventDefault here
+        // (over the device mockup or not) so the browser's native page-zoom
+        // never fires; the canvas's own zoom handles it instead.
         e.preventDefault()
         const cur = stateRef.current.scale
         const delta = e.deltaY * (e.deltaMode === 1 ? 0.05 : 0.005)
@@ -746,27 +748,6 @@ function CanvasContent({
   return (
     // Spans all 3 grid columns, z-index:0 — panels float above at z-index:2
     <div className="col-span-full row-start-1 z-0 relative overflow-hidden bg-theme-base size-full">
-      <svg
-        className="absolute inset-0 pointer-events-none size-full"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <defs>
-          <pattern
-            id={gridPatternId}
-            width={Math.max(0.01, 24 * scale)}
-            height={Math.max(0.01, 24 * scale)}
-            patternUnits="userSpaceOnUse"
-          >
-            <circle
-              cx={Math.max(0, 0.75 * scale)}
-              cy={Math.max(0, 0.75 * scale)}
-              r={Math.max(0, 0.75 * scale)}
-              fill={gridDotColor}
-            />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill={`url(#${gridPatternId})`} />
-      </svg>
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_60%_50%_at_50%_40%,rgba(59,130,246,0.05)_0%,transparent_70%)]" />
 
       <div
@@ -784,6 +765,33 @@ function CanvasContent({
         <ColorBlindSVGDefs />
 
         <div className="relative" style={{ width: CANVAS_W, height: CANVAS_H }}>
+          {/* Dot grid — lives in the same scrollable CANVAS_W×CANVAS_H coordinate
+              space as the device mockup(s), so panning/zooming moves them in
+              perfect lockstep via native scroll instead of separate anchor math
+              (previously a viewport-fixed overlay outside canvasRef, which drifted
+              out of sync with the mockup's own center-anchored scale transform). */}
+          <svg
+            className="absolute inset-0 pointer-events-none size-full"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <pattern
+                id={gridPatternId}
+                width={Math.max(0.01, 24 * scale)}
+                height={Math.max(0.01, 24 * scale)}
+                patternUnits="userSpaceOnUse"
+              >
+                <circle
+                  cx={Math.max(0, 0.75 * scale)}
+                  cy={Math.max(0, 0.75 * scale)}
+                  r={Math.max(0, 0.75 * scale)}
+                  fill={gridDotColor}
+                />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill={`url(#${gridPatternId})`} />
+          </svg>
+
           <div
             id="mockup-container"
             data-mockup="true"

@@ -3,11 +3,7 @@
     {
       "name": "tws1",
       "label": "Tws1"
-    },
-    {
-      "name": "twsone",
-      "label": "Twsone"
     }
   ],
-  "active": "twsone"
+  "active": "tws1"
 }

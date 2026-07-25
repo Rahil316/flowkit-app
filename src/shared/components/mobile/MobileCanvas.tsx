@@ -41,6 +41,7 @@ import { useTheme } from '../../contexts/ThemeContext'
 import { ActionCenterContent } from '../overlays/ActionCenter'
 import type { ActionCtx } from '../overlays/appActions'
 import BottomSheet, { type PanelTab } from './BottomSheet'
+import { useIdleFade } from './hooks/useIdleFade'
 import MobileFAB, { type MobileTab } from './MobileFAB'
 
 // ── Sub-tab definitions per top-level tab ─────────────────────────────────────
@@ -188,6 +189,8 @@ export default function MobileCanvas({ chapters, views }: MobileCanvasProps) {
 
   const closeSheet = useCallback(() => setActiveTab(null), [])
   const openSheet = useCallback(() => setActiveTab(t => t ?? 'explore'), [])
+  const backIdle = useIdleFade()
+  const [backAwake, setBackAwake] = useState(false)
 
   const activeView = views.find(v => v.id === activeViewId)
   const pageLabel = activeView?.label ?? activeViewId
@@ -296,33 +299,32 @@ export default function MobileCanvas({ chapters, views }: MobileCanvasProps) {
         }}
       />
 
-      {/* Bottom-left — back button + screen label (thumb zone, same row as FAB) */}
+      {/* Bottom title strip — thin full-width bar, always visible (no idle-fade) */}
       <div
         style={{ zIndex: Z.modal }}
-        className="fixed bottom-6 left-5 flex items-center gap-2 pointer-events-none"
+        className="fixed bottom-0 inset-x-0 h-5 flex items-center justify-center pointer-events-none bg-linear-to-t from-black/35 to-transparent"
       >
-        {canGoBack && (
-          <button
-            onClick={goBack}
-            className="pointer-events-auto rounded-full bg-gray-950/40 border-0 cursor-pointer flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.35)] transition-transform duration-150 shrink-0 size-14"
-            onMouseEnter={e => {
-              e.currentTarget.style.transform = 'scale(1.06)'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.transform = 'scale(1)'
-            }}
-            aria-label="Go back"
-          >
-            <ChevronLeft size={22} color="#fff" />
-          </button>
-        )}
-        <span
-          className="pointer-events-none text-ui-sm font-semibold text-white/40 leading-tight"
-          style={{ textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}
-        >
+        <span className="text-ui-2xs font-semibold text-white/70 leading-none truncate px-4">
           {pageLabel}
         </span>
       </div>
+
+      {/* Bottom-left — back button (thumb zone, same row as FAB) */}
+      {canGoBack && (
+        <button
+          onClick={goBack}
+          style={{ zIndex: Z.modal, opacity: backAwake ? 1 : backIdle ? 0.28 : 0.55 }}
+          className="fixed bottom-4 left-3 rounded-full bg-gray-950/40 border-0 cursor-pointer flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.35)] transition-[transform,opacity] duration-150 ease-out shrink-0 size-11 hover:scale-[1.06]"
+          onMouseEnter={() => setBackAwake(true)}
+          onMouseLeave={() => setBackAwake(false)}
+          onPointerDown={() => setBackAwake(true)}
+          onPointerUp={() => setBackAwake(false)}
+          onPointerCancel={() => setBackAwake(false)}
+          aria-label="Go back"
+        >
+          <ChevronLeft size={18} color="#fff" />
+        </button>
+      )}
 
       {/* FAB */}
       <MobileFAB onClick={openSheet} />

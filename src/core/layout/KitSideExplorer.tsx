@@ -91,7 +91,10 @@ export default function KitSideExplorer({
   const recorder = useSessionRecorderOptional()
 
   const activeWorkspaceName = useActiveWorkspace()
-  const [tab, setTab] = useState<LeftTab>(() => readStorage(STORAGE_LEFT_TAB, 'pages') as LeftTab)
+  const [tab, setTab] = useState<LeftTab>(() => {
+    const stored = readStorage<string>(STORAGE_LEFT_TAB, 'pages')
+    return stored === 'pages' || stored === 'chapters' ? stored : 'pages'
+  })
   const [pageFilter, setPageFilter] = useState<string | null>(null)
   const [filterState, setFilterState] = useState<FilterState>({})
 

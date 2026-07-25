@@ -25,9 +25,9 @@ export function useHandTool(
   // Space requires the canvas to contain focus; H requires the canvas to contain focus.
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement
+      const target = e.target instanceof HTMLElement ? e.target : null
       const isEditable =
-        target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable
+        target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.isContentEditable
       if (isEditable) return
 
       if (e.code === 'Space' && canvasRef.current?.contains(document.activeElement)) {

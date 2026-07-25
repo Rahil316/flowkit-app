@@ -217,7 +217,7 @@ export async function cmdRemovePage(_val, args = []) {
 
   const refs = findFlowStoryRefs(wsDir, chapterId, pageId)
   if (refs.length > 0) {
-    console.log(r(`⚠  Warning: flowStory(s) reference '${pageId}': ${refs.join(', ')}`))
+    console.log(r(`⚠️️  Warning: flowStory(s) reference '${pageId}': ${refs.join(', ')}`))
     console.log(r('   Update those flowStories after removing this page.'))
   }
 
@@ -329,7 +329,7 @@ export async function cmdRenamePage(_val, args = []) {
 
   const refs = findFlowStoryRefs(wsDir, chapterId, oldId)
   if (refs.length > 0) {
-    console.log(r(`⚠  Warning: flowStory(s) still reference '${oldId}': ${refs.join(', ')}`))
+    console.log(r(`⚠️️  Warning: flowStory(s) still reference '${oldId}': ${refs.join(', ')}`))
     console.log(r(`   Update step pageIds from '${oldId}' to '${newId}'.`))
   }
 

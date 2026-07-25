@@ -1,3 +1,5 @@
+import { LS_KEEP_FIT } from '@flowkit-shared/constants/storageKeys'
+
 import {
   CANVAS_DEVICE_MARGIN,
   CANVAS_H,
@@ -8,9 +10,6 @@ import {
   ZOOM_MIN,
   ZOOM_STEP,
 } from './canvasConfig'
-
-export { LS_KEEP_FIT } from '@flowkit-shared/constants/storageKeys'
-import { LS_KEEP_FIT } from '@flowkit-shared/constants/storageKeys'
 
 export interface CanvasState {
   // Last-measured visible canvas dimensions (excludes panels).

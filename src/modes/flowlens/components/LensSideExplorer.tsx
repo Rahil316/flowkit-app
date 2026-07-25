@@ -57,9 +57,7 @@ export default function LensSideExplorer({
 
   useFlowLensSidebarShortcuts({
     tabs: ['library', 'recorded'],
-    tab,
     activateTab: t => setTab(t as LeftTab),
-    isOpen,
   })
 
   const [search, setSearch] = useState('')

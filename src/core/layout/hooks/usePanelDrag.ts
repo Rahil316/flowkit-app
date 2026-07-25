@@ -49,6 +49,12 @@ export function usePanelDrag(
   const startDrag = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault()
+      // Guard against a second mousedown arriving before the previous drag's
+      // mouseup fired (multitouch, or a mouseup swallowed elsewhere) — without
+      // this, the stale listeners below are orphaned rather than removed.
+      if (moveListenerRef.current) window.removeEventListener('mousemove', moveListenerRef.current)
+      if (upListenerRef.current) window.removeEventListener('mouseup', upListenerRef.current)
+
       dragRef.current = { startX: e.clientX, startW: getWidth() }
       setHandleActive('drag')
 

@@ -15,7 +15,7 @@ import {
 } from '../authoring-support/config-patch.js'
 import { FLOW_BOOK_DIRNAME } from '../helpers/config-filenames.js'
 import { findPageDirNames } from './lib/config-io.js'
-import { g, r, d, b } from '../helpers/colors.js'
+import { g, r, d, b, y } from '../helpers/colors.js'
 
 /**
  * Walks flowBook/ on disk and derives a fresh { chapters, pageOrder } shape — one chapter
@@ -43,30 +43,41 @@ function deriveFromDisk(wsDir) {
 
 function printDiff(current, derived, applied) {
   const allChapters = [...new Set([...current.chapters, ...derived.chapters])]
+  let printedAny = false
   for (const chapterId of allChapters) {
     const before = current.pageOrder[chapterId] ?? null
     const after = derived.pageOrder[chapterId] ?? null
     if (!current.chapters.includes(chapterId)) {
-      console.log(g(`  + chapter '${chapterId}' (found on disk, not in chapters[])`))
+      console.log(g(`  +  chapter '${chapterId}'`) + d(' (found on disk, not in chapters[])'))
+      printedAny = true
     } else if (!derived.chapters.includes(chapterId)) {
-      console.log(r(`  - chapter '${chapterId}' (in chapters[], not found on disk)`))
+      console.log(r(`  -  chapter '${chapterId}'`) + d(' (in chapters[], not found on disk)'))
+      printedAny = true
     }
     const beforeStr = before ? before.join(', ') : '(none)'
     const afterStr = after ? after.join(', ') : '(none)'
     if (beforeStr !== afterStr) {
-      console.log(b(`  ${chapterId}:`))
-      console.log(d(`    before: [${beforeStr}]`))
-      console.log(d(`    after:  [${afterStr}]`))
+      console.log('')
+      console.log(b(`  ${chapterId}`))
+      console.log(r(`     before: `) + d(`[${beforeStr}]`))
+      console.log(g(`     after:  `) + d(`[${afterStr}]`))
+      console.log('')
+      printedAny = true
     }
   }
-  console.log('')
+  if (!printedAny) {
+    console.log('')
+    console.log(g('  ✓  no drift — disk already matches the authored config'))
+    console.log('')
+  }
   console.log(
     applied
-      ? g('  Applied.')
-      : d(
-          '  This would discard the current authored order shown above. Re-run with --rebuild --confirm to apply.'
+      ? g('  ✓  Applied.')
+      : y(
+          '  ⚠️️  This would discard the current authored order shown above. Re-run with --rebuild --confirm to apply.'
         )
   )
+  console.log('')
 }
 
 /** Runs --rebuild for one domain (or all domains) against one workspace. */
@@ -80,8 +91,8 @@ export async function runRebuild(wsDir, wsName, domain, { confirm }) {
   const derived = deriveFromDisk(wsDir)
 
   console.log('')
-  console.log(b(`flowkit audit:chapter --rebuild — ${wsName}`))
-  console.log(d(' ────────────────────────────────────────────'))
+  console.log(b(`  flowkit audit:chapter --rebuild`) + d(`  ·  ${wsName}`))
+  console.log(d('─'.repeat(50)))
 
   if (!confirm) {
     printDiff(current, derived, false)

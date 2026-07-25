@@ -844,9 +844,10 @@ function KitSideInspectorInner({
   const isPlayNode = ctx.activeViewId.endsWith('-play')
 
   // ── Persisted state ──────────────────────────────────────────────────────────
-  const [activeTab, setActiveTab] = useState<InspectorTab>(
-    () => readStorage(STORAGE_ACTIVE_TAB, 'info') as InspectorTab
-  )
+  const [activeTab, setActiveTab] = useState<InspectorTab>(() => {
+    const stored = readStorage<string>(STORAGE_ACTIVE_TAB, 'info')
+    return stored in TAB_META ? (stored as InspectorTab) : 'info'
+  })
   const [showSessionsFeatureLocal] = useState(() => readStorage(STORAGE_SESSIONS_ENABLED, false))
   const showSessionsFeature = sessionsFeatureEnabled ?? showSessionsFeatureLocal
   const visibleTabs = useMemo(() => getVisibleTabs(showSessionsFeature), [showSessionsFeature])

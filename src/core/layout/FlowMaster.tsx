@@ -653,7 +653,7 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
             role="status"
             aria-live="polite"
           >
-            ⚠ Missing #{currentOn} on this page
+            ⚠️️ Missing #{currentOn} on this page
           </div>
         )}
 

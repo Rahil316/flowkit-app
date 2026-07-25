@@ -127,7 +127,7 @@ function WorkspaceRunner({ name, onSwitch }: WorkspaceRunnerProps) {
                     <FigmaExportView views={ALL_VIEWS} />
                   ) : (
                     <DashboardProvider
-                      firstViewId={hierarchy.startPageId ?? ALL_VIEWS[0]?.id ?? 'home'}
+                      firstViewId={hierarchy.startPageId ?? hierarchy.firstPageId ?? ALL_VIEWS[0]?.id ?? 'home'}
                       initialDeviceLabel={hierarchy.defaultDeviceLabel}
                       initialOrientation={hierarchy.defaultOrientation}
                       workspaceConfig={workspaceConfig}

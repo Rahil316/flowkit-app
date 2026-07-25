@@ -23,7 +23,7 @@ import {
   readWorkspaceConfig as readConfigRaw,
   writeWorkspaceConfig as writeConfigRaw,
 } from '../authoring-support/config-patch.js'
-import { g, r, d, b } from '../helpers/colors.js'
+import { g, r, d, b, y } from '../helpers/colors.js'
 
 const FIXABLE_RULE_IDS = new Set(['chapter/orphaned-id', 'chapter/orphaned-dir'])
 
@@ -80,9 +80,13 @@ export async function runFix(wsDir, wsName, domain) {
 
   if (unfixable.length > 0) {
     const ids = [...new Set(unfixable.map(f => f.ruleId))]
-    console.log(r(`--fix has no effect on ${unfixable.length} finding(s): ${ids.join(', ')}`))
+    console.log(
+      y(`  ⚠️️  --fix has no effect on ${unfixable.length} finding(s): `) + d(ids.join(', '))
+    )
+    console.log('')
   } else if (fixable.length === 0) {
-    console.log(g('  Nothing to fix.'))
+    console.log(g('  ✓  Nothing to fix.'))
+    console.log('')
   }
 
   if (after.errorCount > 0) process.exit(1)
@@ -139,18 +143,21 @@ export async function runFixMove(wsDir, wsName, pageId, toIndex) {
   writeConfigRaw(wsDir, config)
 
   console.log('')
-  console.log(b(`flowkit audit:chapter --fix --move:${pageId} — ${wsName}`))
-  console.log(d(' ────────────────────────────────────────────'))
-  console.log(b(`  ${chapterId}:`))
-  console.log(d(`    before: [${before.join(', ')}]`))
-  console.log(d(`    after:  [${pages.join(', ')}]`))
+  console.log(b(`  flowkit audit:chapter --fix --move:${pageId}`) + d(`  ·  ${wsName}`))
+  console.log(d('─'.repeat(50)))
+  console.log('')
+  console.log(b(`  ${chapterId}`))
+  console.log(r(`     before: `) + d(`[${before.join(', ')}]`))
+  console.log(g(`     after:  `) + d(`[${pages.join(', ')}]`))
   if (clampedIndex !== toIndex) {
+    console.log('')
     console.log(
-      d(
-        `    (--to:${toIndex} was past the end of the array; clamped to append at index ${clampedIndex})`
+      y(
+        `  ⚠️️  --to:${toIndex} was past the end of the array; clamped to append at index ${clampedIndex}`
       )
     )
   }
-  console.log(g(`  Moved '${pageId}' from index ${fromIndex} to ${clampedIndex}.`))
+  console.log('')
+  console.log(g(`  ✓  Moved '${pageId}' from index ${fromIndex} to ${clampedIndex}.`))
   console.log('')
 }

@@ -266,7 +266,7 @@ export async function cmdComponentsFind(_val, args = []) {
     walk(libDir)
     if (found.length > 0) {
       const rel = path.relative(wsDir, found[0])
-      console.log(d(`⚠  Found on disk (not in registry): ${rel}`))
+      console.log(d(`⚠️️  Found on disk (not in registry): ${rel}`))
       console.log(d(`   Register it: flowkit components:scan`))
       return
     }

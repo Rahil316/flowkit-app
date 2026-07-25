@@ -75,7 +75,7 @@ function reportResult(finalPath, relativeTo) {
   if (mb > 10) {
     console.log(
       r(
-        `  ⚠ File is ${mb.toFixed(1)} MB — large assets may be inlined. Consider removing static imports of images/fonts.`
+        `  ⚠️️ File is ${mb.toFixed(1)} MB — large assets may be inlined. Consider removing static imports of images/fonts.`
       )
     )
   }
