@@ -57,21 +57,14 @@ export default function Sidebar({
           placement={tooltipPlacement}
           showDelay={1500}
         >
-          <button
+          <IconButton
             onClick={onToggle}
             aria-label={isOpen ? 'Collapse panel' : 'Expand panel'}
             aria-expanded={isOpen}
-            className="flex items-center justify-center w-full transition-colors"
-            style={{ height: 44, color: theme.text.disabled }}
-            onMouseEnter={e => {
-              e.currentTarget.style.color = theme.text.muted
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.color = theme.text.disabled
-            }}
-          >
-            <CollapseIcon size={18} />
-          </button>
+            variant="ghost"
+            className="w-full h-11 rounded-none text-theme-text-disabled hover:text-theme-text-muted hover:bg-transparent"
+            icon={<CollapseIcon size={18} />}
+          />
         </Tooltip>
 
         <div style={{ height: 1, width: 28, background: theme.bg.border, marginBottom: 4 }} />

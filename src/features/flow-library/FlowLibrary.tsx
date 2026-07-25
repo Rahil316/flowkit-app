@@ -136,7 +136,7 @@ export default function FlowLibrary({
       )}
 
       {pageFilter && (
-        <div className="mx-3 mb-2 px-2.5 py-1.5 rounded-lg flex items-center justify-between shrink-0 bg-theme-blue-dim border border-theme-blue/20">
+        <div className="m-2 px-2.5 py-1.5 rounded-lg flex items-center justify-between shrink-0 bg-theme-blue-dim border border-theme-blue/20">
           <span className="text-ui-2xs text-theme-blue">
             Flows with <code className="font-mono">{pageFilter}</code>
           </span>

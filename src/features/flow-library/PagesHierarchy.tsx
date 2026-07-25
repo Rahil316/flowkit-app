@@ -212,6 +212,7 @@ export default function PagesHierarchy({
               screenMatches={pageMatches}
               commentedScreens={commentedPageIds}
               tagsByPage={tagsByPage}
+              coveredPageIds={coveredPageIds}
               onFindInLibrary={onFindInLibrary}
             />
           ))}
@@ -231,6 +232,7 @@ function TreeNode({
   screenMatches,
   commentedScreens,
   tagsByPage,
+  coveredPageIds,
   onFindInLibrary,
 }: {
   node: WorkspaceHierarchyNode
@@ -241,6 +243,7 @@ function TreeNode({
   screenMatches: (v: PageView) => boolean
   commentedScreens: Set<string>
   tagsByPage: Map<string, AnnotationTag[]>
+  coveredPageIds: Set<string>
   onFindInLibrary: (pageId: string) => void
 }) {
   const { theme, scale } = useTheme()
@@ -253,6 +256,7 @@ function TreeNode({
         active={activeViewId === node.view.id}
         hasComments={commentedScreens.has(node.view.id)}
         annotationTags={tagsByPage.get(node.view.id) ?? []}
+        isCovered={coveredPageIds.has(node.view.id)}
         onNavigate={() => navigateTo(node.view!.id)}
         onFindInLibrary={() => onFindInLibrary(node.view!.id)}
       />
@@ -329,6 +333,7 @@ function TreeNode({
               screenMatches={screenMatches}
               commentedScreens={commentedScreens}
               tagsByPage={tagsByPage}
+              coveredPageIds={coveredPageIds}
               onFindInLibrary={onFindInLibrary}
             />
           ))}
@@ -345,6 +350,7 @@ function PageRow({
   active,
   hasComments,
   annotationTags,
+  isCovered,
   onNavigate,
   onFindInLibrary,
 }: {
@@ -352,6 +358,7 @@ function PageRow({
   active: boolean
   hasComments: boolean
   annotationTags: AnnotationTag[]
+  isCovered: boolean
   onNavigate: () => void
   onFindInLibrary: () => void
 }) {
@@ -365,7 +372,7 @@ function PageRow({
   return (
     <div className="mb-0.5" data-page-row={view.id}>
       <div
-        className="group relative flex items-center rounded-md transition-colors duration-120 w-full"
+        className="group relative flex items-center rounded-md transition-colors duration-120"
         style={{
           background: active ? theme.accent.blueDim : 'transparent',
         }}
@@ -385,13 +392,13 @@ function PageRow({
         )}
         <button
           onClick={onNavigate}
-          className="flex-1 flex items-center gap-2 pl-3 pr-1 py-1.5 text-left focus-visible:outline-none w-full"
+          className="min-w-0 flex-1 flex items-center gap-2 pl-3 pr-1 py-1.5 text-left focus-visible:outline-none"
           style={{ color: active ? theme.accent.blue : theme.text.secondary }}
         >
           <Smartphone size={13} className="shrink-0" />
           <span className="min-w-0 flex-1 text-ui-sm truncate">{view.label}</span>
           {hasComments && (
-            <Tooltip content="Has feedback comments" placement="top">
+            <Tooltip content="Has feedback comments" placement="top" showDelay={1500}>
               <MessageSquare size={11} className="shrink-0" style={{ color: theme.accent.green }} />
             </Tooltip>
           )}
@@ -411,19 +418,22 @@ function PageRow({
             </span>
           )}
         </button>
-        {/* Action buttons — visible on row hover */}
-        <div className="flex items-center gap-0.5 pr-1 opacity-0 group-hover:opacity-100 transition-opacity duration-120">
-          <Tooltip content="Find flows with this page" placement="left">
-            <button
-              onClick={onFindInLibrary}
-              className="p-1 rounded transition-colors duration-120"
-              style={{ color: theme.text.muted }}
-              onMouseEnter={e => ((e.currentTarget as HTMLElement).style.color = theme.accent.blue)}
-              onMouseLeave={e => ((e.currentTarget as HTMLElement).style.color = theme.text.muted)}
-            >
-              <GitBranch size={12} />
-            </button>
-          </Tooltip>
+        {/* Action buttons — only claim row width on hover; collapsed to zero width the
+            rest of the time so the label can use that space instead of truncating early. */}
+        <div className="flex items-center gap-0.5 pr-1 w-0 opacity-0 overflow-hidden group-hover:w-auto group-hover:opacity-100 group-hover:overflow-visible group-focus-within:w-auto group-focus-within:opacity-100 group-focus-within:overflow-visible transition-[width,opacity] duration-120 shrink-0">
+          {isCovered && (
+            <Tooltip content="Find stories that use this page" placement="right" showDelay={1500}>
+              <button
+                onClick={onFindInLibrary}
+                className="p-1 rounded transition-colors duration-120"
+                style={{ color: theme.text.muted }}
+                onMouseEnter={e => ((e.currentTarget as HTMLElement).style.color = theme.accent.blue)}
+                onMouseLeave={e => ((e.currentTarget as HTMLElement).style.color = theme.text.muted)}
+              >
+                <GitBranch size={12} />
+              </button>
+            </Tooltip>
+          )}
           {hasVariants && (
             <button
               onClick={() => setShowVariants(v => !v)}
@@ -570,7 +580,7 @@ function AnnotationTagBadge({ tag }: { tag: AnnotationTag }) {
   )
 
   return tag.note ? (
-    <Tooltip content={tag.note} placement="top">
+    <Tooltip content={tag.note} placement="top" showDelay={1500}>
       {badge}
     </Tooltip>
   ) : (

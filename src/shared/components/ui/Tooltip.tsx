@@ -125,7 +125,7 @@ export default function Tooltip({
             }}
           >
             <div
-              className={`bg-theme-surface border border-theme-border text-theme-text-primary text-ui-2xs px-[10px] py-[6px] rounded-[6px] shadow-theme-float max-w-[260px] leading-[1.4] ${wrap ? 'whitespace-normal break-all' : 'whitespace-nowrap'}`}
+              className={`bg-theme-surface border border-theme-border text-theme-text-primary text-ui-2xs px-2.5 py-1.5 rounded-md shadow-theme-float max-w-65 leading-[1.4] ${wrap ? 'whitespace-normal break-all' : 'whitespace-nowrap'}`}
             >
               {content}
             </div>
