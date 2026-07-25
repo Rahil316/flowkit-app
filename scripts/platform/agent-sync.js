@@ -22,7 +22,7 @@ import {
 // ─── Memory file: one agent-agnostic output, no per-tool target choice ───────────
 // Previously this was a chooseable per-tool target (CLAUDE.md / AGENTS.md /
 // .cursor/rules/flowkit.mdc / none). Collapsed to a single AGENTS.md output,
-// matching the consumer-mode scaffolders (create-flowkit-app/create-flowkit-workspace),
+// matching the consumer-mode scaffolders (create-flowkit-app/create-flowkit-mono),
 // which never offered a choice at all. A workspace synced under the old system
 // keeps whatever memory file it already has on disk — this only changes what
 // future `agent:sync` runs produce, it does not delete or migrate old output.

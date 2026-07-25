@@ -49,7 +49,7 @@ flowkit nw:<name>       # express: value after colon, guided fallback for missin
 flowkit new-workspace:<name> --kit:apple   # fully express
 ```
 
-`--agent:` and per-tool memory-file targets (Claude/Cursor/etc.) previously existed here and were removed — every workspace now gets one agent-agnostic `AGENTS.md`, matching the consumer-mode scaffolders (`create-flowkit-app`/`create-flowkit-workspace`), which never offered a per-tool choice.
+`--agent:` and per-tool memory-file targets (Claude/Cursor/etc.) previously existed here and were removed — every workspace now gets one agent-agnostic `AGENTS.md`, matching the consumer-mode scaffolders (`create-flowkit-app`/`create-flowkit-mono`), which never offered a per-tool choice.
 
 **Flags** follow the same `:` pattern: `--kit:apple`. Workspaces are TypeScript-only — there is no language flag.
 
@@ -88,7 +88,7 @@ Creates a new workspace under `workspaces/<name>/` with the full folder structur
 By default the demo content is a playable 7-chapter arcade ("Game Zone" — a splash/welcome
 intro into a hub of 6 mini-games: Blackjack, Dice, Tic-Tac-Toe, 2048, Memory Match, Math
 Quiz), sourced from `scripts/demoBooks/game-demo-scaffold.js` — the single shared module also
-used by `create:workspace`/`create-flowkit-app`/`create-flowkit-workspace`, so all four
+used by `create:workspace`/`create-flowkit-app`/`create-flowkit-mono`, so all four
 scaffolding entry points ship byte-identical demo content. Pass `--empty` for a bare,
 zero-chapter workspace instead (see the flags table below).
 
@@ -290,7 +290,7 @@ flowkit create:workspace          # prompts for name interactively
 flowkit create:workspace --name:app-b --empty  # bare scaffold, no demo content
 ```
 
-Multi-workspace mode only. Scaffolds a new sibling folder with the same demo content as `create-flowkit-workspace`'s own initial workspace, and appends it to `package.json`'s `flowkit.workspaces`. This is the primary way to add a workspace — hand-creating a folder and manually editing `flowkit.workspaces` works too, but there's no discovery: an unlisted folder is not a workspace no matter what's inside it.
+Multi-workspace mode only. Scaffolds a new sibling folder with the same demo content as `create-flowkit-mono`'s own initial workspace, and appends it to `package.json`'s `flowkit.workspaces`. This is the primary way to add a workspace — hand-creating a folder and manually editing `flowkit.workspaces` works too, but there's no discovery: an unlisted folder is not a workspace no matter what's inside it.
 
 ### `remove:workspace` — Remove a workspace
 

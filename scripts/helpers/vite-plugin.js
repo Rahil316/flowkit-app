@@ -298,7 +298,7 @@ export function flowkit(options = {}) {
   // Repo mode passes workspaceRoot AND already supplies its own aliases in the
   // host vite.config.ts (see this repo's own vite.config.ts) — standalone
   // defaults to false there. A standalone multi-workspace consumer project
-  // (create-flowkit-workspace) has no host vite.config.ts of its own to supply
+  // (create-flowkit-mono) has no host vite.config.ts of its own to supply
   // aliases, even though it still needs workspaceRoot to pick which workspace
   // folder to serve — pass `standalone: true` explicitly for that case.
   const standalone = options.standalone ?? !options.workspaceRoot

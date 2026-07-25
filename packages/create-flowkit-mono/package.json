@@ -7,7 +7,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/rahil-avj/flowkit-app.git",
-    "directory": "packages/create-flowkit-workspace"
+    "directory": "packages/create-flowkit-mono"
   },
   "keywords": [
     "flowkit",

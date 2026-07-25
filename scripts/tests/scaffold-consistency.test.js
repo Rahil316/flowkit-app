@@ -6,7 +6,7 @@ import { gameDemoScaffold } from '../demoBooks/game-demo-scaffold.js'
 import { FLOW_BOOK_DIRNAME } from '../helpers/config-filenames.js'
 
 // scripts/helpers/scaffold.js (repo mode) and scripts/helpers/workspace-template.js
-// (the one shared source used by create-flowkit-app, create-flowkit-workspace, and
+// (the one shared source used by create-flowkit-app, create-flowkit-mono, and
 // this repo's own `flowkit create:workspace` command) both generate their demo
 // content by calling scripts/demoBooks/game-demo-scaffold.js's gameDemoScaffold()
 // directly rather than hand-porting it — so parity between the two call sites is

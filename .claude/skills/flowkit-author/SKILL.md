@@ -59,7 +59,7 @@ marker at repo root) and `scripts/helpers/flowkit-manifest.js#isMultiMode()` (re
 | -------------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | Repo (this checkout)                         | `workspaces/<name>/`                                                | `flowkit nw:<name>` / `rw:<name>` (repo-mode only)                                     |
 | Flat (consumer, `create-flowkit-app`)        | project root itself                                                 | N/A — one implicit workspace, is `process.cwd()`                                       |
-| Multi (consumer, `create-flowkit-workspace`) | sibling folder per `package.json`'s `flowkit.workspaces[name].path` | `flowkit create:workspace` / `remove:workspace` / `rename:workspace` (flat/multi-only) |
+| Multi (consumer, `create-flowkit-mono`) | sibling folder per `package.json`'s `flowkit.workspaces[name].path` | `flowkit create:workspace` / `remove:workspace` / `rename:workspace` (flat/multi-only) |
 
 All other authoring commands (`create:chapter`, `create:page`, `add:step`, etc.) work in every mode
 — they resolve the target workspace via `resolveWorkspace()` + `workspacePath()`, which branches on
@@ -106,7 +106,7 @@ flowkit nw:my-app [--kit:<name>] [--empty]
 Default scaffold content (as of the 2026-07-24 game-demo rewrite) is a full playable 7-chapter
 demo — a splash/welcome intro into a hub of 6 mini-games (Blackjack, Dice, Tic-Tac-Toe, 2048,
 Memory Match, Math Quiz) — sourced from `scripts/demoBooks/game-demo-scaffold.js`, the single shared
-module also used by `create:workspace`/`create-flowkit-app`/`create-flowkit-workspace`. Pass
+module also used by `create:workspace`/`create-flowkit-app`/`create-flowkit-mono`. Pass
 **`--empty`** for a bare, valid-but-minimal scaffold instead: zero chapters (`chapters: []`,
 `pageOrder: {}`), no `flowBook/`/`flowStories/` directories at all, stub `lib/data/db.ts`/
 `lib/data/simulator.tsx`. Both forms pass `flowkit audit` clean immediately after scaffolding.

@@ -61,7 +61,7 @@ function usage() {
 
   ${d('flowkit contributors: --local-dev points the generated project at your')}
   ${d('local flowkit checkout instead of the published package. Only works when')}
-  ${d('run from inside that checkout — see packages/create-flowkit-workspace/index.js.')}
+  ${d('run from inside that checkout — see packages/create-flowkit-mono/index.js.')}
 `)
   process.exit(0)
 }

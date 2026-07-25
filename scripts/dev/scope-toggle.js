@@ -31,9 +31,9 @@ const TARGETS = [
   },
   {
     key: 'create-flowkit-mono',
-    pkgPath: path.join(ROOT, 'packages', 'create-flowkit-workspace', 'package.json'),
+    pkgPath: path.join(ROOT, 'packages', 'create-flowkit-mono', 'package.json'),
     realName: 'create-flowkit-mono',
-    indexPath: path.join(ROOT, 'packages', 'create-flowkit-workspace', 'index.js'),
+    indexPath: path.join(ROOT, 'packages', 'create-flowkit-mono', 'index.js'),
   },
 ]
 

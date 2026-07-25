@@ -25,7 +25,7 @@ extends.
     directly, e.g. `useWorkspaceHierarchy.ts` or its callers)
   - `scripts/helpers/flowkit-manifest.js` if it references the filename
   - both scaffolder templates (`packages/create-flowkit-app/index.js`,
-    `packages/create-flowkit-workspace/index.js`)
+    `packages/create-flowkit-mono/index.js`)
   - `scripts/helpers/workspace-template.js` / `scripts/demoBooks/game-demo-scaffold.js`
   - docs: `docs/CLI.md`, `docs/FLOWKIT.md`, `docs/AGENTS.md`, this repo's
     `CLAUDE.md`

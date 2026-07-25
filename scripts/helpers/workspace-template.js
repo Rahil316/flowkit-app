@@ -1,7 +1,7 @@
 // Shared per-workspace content generator — the one source of truth for demo
 // workspace content across three call sites: this repo's own `flowkit
 // create:workspace` command (scripts/platform/flowkit-mono.js), and the two
-// standalone scaffolder packages (create-flowkit-app, create-flowkit-workspace),
+// standalone scaffolder packages (create-flowkit-app, create-flowkit-mono),
 // which import this file from their own `flowkit` devDependency at scaffold-time
 // (i.e. from node_modules/flowkit/scripts/helpers/workspace-template.js, after
 // their own `npm install` completes) — they cannot depend on the monorepo
@@ -84,7 +84,7 @@ const VITE_CONFIG_BUILD_BLOCK = `  build: {
  *
  * Single source of truth for this template — both scripts/platform/flowkit-mono.js
  * (flowkit convert:multi, run against this monorepo's own consumer-mode helpers)
- * and packages/create-flowkit-workspace/index.js (scaffolding a brand-new project)
+ * and packages/create-flowkit-mono/index.js (scaffolding a brand-new project)
  * must produce byte-identical output, or a freshly scaffolded multi-workspace
  * project silently diverges from what `convert:multi` produces from a flat one —
  * confirmed as a real bug: the scaffolder used to write a bare `flowkit()` with

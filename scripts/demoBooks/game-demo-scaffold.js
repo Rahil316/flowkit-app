@@ -1,6 +1,6 @@
 // Single source of truth for the "Game Zone" demo content shipped by every
 // scaffolder (repo mode's `flowkit nw:<name>`, `flowkit create:workspace`,
-// `create-flowkit-app`, `create-flowkit-workspace`): a splash/welcome intro
+// `create-flowkit-app`, `create-flowkit-mono`): a splash/welcome intro
 // into a hub of 6 playable mini-games (Blackjack, Dice, Tic-Tac-Toe, 2048,
 // Memory Match, Math Quiz). Ported verbatim from workspaces/test/ (the
 // canonical, correctly-cased/composite-pageId copy — see workspaces/game-zone/

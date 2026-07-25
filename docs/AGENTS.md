@@ -16,7 +16,7 @@ Works the same across repo mode, flat mode, and multi-workspace mode — see [CL
 > `.agent/platform.md`, and `.agent/project.md` are all produced by
 > `scripts/platform/agent-sync.js`, which operates on this monorepo's own
 > `workspaces/<name>/` — it is not invoked by, and has no equivalent in,
-> `create-flowkit-app`/`create-flowkit-workspace` (flat/multi-workspace consumer mode). A
+> `create-flowkit-app`/`create-flowkit-mono` (flat/multi-workspace consumer mode). A
 > scaffolded consumer project gets exactly one generated file, the same agent-agnostic
 > `AGENTS.md` repo mode now produces (see `writeAgentsMd()` in each scaffolder's
 > `index.js`), plus a copy of this `docs/` folder — no `.agent/` directory, no

@@ -260,7 +260,7 @@ Set via the CLI at workspace creation: `flowkit nw:my-app --kit:material` (repo 
 
 ## Workspace language
 
-All scaffolders (`flowkit nw`, `flowkit create:workspace`, `create-flowkit-app`, `create-flowkit-workspace`) are TypeScript-only — there is no language flag. Screen files are always `.tsx`, flowStory files always `.ts`.
+All scaffolders (`flowkit nw`, `flowkit create:workspace`, `create-flowkit-app`, `create-flowkit-mono`) are TypeScript-only — there is no language flag. Screen files are always `.tsx`, flowStory files always `.ts`.
 
 Workspaces scaffolded by an older version of the platform in plain JavaScript/JSX continue to work — the CLI's authoring commands (`create:page`, `create:component`) detect an existing workspace's language from what's already on disk (`detectWorkspaceLanguage()` in `scripts/helpers/paths.js`) and keep emitting `.jsx`/`.js` for that workspace rather than silently switching it to TS mid-project. New workspaces always default to TS.
 

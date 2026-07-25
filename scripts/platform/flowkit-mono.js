@@ -1,6 +1,6 @@
 // Platform command: multi-workspace conversion + workspace CRUD for consumer
 // (published-package) projects — the multi-sibling-workspace shape that
-// `create-flowkit-workspace` scaffolds (each workspace its own sibling folder at
+// `create-flowkit-mono` scaffolds (each workspace its own sibling folder at
 // project root). Distinct from flowkit-app.js (single-implicit-workspace shape)
 // and flowkit-engine.js (this monorepo's own internal dev workspaces, unrelated
 // to either consumer package).
@@ -37,7 +37,7 @@ import {
 // Multi-workspace vite.config.ts template lives in workspace-template.js
 // (writeMultiWorkspaceViteConfig) — the same shared file both scaffolder
 // packages already import from their own `flowkit` devDependency — so this
-// command and `create-flowkit-workspace` can never drift apart again the way
+// command and `create-flowkit-mono` can never drift apart again the way
 // they did before (scaffolder wrote a bare `flowkit()` with no options,
 // silently producing an empty bundle).
 const writeMultiViteConfig = writeMultiWorkspaceViteConfig
