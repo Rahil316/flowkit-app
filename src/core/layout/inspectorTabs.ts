@@ -5,7 +5,7 @@ import type React from 'react'
 export type { InspectorTab } from '@flowkit-shared/constants/tabs'
 export type InspectorMode = 'fixed' | 'floating'
 
-export const ALL_TABS: InspectorTab[] = [
+const ALL_TABS: InspectorTab[] = [
   'feedback',
   'info',
   'simulator',

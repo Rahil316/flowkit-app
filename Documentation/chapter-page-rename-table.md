@@ -39,7 +39,7 @@ Status: approved, not yet implemented.
 
 **Unchanged (brand names):** `FlowMaster`, `FlowLens`, `Flowkit`/`flowkit`, `flowBook`, `flowStories`.
 
-**Unchanged (Flow Library — brand-flavored "Flow", not the grouping concept):** `FlowSummary`, `FlowLibraryData`, `useFlowLibrary`, the "Flow Library" UI panel name.
+**Unchanged (Stories — brand-flavored "Flow", not the grouping concept):** `FlowSummary`, `FlowLibraryData`, `useFlowLibrary`, the "Stories" UI panel name.
 
 **Unchanged (FlowMaster's internal engine):** `useFlowEngine`.
 
@@ -118,4 +118,4 @@ Unchanged — still `${first}-${second}` (e.g. `onboarding-welcome`), just conce
 
 ## Fully excluded from this rename
 
-`flowBook`, `flowStories`, `Flowkit`/`flowkit` (package name), `FlowMaster`, `FlowLens`, `useFlowEngine`, `FlowSummary`/`FlowLibraryData`/`useFlowLibrary`/"Flow Library" (UI panel), the entire Flowplan domain, `FlowkitProjectConfig.modules` (deprecated legacy shim).
+`flowBook`, `flowStories`, `Flowkit`/`flowkit` (package name), `FlowMaster`, `FlowLens`, `useFlowEngine`, `FlowSummary`/`FlowLibraryData`/`useFlowLibrary`/"Stories" (UI panel), the entire Flowplan domain, `FlowkitProjectConfig.modules` (deprecated legacy shim).

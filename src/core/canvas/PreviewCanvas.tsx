@@ -1,6 +1,6 @@
 import type { Chapter, PageView } from '@flowkit/types/index'
-import { useFeedback } from '@flowkit-features/feedback/context/FeedbackContext'
-import { useFlowPlaybackOptional } from '@flowkit-features/flowStory/FlowPlaybackContext'
+import { useFeedback } from '@flowkit-features/feedback'
+import { useFlowPlaybackOptional } from '@flowkit-features/flowStory'
 import { useSessionSettings } from '@flowkit-features/flowTracer/components/useSessionSettings'
 import { useSessionRecorderOptional } from '@flowkit-features/flowTracer/context'
 import { GoToOverlay } from '@flowkit-features/go-to-overlay'

@@ -33,10 +33,10 @@ const ANNOTATION_ICONS: Record<string, React.ElementType> = {
 // ── PagesHierarchy ──────────────────────────────────────────────────────────
 //
 // Screens tab: a project → flow → screen tree with tag filtering, A/B variant
-// picker, FlowStory-coverage dimming, and a ▶ "find in Flow Library" jump.
+// picker, FlowStory-coverage dimming, and a ▶ "find in Stories" jump.
 
 interface Props {
-  /** Called when ▶ on a screen jumps to the Flow Library filtered by that screen. */
+  /** Called when ▶ on a screen jumps to the Stories filtered by that screen. */
   onFindInLibrary: (pageId: string) => void
   /** Lifted search query from the parent panel header. When provided, hides the internal search bar. */
   search?: string

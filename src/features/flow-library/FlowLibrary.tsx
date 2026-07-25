@@ -21,7 +21,7 @@ import FlowCanvas from './FlowCanvas'
 import { readLastRun } from './runHistory'
 import { type FlowSummary, useFlowLibrary } from './useFlowLibrary'
 
-// ── Flow Library ────────────────────────────────────────────────────────────────
+// ── Stories ────────────────────────────────────────────────────────────────
 
 interface Props {
   pageFilter?: string | null

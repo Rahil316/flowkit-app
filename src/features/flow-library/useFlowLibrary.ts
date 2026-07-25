@@ -13,7 +13,7 @@ import { useMemo } from 'react'
 // ── useFlowLibrary ──────────────────────────────────────────────────────────────
 //
 // Reads the discovered FlowStory registry (from the workspace hierarchy) and
-// derives display summaries for the Flow Library UI. Pure-ish: counts are computed
+// derives display summaries for the Stories UI. Pure-ish: counts are computed
 // from the raw FlowStoryDef, no compilation needed for the list view.
 
 export interface FlowSummary {

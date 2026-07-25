@@ -47,7 +47,7 @@ export type NavigationOrigin = 'engine' | 'user'
 
 export const ANIM_DURATION = 280
 
-export const ANIM_CLASSES: Record<TransitionAnimation, { enter: string; exit: string }> = {
+const ANIM_CLASSES: Record<TransitionAnimation, { enter: string; exit: string }> = {
   none: { enter: '', exit: '' },
   fade: { enter: 'fm-fade-in', exit: 'fm-fade-out' },
   'slide-left': { enter: 'fm-slide-in-left', exit: 'fm-slide-out-left' },

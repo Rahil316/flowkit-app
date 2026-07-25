@@ -163,13 +163,13 @@ function buildLazyComponent(
 // ─── Result shape ───────────────────────────────────────────────────────────────
 
 export interface WorkspaceHierarchyResult {
-  /** Flow library: one Chapter per FlowStory (with a `-play` runner child). */
+  /** Stories: one Chapter per FlowStory (with a `-play` runner child). */
   stories: Chapter[]
   /** All screens as flat views (merged into ALL_VIEWS by App). */
   views: PageView[]
   /** Project → chapter → screen tree for the Screens tab. */
   tree: WorkspaceHierarchyNode[]
-  /** id → raw FlowStoryDef (for the Flow Library + ref resolution). */
+  /** id → raw FlowStoryDef (for the Stories + ref resolution). */
   registry: Map<string, FlowStoryDef>
   /** Whether this workspace uses the hierarchy at all. */
   hasHierarchy: boolean
@@ -262,7 +262,7 @@ function buildFlatHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
     return { id: rec.id, label: rec.label, component: rec.component }
   }
 
-  // 4. Flow library Chapters
+  // 4. Stories Chapters
   const declaredIds =
     config.chapters ??
     Object.values(config.projects ?? {}).flatMap(p => p.chapters ?? p.modules ?? [])
@@ -444,7 +444,7 @@ function buildHierarchy(activeWorkspace: string): WorkspaceHierarchyResult {
     return { id: rec.id, label: rec.label, component: rec.component }
   }
 
-  // 5. Flow library Chapters — one per flowStory, with a `-play` runner child.
+  // 5. Stories Chapters — one per flowStory, with a `-play` runner child.
   //    Flat layout: order from config.stories[]. Nested: from config.projects[*].stories[].
   const declaredIds =
     config.chapters ??

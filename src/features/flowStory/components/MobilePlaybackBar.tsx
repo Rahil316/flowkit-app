@@ -5,7 +5,7 @@ import { useFlowStorySettings } from '../FlowStorySettingsContext'
 
 // ── MobilePlaybackBar ───────────────────────────────────────────────────────────
 //
-// Mobile has no equivalent to the desktop Flow Library header's Play/Stop button
+// Mobile has no equivalent to the desktop Stories header's Play/Stop button
 // (no side panel visible during playback) — this sticky bar is the mobile Stop
 // control the flowStory playback settings work asked for. Rendered only while a
 // flowStory is actively gating; lands the user on the generic (non-flowStory)

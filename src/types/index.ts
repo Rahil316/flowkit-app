@@ -641,7 +641,7 @@ export interface FlowkitProjectConfig {
   /** Path to a default db preset file for this project. */
   db?: string
   /**
-   * Explicit chapter ordering for the Screens tab and Flow Library.
+   * Explicit chapter ordering for the Screens tab and Stories.
    * Values must match chapter folder names (which equal flowStory ids after the Part 0 rename).
    * Unlisted chapters are appended after declared ones in discovery order.
    */

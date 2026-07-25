@@ -171,7 +171,7 @@ export const pageMeta = {
 
 > Prefer element `id` + the flowStory's `on:` over `onAction`/`onNext`/`onBack` for simple taps — it keeps pages free of routing logic.
 
-> **Screens tab vs. Flow Library tab:** `onAction`/`onNext`/`onBack` are only wired up during flowStory playback (Flow Library tab / FlowMaster) — those callbacks are `undefined` when a page is viewed standalone from the **Screens tab**, so `onClick={() => onNext?.()}`-style handlers no-op silently there. That's by design, not a bug. If a page should also be freely clickable from the Screens tab, use `useAppNav()` instead: `const { navigateTo } = useAppNav(); onClick={() => navigateTo(id)}` (see "Navigate from page logic" below). `useAppNav()` picks the chapter-aware `navigateTo` automatically when the page is rendered inside a chapter, so it's always safe to call unconditionally — no `isChapter` check needed in the page's own code.
+> **Screens tab vs. Stories tab:** `onAction`/`onNext`/`onBack` are only wired up during flowStory playback (Stories tab / FlowMaster) — those callbacks are `undefined` when a page is viewed standalone from the **Screens tab**, so `onClick={() => onNext?.()}`-style handlers no-op silently there. That's by design, not a bug. If a page should also be freely clickable from the Screens tab, use `useAppNav()` instead: `const { navigateTo } = useAppNav(); onClick={() => navigateTo(id)}` (see "Navigate from page logic" below). `useAppNav()` picks the chapter-aware `navigateTo` automatically when the page is rendered inside a chapter, so it's always safe to call unconditionally — no `isChapter` check needed in the page's own code.
 
 ### `pageMeta` fields
 

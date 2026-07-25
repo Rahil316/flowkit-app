@@ -1,6 +1,5 @@
 import type { Chapter, PageView } from '@flowkit/types/index'
 import KitSideExplorer from '@flowkit-core/layout/KitSideExplorer'
-import { COLOR_BLIND_FILTERS, ColorBlindSVGDefs } from '@flowkit-core/layout/KitSideInspector'
 import {
   DbContent,
   FeedbackContent,
@@ -8,11 +7,12 @@ import {
   SessionsContent,
   SimulatorContent,
 } from '@flowkit-core/layout/KitSideInspector'
-import { useFeedback } from '@flowkit-features/feedback/context/FeedbackContext'
+import { useFeedback } from '@flowkit-features/feedback'
 import { FlowDebuggerContent } from '@flowkit-features/flow-debugger'
 import { MobilePlaybackBar, useFlowPlaybackOptional } from '@flowkit-features/flowStory'
 import { useSessionSettings } from '@flowkit-features/flowTracer/components/useSessionSettings'
 import { GoToOverlayContent } from '@flowkit-features/go-to-overlay'
+import { COLOR_BLIND_FILTERS, ColorBlindSVGDefs } from '@flowkit-features/simulator'
 import { Z } from '@flowkit-shared/constants/zIndex'
 import {
   Activity, // inspect sub-tabs + feedback top tab

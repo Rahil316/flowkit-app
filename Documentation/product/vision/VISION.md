@@ -25,7 +25,7 @@ Seven core features, fully working, correctly gated:
 | **FlowLens**      | Replays recordings in the live canvas; single-session and multi-session analytics |
 | **Feedback**      | In-canvas per-screen comment wall with cloud sync and export                      |
 | **Flow Debugger** | Live runtime inspection: interaction log, db state, navigation history            |
-| **Flow Library**  | Browse and run flowplans; workspace hierarchy tree                                |
+| **Stories**       | Browse and run flowplans; workspace hierarchy tree                                |
 | **Simulator**     | Device presets, connection mode, accessibility filters, custom workspace controls |
 
 A feature management system (registry → entitlement resolver → feature gate) gates these at build and runtime — planned, not yet implemented. See `Documentation/project-plans/trackers/flowkit-tracker.md` § Feature management system.

@@ -58,8 +58,7 @@ import PanelBody from './PanelBody'
 import Sidebar from './Sidebar'
 import SidebarButton from './SidebarButton'
 
-export { COLOR_BLIND_FILTERS } from '@flowkit-features/simulator/accessibility/colorBlindFilters'
-export { ColorBlindSVGDefs } from '@flowkit-features/simulator/accessibility/ColorBlindSVGDefs'
+export { COLOR_BLIND_FILTERS, ColorBlindSVGDefs } from '@flowkit-features/simulator'
 
 // ─── Persistence ──────────────────────────────────────────────────────────────
 

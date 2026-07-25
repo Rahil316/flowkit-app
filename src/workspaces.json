@@ -1,13 +1,9 @@
 {
   "workspaces": [
     {
-      "name": "cliverify",
-      "label": "Cliverify"
-    },
-    {
-      "name": "twscheck2",
-      "label": "Twscheck2"
+      "name": "tws1",
+      "label": "Tws1"
     }
   ],
-  "active": "cliverify"
+  "active": "tws1"
 }

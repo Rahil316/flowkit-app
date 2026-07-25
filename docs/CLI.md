@@ -4,10 +4,10 @@ Command-line interface for managing workspaces, chapters, pages, FlowStories, se
 
 **This CLI runs in three modes**, and most of this doc's examples use repo-mode paths (`workspaces/<ws>/...`). Where a command behaves differently or isn't available in a mode, it's called out explicitly.
 
-| Mode                     | Where it applies                                                                                    | Layout                                                                                                                     |
-| ------------------------ | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| **Repo mode**            | This monorepo checkout                                                                              | `workspaces/<name>/` — multiple workspaces, switched via browser UI                                                        |
-| **Flat mode**            | A project scaffolded by `create-flowkit-app`                                                        | Project root IS the one workspace — no `workspaces/` dir                                                                   |
+| Mode                     | Where it applies                                                                               | Layout                                                                                                                     |
+| ------------------------ | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| **Repo mode**            | This monorepo checkout                                                                         | `workspaces/<name>/` — multiple workspaces, switched via browser UI                                                        |
+| **Flat mode**            | A project scaffolded by `create-flowkit-app`                                                   | Project root IS the one workspace — no `workspaces/` dir                                                                   |
 | **Multi-workspace mode** | A project scaffolded by `create-flowkit-mono`, or a flat project after `flowkit convert:multi` | Sibling workspace folders at project root (`workspace-1/`, `app-b/`, …), declared in `package.json`'s `flowkit.workspaces` |
 
 Flat and multi-workspace mode are collectively "consumer mode" below. See [Workspaces (flat/multi-workspace consumer mode)](#workspaces-flatmulti-workspace-consumer-mode) for the commands specific to those two.
@@ -168,7 +168,7 @@ export default defineConfig({
   // resolved device preset doesn't support landscape (DevicePreset.supportsLandscape).
   defaultOrientation: 'portrait',
 
-  // Explicit chapter ordering for the Screens tab and Flow Library.
+  // Explicit chapter ordering for the Screens tab and Stories.
   // Unlisted chapters are appended after declared ones in discovery order.
   chapters: ['onboarding-flow', 'home-flow'],
 

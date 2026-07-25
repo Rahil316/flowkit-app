@@ -52,7 +52,7 @@ type LeftTab = 'screens' | 'chapters'
 
 const LEFT_TAB_META: Record<LeftTab, { label: string; icon: React.ElementType }> = {
   screens: { label: 'Screens', icon: Layers },
-  chapters: { label: 'Flow Library', icon: GitBranch },
+  chapters: { label: 'Stories', icon: GitBranch },
 }
 
 // ── Props ─────────────────────────────────────────────────────────────────────
@@ -290,7 +290,7 @@ export default function KitSideExplorer({
           ) : undefined
         }
       >
-        {/* Flow Library */}
+        {/* Stories */}
         {tab === 'chapters' && (
           <div className="flex-1 min-h-0 overflow-y-auto">
             <FlowLibrary
