@@ -47,6 +47,9 @@ function readConfig(wsDir) {
     workspace: raw.workspace || { name: path.basename(wsDir) },
     chapters: raw.chapters || [],
     pageOrder: raw.pageOrder || {},
+    startPage: raw.startPage,
+    defaultDevice: raw.defaultDevice,
+    defaultOrientation: raw.defaultOrientation,
     _importLine: importLine,
   }
 }
@@ -83,10 +86,39 @@ function writeConfig(wsDir, config) {
     ``,
     `export default defineConfig({`,
     `  workspace: { name: ${asJsStringLiteral(config.workspace.name)} },`,
-    `  chapters: [`,
-    chaptersStr,
-    `  ],`,
   ]
+
+  // startPage/defaultDevice/defaultOrientation are optional, hand-authored settings —
+  // only emitted when present, so a workspace that never set them doesn't gain them.
+  // Comments are regenerated fresh each write (matching FlowkitConfig's own doc comments
+  // in src/types/index.ts) rather than preserved verbatim — this file's read→object→
+  // regenerate round-trip doesn't carry source comments through, so any custom wording
+  // an author added to these specific lines won't survive a write. The alternative
+  // (parsing and reattaching original comments) is a much larger undertaking than the
+  // actual bug (silently dropping the field values themselves) warrants.
+  if (config.startPage !== undefined) {
+    lines.push(
+      `  // Page loaded by default (cold load, device home button, reset-to-first)`,
+      `  // when no flowStory is active. Falls back to the first declared page when unset.`,
+      `  startPage: ${asJsStringLiteral(config.startPage)},`
+    )
+  }
+  if (config.defaultDevice !== undefined) {
+    lines.push(
+      `  // Default device shell shown on load. Must match a DevicePreset.label from`,
+      `  // src/shared/components/devices (e.g. "iPhone 16 Pro"). Falls back to the`,
+      `  // platform default when unset or unrecognized.`,
+      `  defaultDevice: ${asJsStringLiteral(config.defaultDevice)},`
+    )
+  }
+  if (config.defaultOrientation !== undefined) {
+    lines.push(
+      `  // Default orientation on load. Ignored if the device doesn't support landscape.`,
+      `  defaultOrientation: ${asJsStringLiteral(config.defaultOrientation)},`
+    )
+  }
+
+  lines.push(`  chapters: [`, chaptersStr, `  ],`)
 
   if (soEntries) {
     lines.push(`  pageOrder: {`)
@@ -102,7 +134,7 @@ function writeConfig(wsDir, config) {
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 
-export { readConfig as readWorkspaceConfig }
+export { readConfig as readWorkspaceConfig, writeConfig as writeWorkspaceConfig }
 
 export function addChapter(wsDir, chapterId) {
   const config = readConfig(wsDir)

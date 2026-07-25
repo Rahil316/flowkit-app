@@ -1,4 +1,4 @@
-// Shared output formatting for flowkit check's rule domains — human-readable and --json,
+// Shared output formatting for flowkit audit's rule domains — human-readable and --json,
 // both built from the same finding objects so neither format can drift from the other.
 import { g, r, d, b } from '../helpers/colors.js'
 
@@ -14,6 +14,9 @@ import { g, r, d, b } from '../helpers/colors.js'
  *   own clearly-headed section (in addition to the normal flat list) so it can't be missed
  *   or silently scrolled past — e.g. screen/ambiguous-folder. Never affects errorCount/
  *   exit code by itself; a finding still needs severity: 'error' to fail the build.
+ * @property {Object} [meta]  structured data a --fix orchestrator can act on directly
+ *   (e.g. { chapterId, pageId }) instead of parsing the human-readable `message` string —
+ *   only rules with a defined auto-fix need to set this.
  */
 
 export function createReport() {
@@ -21,6 +24,17 @@ export function createReport() {
   const findings = []
   return {
     findings,
+    // Not a Finding — a count of navigateTo() call sites whose argument couldn't be
+    // statically resolved (an identifier/member-expression, not a string literal).
+    // Nothing is wrong when this is nonzero; it's the tool disclosing its own blind
+    // spot rather than silently pretending 100% of calls were checked. Doesn't fit the
+    // Finding shape (no single file/message is "the" problem), so it's a plain
+    // mutable counter on the report rather than another finding entry — see
+    // navigations.js for the one caller today.
+    dynamicNavCallSites: 0,
+    addDynamicNavCallSite() {
+      this.dynamicNavCallSites++
+    },
     add(finding) {
       findings.push(finding)
     },
@@ -35,14 +49,15 @@ export function createReport() {
 
 /** Prints a report in the human-readable format. `label` is e.g. "screens", "plans", or null for the full suite. */
 export function printReport(report, workspaceName, label) {
-  const { findings, errorCount, warningCount } = report
-  const heading = label ? `flowkit check:${label}` : 'flowkit check'
+  const { findings, errorCount, warningCount, dynamicNavCallSites } = report
+  const heading = label ? `flowkit audit:${label}` : 'flowkit audit'
   console.log('')
   console.log(b(`${heading} — ${workspaceName}`))
   console.log(d(' ────────────────────────────────────────────'))
 
   if (findings.length === 0) {
     console.log(g('  ✓ all clean'))
+    printDynamicNavCallSiteSummary(dynamicNavCallSites)
     console.log('')
     return
   }
@@ -60,9 +75,27 @@ export function printReport(report, workspaceName, label) {
   if (errorCount) parts.push(r(`${errorCount} error${errorCount !== 1 ? 's' : ''}`))
   if (warningCount) parts.push(d(`${warningCount} warning${warningCount !== 1 ? 's' : ''}`))
   console.log('  ' + parts.join(', '))
+  printDynamicNavCallSiteSummary(dynamicNavCallSites)
   console.log('')
 
   printAcknowledgmentSection(findings)
+}
+
+/**
+ * One unconditional summary line disclosing how many navigateTo() call sites couldn't
+ * be statically resolved (non-literal argument — an identifier, member expression,
+ * etc.) — printed only when nonzero. Not styled as a finding (no ✗/⚠ marker, no
+ * ruleId) since nothing is wrong; this is the tool being honest about its own
+ * coverage gap rather than silently pretending 100% of calls were checked.
+ */
+function printDynamicNavCallSiteSummary(count) {
+  if (!count) return
+  const plural = count !== 1 ? 's' : ''
+  console.log(
+    d(
+      `  ⚠ ${count} dynamic navigateTo() call site${plural} not statically traced (see --json for the count)`
+    )
+  )
 }
 
 /**
@@ -102,6 +135,7 @@ export function printReportJson(report, workspaceName) {
         warnings: report.warningCount,
         results: report.findings,
         requiresAcknowledgment: report.findings.filter(f => f.requiresAcknowledgment),
+        dynamicNavCallSites: report.dynamicNavCallSites,
       },
       null,
       2

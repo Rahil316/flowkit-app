@@ -12,7 +12,7 @@ export default function TwentyFortyEightHighScoresScreen() {
     <div className="flex flex-col h-full bg-theme-base">
       <SectionHeader
         title="High Scores"
-        onBack={() => navigateTo('2048-game-screen')}
+        onBack={() => navigateTo('2048-flow-2048-game-screen')}
         backId="back"
       />
       <div className="flex-1 flex items-center justify-center p-4">

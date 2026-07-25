@@ -128,7 +128,7 @@ workspaces/<name>/lib/flowLens/       ← committed session library + studies.js
 `--empty` skips `flowBook/`, `flowStories/`, `lib/game-logic/`, and `lib/components/ui/`
 entirely — `manifest.ts` declares zero chapters (an author's first `flowkit
 create:chapter` populates it), and `lib/data/db.ts`/`lib/data/simulator.tsx` are minimal
-stubs. Still a fully valid, buildable workspace — `flowkit check` passes clean either way.
+stubs. Still a fully valid, buildable workspace — `flowkit audit` passes clean either way.
 
 **Optional flags:**
 
@@ -315,7 +315,7 @@ Multi-workspace mode only. Renames the folder and updates `flowkit.workspaces` i
 
 FlowStories are TypeScript files that define scripted journeys with conditional forks, db patches, and action notes. They are compiled at runtime by `compileFlowStory.ts`.
 
-**Storage location:** `workspaces/<ws>/flowStories/<Name>.ts` (repo mode) or `flowStories/<Name>.ts` at the workspace root (consumer mode — flat: project root; multi-workspace: inside the workspace's own folder). (Directory renamed from `flowplans/`; the check domain was renamed from `check:flowplans` to `check:flowStories`; the discovery verb itself was renamed 2026-07-24 from `plan:ls`/`fp:ls` to `flowStory:ls`/`fs:ls` — a breaking change, no back-compat alias.)
+**Storage location:** `workspaces/<ws>/flowStories/<Name>.ts` (repo mode) or `flowStories/<Name>.ts` at the workspace root (consumer mode — flat: project root; multi-workspace: inside the workspace's own folder). (Directory renamed from `flowplans/`; the check domain was renamed from `check:flowplans` to `check:flowStories`, and later from `check:flowStories` to `audit:story` as part of the broader `check`→`audit` rename; the discovery verb itself was renamed 2026-07-24 from `plan:ls`/`fp:ls` to `flowStory:ls`/`fs:ls` — a breaking change, no back-compat alias.)
 
 ### FlowStory anatomy
 
@@ -414,37 +414,40 @@ Lists all flowStories in the workspace. Shows: name, file path.
 
 ---
 
-## Check
+## Audit
 
 ```bash
-flowkit check
-flowkit check:<domain>
+flowkit audit
+flowkit audit:<domain>
 ```
 
 Domain-specific linter for authored content — validates flowkit's own structural conventions (page export shape, flowStory step references, workspace config consistency, component registry/barrel exports, mock db exports) that generic tools like `tsc`/`eslint` can't see. Works in every mode (repo, flat, multi-workspace).
 
-`flowkit check` with no domain runs all 5 domains against one workspace and prints one combined report. `flowkit check:<domain>` runs just that domain:
+`flowkit audit` with no domain runs all 6 domains against one workspace and prints one combined report. `flowkit audit:<domain>` runs just that domain:
 
-| Domain      | Command             | Checks                                                                                      |
-| ----------- | ------------------- | ------------------------------------------------------------------------------------------- |
-| Pages       | `check:pages`       | Default export shape, `pageMeta` presence/shape, id/directory match, ambiguous page folders |
-| Config      | `check:config`      | `manifest.ts`'s `chapters[]`/`pageOrder` consistency against `flowBook/` on disk            |
-| Components  | `check:components`  | `.flowkit/components.json` registry vs. files on disk, barrel export consistency            |
-| DB          | `check:db`          | `lib/data/db.ts`/`db.js` has at least one export                                            |
-| FlowStories | `check:flowStories` | Parseable, `id` matches filename, non-empty `steps[]`, step `pageId`s exist, step guidance  |
+| Domain     | Command            | Checks                                                                                      |
+| ---------- | ------------------ | ------------------------------------------------------------------------------------------- |
+| Page       | `audit:page`       | Default export shape, `pageMeta` presence/shape, id/directory match, ambiguous page folders |
+| Chapter    | `audit:chapter`    | `manifest.ts`'s `chapters[]`/`pageOrder` consistency against `flowBook/` on disk            |
+| Book       | `audit:book`       | Registered domain with no rules yet in this phase — reserved for future book-level checks   |
+| Story      | `audit:story`      | Parseable, `id` matches filename, non-empty `steps[]`, step `pageId`s exist, step guidance  |
+| Components | `audit:components` | `.flowkit/components.json` registry vs. files on disk, barrel export consistency            |
+| DB         | `audit:db`         | `lib/data/db.ts`/`db.js` has at least one export                                            |
 
-Target a non-active workspace: `flowkit check:pages:<workspace-name>` for a single domain (workspace as the second colon segment, same convention as `sessions:ls:<ws>`), or `flowkit check --workspace:<workspace-name>` for the all-domains form.
+Target a non-active workspace: `flowkit audit:page:<workspace-name>` for a single domain (workspace as the second colon segment, same convention as `sessions:ls:<ws>`), or `flowkit audit --workspace:<workspace-name>` for the all-domains form.
 
 Flags:
 
 - `--json` — machine-readable output (`{ workspace, errors, warnings, results }`) instead of the human-readable report
-- `--workspace:<name>` — target a non-active workspace when running all domains (`check` with no domain)
+- `--workspace:<name>` — target a non-active workspace when running all domains (`audit` with no domain)
+- `--fix` — chapter-domain-only in this phase. Reconciles existence only: drops ghost `chapter/orphaned-id` entries and appends `chapter/orphaned-dir` entries to the end of that chapter's `pageOrder` array — it never repositions existing entries. On any other domain, prints `` `--fix` has no effect on the '<domain>' domain `` and does nothing.
+- `--rebuild` — chapter-domain-only in this phase, and destructive to authored page/chapter order (it rebuilds purely from `flowBook/` on disk). Two-step gate: `--rebuild` alone computes and prints a diff of what `chapters[]`/`pageOrder` would become if fully regenerated from disk, but writes nothing; `--rebuild --confirm` recomputes fresh and actually writes.
 
-Exit code 0 if clean or only warnings, 1 if any error-severity finding. `check:flowStories` is wired into `npm run prebuild` — a broken or missing flowStory blocks the production build (including an empty-but-existing `flowStories/` directory, which is treated as suspicious rather than silently passing). (`check:flowplans` was itself renamed to `check:flowStories` alongside the directory rename from `flowplans/` to `flowStories/`.)
+Exit code 0 if clean or only warnings, 1 if any error-severity finding. `audit:story` is wired into `npm run prebuild` — a broken or missing flowStory blocks the production build (including an empty-but-existing `flowStories/` directory, which is treated as suspicious rather than silently passing). (This command was itself renamed from `check:flowStories` to `audit:story` as part of the `check`→`audit` rename; there is no back-compat alias — `flowkit check`/`check:pages` etc. now produce an "Unknown command" error.)
 
-Findings include a `ruleId` (e.g. `page/missing-meta`, `flowStory/invalid-page`), `severity` (`error`/`warning`), the offending `file`, a `message`, and where possible a `fix` (manual instructions) or `clifix` (an exact CLI command to run).
+Findings include a `ruleId` (e.g. `page/missing-meta`, `story/invalid-page`), `severity` (`error`/`warning`), the offending `file`, a `message`, and where possible a `fix` (manual instructions) or `clifix` (an exact CLI command to run).
 
-**`page/ambiguous-folder` (warning, non-blocking):** raised by `check:pages` when a page folder contains 2+ unprefixed candidate `.tsx`/`.jsx` files. The alphabetically-first file is deterministically picked as the real page; the finding names the winner and suggests `_`-prefixing, deleting, or renaming the other file(s) to remove the ambiguity. Never fails the build.
+**`page/ambiguous-folder` (warning, non-blocking):** raised by `audit:page` when a page folder contains 2+ unprefixed candidate `.tsx`/`.jsx` files. The alphabetically-first file is deterministically picked as the real page; the finding names the winner and suggests `_`-prefixing, deleting, or renaming the other file(s) to remove the ambiguity. Never fails the build.
 
 ---
 
@@ -506,7 +509,7 @@ flowBook/<flow>/.../<screen>/<File>.tsx
 
 The registered, globally-unique page id is a **composite**: `${chapterId}-${pageId}`. This makes ids collision-proof across chapters — two different chapters can each have a page folder literally named the same thing without colliding. FlowStory step `pageId` values (and any other cross-chapter/global reference) use this composite form. `manifest.ts`'s `pageOrder` map is the one exception — it stays **bare** (page id only, no chapter prefix), because that map is already chapter-scoped by its own outer key (`pageOrder['onboarding-flow'] = ['welcome-screen', ...]`).
 
-**One real page per folder:** if 2+ unprefixed candidate `.tsx`/`.jsx` files exist in the same page folder, the alphabetically-first one is deterministically picked as the real page, and `flowkit check:pages` reports a non-blocking `page/ambiguous-folder` warning naming the winner and suggesting you `_`-prefix, remove, or rename the others. This never fails the build.
+**One real page per folder:** if 2+ unprefixed candidate `.tsx`/`.jsx` files exist in the same page folder, the alphabetically-first one is deterministically picked as the real page, and `flowkit audit:page` reports a non-blocking `page/ambiguous-folder` warning naming the winner and suggesting you `_`-prefix, remove, or rename the others. This never fails the build.
 
 #### Screen visibility (hidden vs. non-existent)
 
@@ -1059,16 +1062,17 @@ Commands grouped by item type. Click the heading to jump to the full section.
 | -------------- | ------- | ---------------- |
 | `flowStory:ls` | `fs:ls` | List flowStories |
 
-### [Check](#check)
+### [Audit](#audit)
 
-| Command             | Description                                |
-| ------------------- | ------------------------------------------ |
-| `check`             | Run all 5 domain checkers, combined report |
-| `check:pages`       | Page export shape / `pageMeta`             |
-| `check:config`      | Workspace config vs. `flowBook/` on disk   |
-| `check:components`  | Component registry / barrel exports        |
-| `check:db`          | Mock db exports                            |
-| `check:flowStories` | FlowStory structure / step references      |
+| Command            | Description                                |
+| ------------------ | ------------------------------------------ |
+| `audit`            | Run all 6 domain checkers, combined report |
+| `audit:page`       | Page export shape / `pageMeta`             |
+| `audit:chapter`    | Workspace config vs. `flowBook/` on disk   |
+| `audit:book`       | Registered domain, no rules yet            |
+| `audit:story`      | FlowStory structure / step references      |
+| `audit:components` | Component registry / barrel exports        |
+| `audit:db`         | Mock db exports                            |
 
 ### [Authoring](#authoring)
 

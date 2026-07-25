@@ -1,5 +1,5 @@
 // Platform command: read-only flowStory/project discovery (flowStory:ls, project:ls). FlowStory
-// validation lives in scripts/checks/flowStories.js — see `flowkit check:flowStories`.
+// validation lives in scripts/audits/story.js — see `flowkit audit:story`.
 import fs from 'fs'
 import path from 'path'
 import { workspacePath } from '../helpers/paths.js'

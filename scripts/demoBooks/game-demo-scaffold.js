@@ -59,7 +59,7 @@ lib/
 
 Each page lives in its own folder under its chapter (\`flowBook/<chapter>/<page>/\`),
 one \`.tsx\` file per folder, matching the platform's own convention — this is
-what lets \`flowkit check\`/\`flowStory:ls\` discover pages and flowStory \`pageId\`s
+what lets \`flowkit audit\`/\`flowStory:ls\` discover pages and flowStory \`pageId\`s
 by folder name. Pages import shared code via the \`@workspace/lib/...\` alias,
 never relative \`../../\` paths, and only ever import \`@flowkit/*\` (read-only
 platform types) or plain React — \`db\`/\`navigateTo\` are pulled in via hooks
@@ -1279,7 +1279,7 @@ export default function SplashScreen() {
   const { navigateTo } = useAppNav()
 
   useEffect(() => {
-    const timer = setTimeout(() => navigateTo('welcome-screen'), 1400)
+    const timer = setTimeout(() => navigateTo('intro-flow-welcome-screen'), 1400)
     return () => clearTimeout(timer)
   }, [navigateTo])
 
@@ -1324,7 +1324,7 @@ export default function WelcomeScreen() {
         </p>
       </div>
       <div className="p-4 pb-8">
-        <PrimaryButton id="play" onClick={() => navigateTo('hub-screen')}>
+        <PrimaryButton id="play" onClick={() => navigateTo('intro-flow-hub-screen')}>
           Play
         </PrimaryButton>
       </div>
@@ -1356,42 +1356,42 @@ const GAMES: GameEntry[] = [
     title: 'Blackjack',
     icon: '🃏',
     blurb: 'Beat the dealer to 21',
-    pageId: 'blackjack-game-screen',
+    pageId: 'blackjack-flow-blackjack-game-screen',
   },
   {
     id: 'game-dice',
     title: 'Dice',
     icon: '🎲',
     blurb: 'Roll for the point',
-    pageId: 'dice-game-screen',
+    pageId: 'dice-flow-dice-game-screen',
   },
   {
     id: 'game-tic-tac-toe',
     title: 'Tic-Tac-Toe',
     icon: '⭕',
     blurb: '2-player pass and play',
-    pageId: 'tic-tac-toe-game-screen',
+    pageId: 'tic-tac-toe-flow-tic-tac-toe-game-screen',
   },
   {
     id: 'game-2048',
     title: '2048',
     icon: '🔢',
     blurb: 'Slide to the target tile',
-    pageId: '2048-game-screen',
+    pageId: '2048-flow-2048-game-screen',
   },
   {
     id: 'game-memory-match',
     title: 'Memory Match',
     icon: '🧠',
     blurb: 'Find every pair',
-    pageId: 'memory-match-game-screen',
+    pageId: 'memory-match-flow-memory-match-game-screen',
   },
   {
     id: 'game-math-quiz',
     title: 'Math Quiz',
     icon: '➗',
     blurb: 'Beat the clock on speed math',
-    pageId: 'math-quiz-difficulty-screen',
+    pageId: 'math-quiz-flow-math-quiz-difficulty-screen',
   },
 ]
 
@@ -1447,14 +1447,14 @@ export default function TicTacToeHowToPlayScreen() {
     <div className="flex flex-col h-full bg-theme-base">
       <SectionHeader
         title="How to Play"
-        onBack={() => navigateTo('tic-tac-toe-game-screen')}
+        onBack={() => navigateTo('tic-tac-toe-flow-tic-tac-toe-game-screen')}
         backId="back"
       />
       <div className="flex-1 overflow-y-auto p-4">
         <HowToPlayList steps={STEPS} />
       </div>
       <div className="p-4 pb-8">
-        <PrimaryButton id="start-playing" onClick={() => navigateTo('tic-tac-toe-game-screen')}>
+        <PrimaryButton id="start-playing" onClick={() => navigateTo('tic-tac-toe-flow-tic-tac-toe-game-screen')}>
           Start Playing
         </PrimaryButton>
       </div>
@@ -1536,7 +1536,7 @@ export default function TicTacToeGameScreen() {
             id="back-to-hub-header"
             icon={<span className="text-ui-md">‹</span>}
             label="Back"
-            onClick={() => navigateTo('hub-screen')}
+            onClick={() => navigateTo('intro-flow-hub-screen')}
           />
           <span className="text-ui-md font-medium text-theme-text-primary">Tic-Tac-Toe</span>
         </div>
@@ -1544,7 +1544,7 @@ export default function TicTacToeGameScreen() {
           id="how-to-play"
           icon={<span className="text-ui-sm">?</span>}
           label="How to Play"
-          onClick={() => navigateTo('tic-tac-toe-how-to-play-screen')}
+          onClick={() => navigateTo('tic-tac-toe-flow-tic-tac-toe-how-to-play-screen')}
         />
       </div>
       <div className="flex items-center justify-center gap-3 p-3">
@@ -1579,7 +1579,7 @@ export default function TicTacToeGameScreen() {
         title={winner ? \`\${winner} wins!\` : "It's a draw"}
         message={winner ? \`Player \${winner} takes this round.\` : 'Nobody gets it this time.'}
         onPlayAgain={handlePlayAgain}
-        onBackToHub={() => navigateTo('hub-screen')}
+        onBackToHub={() => navigateTo('intro-flow-hub-screen')}
       />
     </div>
   )
@@ -1612,14 +1612,14 @@ export default function DiceHowToPlayScreen() {
     <div className="flex flex-col h-full bg-theme-base">
       <SectionHeader
         title="How to Play"
-        onBack={() => navigateTo('dice-game-screen')}
+        onBack={() => navigateTo('dice-flow-dice-game-screen')}
         backId="back"
       />
       <div className="flex-1 overflow-y-auto p-4">
         <HowToPlayList steps={STEPS} />
       </div>
       <div className="p-4 pb-8">
-        <PrimaryButton id="start-playing" onClick={() => navigateTo('dice-game-screen')}>
+        <PrimaryButton id="start-playing" onClick={() => navigateTo('dice-flow-dice-game-screen')}>
           Start Playing
         </PrimaryButton>
       </div>
@@ -1708,7 +1708,7 @@ export default function DiceGameScreen() {
             id="back-to-hub-header"
             icon={<span className="text-ui-md">‹</span>}
             label="Back"
-            onClick={() => navigateTo('hub-screen')}
+            onClick={() => navigateTo('intro-flow-hub-screen')}
           />
           <span className="text-ui-md font-medium" style={{ color: 'var(--tile-text-light)' }}>
             Dice
@@ -1718,7 +1718,7 @@ export default function DiceGameScreen() {
           id="how-to-play"
           icon={<span className="text-ui-sm">?</span>}
           label="How to Play"
-          onClick={() => navigateTo('dice-how-to-play-screen')}
+          onClick={() => navigateTo('dice-flow-dice-how-to-play-screen')}
         />
       </div>
 
@@ -1770,7 +1770,7 @@ export default function DiceGameScreen() {
           result === 'win' ? \`+$\${BET} added to your bankroll.\` : \`-$\${BET} from your bankroll.\`
         }
         onPlayAgain={handlePlayAgain}
-        onBackToHub={() => navigateTo('hub-screen')}
+        onBackToHub={() => navigateTo('intro-flow-hub-screen')}
       />
     </div>
   )
@@ -1803,14 +1803,14 @@ export default function BlackjackHowToPlayScreen() {
     <div className="flex flex-col h-full bg-theme-base">
       <SectionHeader
         title="How to Play"
-        onBack={() => navigateTo('blackjack-game-screen')}
+        onBack={() => navigateTo('blackjack-flow-blackjack-game-screen')}
         backId="back"
       />
       <div className="flex-1 overflow-y-auto p-4">
         <HowToPlayList steps={STEPS} />
       </div>
       <div className="p-4 pb-8">
-        <PrimaryButton id="start-playing" onClick={() => navigateTo('blackjack-game-screen')}>
+        <PrimaryButton id="start-playing" onClick={() => navigateTo('blackjack-flow-blackjack-game-screen')}>
           Start Playing
         </PrimaryButton>
       </div>
@@ -1924,7 +1924,7 @@ export default function BlackjackGameScreen() {
             id="back-to-hub-header"
             icon={<span className="text-ui-md">‹</span>}
             label="Back"
-            onClick={() => navigateTo('hub-screen')}
+            onClick={() => navigateTo('intro-flow-hub-screen')}
           />
           <span className="text-ui-md font-medium" style={{ color: 'var(--tile-text-light)' }}>
             Blackjack
@@ -1934,7 +1934,7 @@ export default function BlackjackGameScreen() {
           id="how-to-play"
           icon={<span className="text-ui-sm">?</span>}
           label="How to Play"
-          onClick={() => navigateTo('blackjack-how-to-play-screen')}
+          onClick={() => navigateTo('blackjack-flow-blackjack-how-to-play-screen')}
         />
       </div>
 
@@ -2025,7 +2025,7 @@ export default function BlackjackGameScreen() {
             <PrimaryButton
               id="exit-to-hub"
               variant="danger"
-              onClick={() => navigateTo('hub-screen')}
+              onClick={() => navigateTo('intro-flow-hub-screen')}
             >
               Exit to Hub
             </PrimaryButton>
@@ -2063,14 +2063,14 @@ export default function TwentyFortyEightHowToPlayScreen() {
     <div className="flex flex-col h-full bg-theme-base">
       <SectionHeader
         title="How to Play"
-        onBack={() => navigateTo('2048-game-screen')}
+        onBack={() => navigateTo('2048-flow-2048-game-screen')}
         backId="back"
       />
       <div className="flex-1 overflow-y-auto p-4">
         <HowToPlayList steps={STEPS} />
       </div>
       <div className="p-4 pb-8">
-        <PrimaryButton id="start-playing" onClick={() => navigateTo('2048-game-screen')}>
+        <PrimaryButton id="start-playing" onClick={() => navigateTo('2048-flow-2048-game-screen')}>
           Start Playing
         </PrimaryButton>
       </div>
@@ -2195,7 +2195,7 @@ export default function TwentyFortyEightGameScreen() {
             id="back-to-hub-header"
             icon={<span className="text-ui-md">‹</span>}
             label="Back"
-            onClick={() => navigateTo('hub-screen')}
+            onClick={() => navigateTo('intro-flow-hub-screen')}
           />
           <span className="text-ui-md font-medium text-theme-text-primary">2048</span>
         </div>
@@ -2204,13 +2204,13 @@ export default function TwentyFortyEightGameScreen() {
             id="view-high-scores"
             icon={<span className="text-ui-sm">🏆</span>}
             label="High Scores"
-            onClick={() => navigateTo('2048-high-scores-screen')}
+            onClick={() => navigateTo('2048-flow-2048-high-scores-screen')}
           />
           <IconButton
             id="how-to-play"
             icon={<span className="text-ui-sm">?</span>}
             label="How to Play"
-            onClick={() => navigateTo('2048-how-to-play-screen')}
+            onClick={() => navigateTo('2048-flow-2048-how-to-play-screen')}
           />
         </div>
       </div>
@@ -2285,7 +2285,7 @@ export default function TwentyFortyEightGameScreen() {
           message="Keep playing to push your score even higher, or head back to the hub."
           onPlayAgain={handleKeepPlaying}
           primaryLabel="Keep Playing"
-          onBackToHub={() => navigateTo('hub-screen')}
+          onBackToHub={() => navigateTo('intro-flow-hub-screen')}
         />
       )}
       <GameOverModal
@@ -2293,7 +2293,7 @@ export default function TwentyFortyEightGameScreen() {
         title="Game Over"
         message={\`No more moves left. Final score: \${score}.\`}
         onPlayAgain={handlePlayAgain}
-        onBackToHub={() => navigateTo('hub-screen')}
+        onBackToHub={() => navigateTo('intro-flow-hub-screen')}
       />
     </div>
   )
@@ -2319,7 +2319,7 @@ export default function TwentyFortyEightHighScoresScreen() {
     <div className="flex flex-col h-full bg-theme-base">
       <SectionHeader
         title="High Scores"
-        onBack={() => navigateTo('2048-game-screen')}
+        onBack={() => navigateTo('2048-flow-2048-game-screen')}
         backId="back"
       />
       <div className="flex-1 flex items-center justify-center p-4">
@@ -2365,14 +2365,14 @@ export default function MemoryMatchHowToPlayScreen() {
     <div className="flex flex-col h-full bg-theme-base">
       <SectionHeader
         title="How to Play"
-        onBack={() => navigateTo('memory-match-game-screen')}
+        onBack={() => navigateTo('memory-match-flow-memory-match-game-screen')}
         backId="back"
       />
       <div className="flex-1 overflow-y-auto p-4">
         <HowToPlayList steps={STEPS} />
       </div>
       <div className="p-4 pb-8">
-        <PrimaryButton id="start-playing" onClick={() => navigateTo('memory-match-game-screen')}>
+        <PrimaryButton id="start-playing" onClick={() => navigateTo('memory-match-flow-memory-match-game-screen')}>
           Start Playing
         </PrimaryButton>
       </div>
@@ -2477,7 +2477,7 @@ export default function MemoryMatchGameScreen() {
             id="back-to-hub-header"
             icon={<span className="text-ui-md">‹</span>}
             label="Back"
-            onClick={() => navigateTo('hub-screen')}
+            onClick={() => navigateTo('intro-flow-hub-screen')}
           />
           <span className="text-ui-md font-medium text-theme-text-primary">Memory Match</span>
         </div>
@@ -2486,13 +2486,13 @@ export default function MemoryMatchGameScreen() {
             id="view-high-scores"
             icon={<span className="text-ui-sm">🏆</span>}
             label="High Scores"
-            onClick={() => navigateTo('memory-match-high-scores-screen')}
+            onClick={() => navigateTo('memory-match-flow-memory-match-high-scores-screen')}
           />
           <IconButton
             id="how-to-play"
             icon={<span className="text-ui-sm">?</span>}
             label="How to Play"
-            onClick={() => navigateTo('memory-match-how-to-play-screen')}
+            onClick={() => navigateTo('memory-match-flow-memory-match-how-to-play-screen')}
           />
         </div>
       </div>
@@ -2528,7 +2528,7 @@ export default function MemoryMatchGameScreen() {
         title="All matched!"
         message={\`Finished in \${moves} moves, \${formatTime(elapsedMs)}.\${bestTimeMs > 0 ? \` Best: \${bestMoves} moves.\` : ''}\`}
         onPlayAgain={handlePlayAgain}
-        onBackToHub={() => navigateTo('hub-screen')}
+        onBackToHub={() => navigateTo('intro-flow-hub-screen')}
       />
     </div>
   )
@@ -2562,7 +2562,7 @@ export default function MemoryMatchHighScoresScreen() {
     <div className="flex flex-col h-full bg-theme-base">
       <SectionHeader
         title="High Scores"
-        onBack={() => navigateTo('memory-match-game-screen')}
+        onBack={() => navigateTo('memory-match-flow-memory-match-game-screen')}
         backId="back"
       />
       <div className="flex-1 flex items-center justify-center gap-3 p-4">
@@ -2604,7 +2604,7 @@ export default function MathQuizDifficultyScreen() {
     <div className="flex flex-col h-full bg-theme-base">
       <SectionHeader
         title="Math Quiz"
-        onBack={() => navigateTo('hub-screen')}
+        onBack={() => navigateTo('intro-flow-hub-screen')}
         backId="back-to-hub"
       />
       <div className="flex-1 flex flex-col items-center justify-center gap-6 p-6">
@@ -2621,7 +2621,7 @@ export default function MathQuizDifficultyScreen() {
         />
       </div>
       <div className="p-4 pb-8">
-        <PrimaryButton id="start-quiz" onClick={() => navigateTo('math-quiz-game-screen')}>
+        <PrimaryButton id="start-quiz" onClick={() => navigateTo('math-quiz-flow-math-quiz-game-screen')}>
           Start
         </PrimaryButton>
       </div>
@@ -2706,7 +2706,7 @@ export default function MathQuizGameScreen() {
             id="back-to-hub-header"
             icon={<span className="text-ui-md">‹</span>}
             label="Back"
-            onClick={() => navigateTo('hub-screen')}
+            onClick={() => navigateTo('intro-flow-hub-screen')}
           />
           <span className="text-ui-md font-medium text-theme-text-primary">Math Quiz</span>
         </div>
@@ -2714,7 +2714,7 @@ export default function MathQuizGameScreen() {
           id="how-to-play"
           icon={<span className="text-ui-sm">?</span>}
           label="How to Play"
-          onClick={() => navigateTo('math-quiz-how-to-play-screen')}
+          onClick={() => navigateTo('math-quiz-flow-math-quiz-how-to-play-screen')}
         />
       </div>
 
@@ -2773,7 +2773,7 @@ export default function MathQuizGameScreen() {
         title="Wrong answer"
         message={\`You solved \${roundScore} in a row. Best: \${Math.max(bestScore, roundScore)}.\`}
         onPlayAgain={handlePlayAgain}
-        onBackToHub={() => navigateTo('hub-screen')}
+        onBackToHub={() => navigateTo('intro-flow-hub-screen')}
       />
     </div>
   )
@@ -2805,14 +2805,14 @@ export default function MathQuizHowToPlayScreen() {
     <div className="flex flex-col h-full bg-theme-base">
       <SectionHeader
         title="How to Play"
-        onBack={() => navigateTo('math-quiz-game-screen')}
+        onBack={() => navigateTo('math-quiz-flow-math-quiz-game-screen')}
         backId="back"
       />
       <div className="flex-1 overflow-y-auto p-4">
         <HowToPlayList steps={STEPS} />
       </div>
       <div className="p-4 pb-8">
-        <PrimaryButton id="start-playing" onClick={() => navigateTo('math-quiz-game-screen')}>
+        <PrimaryButton id="start-playing" onClick={() => navigateTo('math-quiz-flow-math-quiz-game-screen')}>
           Start Playing
         </PrimaryButton>
       </div>
@@ -2855,7 +2855,7 @@ export function gameDemoScaffold(name, tokensCssPrefix = '', defineFlowImportLin
   files['lib/design-system/tokens.css'] =
     tokensCssPrefix + TOKENS_CSS.replace(/\{\{name\}\}/g, name)
   files['lib/docs/overview.md'] = OVERVIEW_MD.replace(/\{\{name\}\}/g, name)
-  // Pre-registered so a fresh scaffold passes `flowkit check` clean — otherwise
+  // Pre-registered so a fresh scaffold passes `flowkit audit` clean — otherwise
   // every one of the 10 shared UI components below trips a components/unregistered
   // warning until the author manually runs `flowkit components:scan`.
   const createdAt = new Date().toISOString()

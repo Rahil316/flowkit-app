@@ -292,7 +292,7 @@ fuller written reference.
 
 \`\`\`
 npx flowkit status                                          # health snapshot
-npx flowkit check                                           # validate authored content, exits 1 on error
+npx flowkit audit                                           # validate authored content, exits 1 on error
 npx flowkit create:page --workspace:<ws> --chapter:<id> --name:<page-id>
 npx flowkit add:step --workspace:<ws> --flowStory:<id> --page:<page-id> [--on:<element-id>]
 npx flowkit sessions:ls                                     # list recorded sessions
@@ -348,7 +348,7 @@ a common task — check here before improvising.
 - **TO** add a reviewer-facing toggle **→** add a \`SimulatorControl\` object
   (\`{ label, path, type, ... }\`) to that flowStory's \`simulator.controls\` array — this is
   plain data, not a JSX component.
-- **TO** check workspace health **→** \`npx flowkit status\` / \`npx flowkit check\`.
+- **TO** check workspace health **→** \`npx flowkit status\` / \`npx flowkit audit\`.
 - **TO** find anything not listed here **→** \`npx flowkit -h\`, then \`docs/CLI.md\`.
 
 ## First session

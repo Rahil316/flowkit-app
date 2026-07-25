@@ -18,14 +18,14 @@ export default function MathQuizHowToPlayScreen() {
     <div className="flex flex-col h-full bg-theme-base">
       <SectionHeader
         title="How to Play"
-        onBack={() => navigateTo('math-quiz-game-screen')}
+        onBack={() => navigateTo('math-quiz-flow-math-quiz-game-screen')}
         backId="back"
       />
       <div className="flex-1 overflow-y-auto p-4">
         <HowToPlayList steps={STEPS} />
       </div>
       <div className="p-4 pb-8">
-        <PrimaryButton id="start-playing" onClick={() => navigateTo('math-quiz-game-screen')}>
+        <PrimaryButton id="start-playing" onClick={() => navigateTo('math-quiz-flow-math-quiz-game-screen')}>
           Start Playing
         </PrimaryButton>
       </div>

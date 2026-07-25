@@ -90,7 +90,7 @@ export default function MemoryMatchGameScreen() {
             id="back-to-hub-header"
             icon={<span className="text-ui-md">‹</span>}
             label="Back"
-            onClick={() => navigateTo('hub-screen')}
+            onClick={() => navigateTo('intro-flow-hub-screen')}
           />
           <span className="text-ui-md font-medium text-theme-text-primary">Memory Match</span>
         </div>
@@ -99,13 +99,13 @@ export default function MemoryMatchGameScreen() {
             id="view-high-scores"
             icon={<span className="text-ui-sm">🏆</span>}
             label="High Scores"
-            onClick={() => navigateTo('memory-match-high-scores-screen')}
+            onClick={() => navigateTo('memory-match-flow-memory-match-high-scores-screen')}
           />
           <IconButton
             id="how-to-play"
             icon={<span className="text-ui-sm">?</span>}
             label="How to Play"
-            onClick={() => navigateTo('memory-match-how-to-play-screen')}
+            onClick={() => navigateTo('memory-match-flow-memory-match-how-to-play-screen')}
           />
         </div>
       </div>
@@ -141,7 +141,7 @@ export default function MemoryMatchGameScreen() {
         title="All matched!"
         message={`Finished in ${moves} moves, ${formatTime(elapsedMs)}.${bestTimeMs > 0 ? ` Best: ${bestMoves} moves.` : ''}`}
         onPlayAgain={handlePlayAgain}
-        onBackToHub={() => navigateTo('hub-screen')}
+        onBackToHub={() => navigateTo('intro-flow-hub-screen')}
       />
     </div>
   )

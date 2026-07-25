@@ -1,4 +1,4 @@
-// flowkit check:pages — page-domain rules.
+// flowkit audit:page — page-domain rules.
 //
 // Forbidden cross-layer imports are NOT checked here — that's enforced by
 // eslint-plugin-boundaries' `workspace` element/policy in eslint.config.js instead (resolved
@@ -18,7 +18,7 @@ import {
 } from '../../src/shared/utils/pagePathIdentity.js'
 
 /** Runs page-domain rules for one workspace. Appends findings to `report`. */
-export function checkPages(wsDir, report) {
+export function checkPage(wsDir, report) {
   const chaptersDir = path.join(wsDir, FLOW_BOOK_DIRNAME)
   if (!fs.existsSync(chaptersDir)) return
 

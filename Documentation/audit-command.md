@@ -38,6 +38,14 @@ extends.
 - **Command**: `flowkit audit` replaces/absorbs today's `check`/`check:<domain>`
   family. Domains: `page`, `chapter`, `book`, `story`, `navigations`,
   `sessions`.
+  - `story/fork-invalid-page` — **built** (2026-07-25, `scripts/audits/story.js`).
+    Previously a documented gap: `story/invalid-page` only validated top-level
+    `steps[].pageId`, never walking into `step.forks[].steps[]`. Now a separate
+    rule (`checkForkSteps`) recurses into forks at any nesting depth (forks can
+    contain forks), emitting `story/fork-invalid-page` (severity: error) for any
+    fork-nested step whose pageId isn't a real page, with the enclosing fork
+    label chain in the message for actionability. `story/weak-step` was
+    deliberately NOT extended into forks (see comment in `story.js`).
   - Bare `flowkit audit` — runs all domains, one combined report grouped by
     category.
   - `flowkit audit:<domain>` — same report, scoped to one domain.

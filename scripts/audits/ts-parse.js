@@ -1,4 +1,4 @@
-// Shared AST-walk helpers for flowkit check's screen-domain rules, using
+// Shared AST-walk helpers for flowkit audit's page-domain rules, using
 // @typescript-eslint/parser (already a transitive dependency of typescript-eslint —
 // no new dependency needed).
 //

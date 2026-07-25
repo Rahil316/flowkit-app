@@ -149,20 +149,20 @@ The flowStory compiler (`compileFlowStory.ts`) converts this at runtime into a `
 
 ## CLI reference
 
-| Command                                    | Description                                                                                                          |
-| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| `flowkit nw:<name>`                        | Create workspace (repo mode only)                                                                                    |
-| `flowkit rw:<name>`                        | Remove workspace (repo mode only)                                                                                    |
-| `flowkit watch:flows`                      | Watch workspace for file changes (repo mode only)                                                                    |
-| `flowkit status`                           | Workspace health snapshot                                                                                            |
-| `flowkit export`                           | Export as standalone HTML viewer (guided flow; always ships full codebase)                                           |
-| `flowkit handoff`                          | Build developer handoff zip                                                                                          |
-| `flowkit check` / `flowkit check:<domain>` | Validate authored content — pages/config/components/db/flowStories (`check:flowStories` runs automatically on build) |
-| `flowkit sessions:brief`                   | Agent analytics brief from committed sessions                                                                        |
-| `flowkit convert:multi`                    | Convert a flat consumer project to multi-workspace mode                                                              |
-| `flowkit convert:flat`                     | Collapse a multi-workspace consumer project back to flat                                                             |
-| `flowkit create/remove/rename:workspace`   | Add/remove/rename a workspace (multi-workspace consumer mode only)                                                   |
-| `flowkit help`                             | Full help                                                                                                            |
+| Command                                    | Description                                                                                                                                                          |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `flowkit nw:<name>`                        | Create workspace (repo mode only)                                                                                                                                    |
+| `flowkit rw:<name>`                        | Remove workspace (repo mode only)                                                                                                                                    |
+| `flowkit watch:flows`                      | Watch workspace for file changes (repo mode only)                                                                                                                    |
+| `flowkit status`                           | Workspace health snapshot                                                                                                                                            |
+| `flowkit export`                           | Export as standalone HTML viewer (guided flow; always ships full codebase)                                                                                           |
+| `flowkit handoff`                          | Build developer handoff zip                                                                                                                                          |
+| `flowkit audit` / `flowkit audit:<domain>` | Validate authored content — page/chapter/book/story/components/db (`audit:story` runs automatically on build); `--fix`/`--rebuild` reconcile chapter/pageOrder drift |
+| `flowkit sessions:brief`                   | Agent analytics brief from committed sessions                                                                                                                        |
+| `flowkit convert:multi`                    | Convert a flat consumer project to multi-workspace mode                                                                                                              |
+| `flowkit convert:flat`                     | Collapse a multi-workspace consumer project back to flat                                                                                                             |
+| `flowkit create/remove/rename:workspace`   | Add/remove/rename a workspace (multi-workspace consumer mode only)                                                                                                   |
+| `flowkit help`                             | Full help                                                                                                                                                            |
 
 Full reference: [docs/CLI.md](docs/CLI.md)
 

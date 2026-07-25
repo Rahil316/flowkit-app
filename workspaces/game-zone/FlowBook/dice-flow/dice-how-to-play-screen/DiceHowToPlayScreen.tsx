@@ -19,14 +19,14 @@ export default function DiceHowToPlayScreen() {
     <div className="flex flex-col h-full bg-theme-base">
       <SectionHeader
         title="How to Play"
-        onBack={() => navigateTo('dice-game-screen')}
+        onBack={() => navigateTo('dice-flow-dice-game-screen')}
         backId="back"
       />
       <div className="flex-1 overflow-y-auto p-4">
         <HowToPlayList steps={STEPS} />
       </div>
       <div className="p-4 pb-8">
-        <PrimaryButton id="start-playing" onClick={() => navigateTo('dice-game-screen')}>
+        <PrimaryButton id="start-playing" onClick={() => navigateTo('dice-flow-dice-game-screen')}>
           Start Playing
         </PrimaryButton>
       </div>

@@ -18,14 +18,14 @@ export default function MemoryMatchHowToPlayScreen() {
     <div className="flex flex-col h-full bg-theme-base">
       <SectionHeader
         title="How to Play"
-        onBack={() => navigateTo('memory-match-game-screen')}
+        onBack={() => navigateTo('memory-match-flow-memory-match-game-screen')}
         backId="back"
       />
       <div className="flex-1 overflow-y-auto p-4">
         <HowToPlayList steps={STEPS} />
       </div>
       <div className="p-4 pb-8">
-        <PrimaryButton id="start-playing" onClick={() => navigateTo('memory-match-game-screen')}>
+        <PrimaryButton id="start-playing" onClick={() => navigateTo('memory-match-flow-memory-match-game-screen')}>
           Start Playing
         </PrimaryButton>
       </div>

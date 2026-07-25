@@ -67,7 +67,7 @@ export default function TicTacToeGameScreen() {
             id="back-to-hub-header"
             icon={<span className="text-ui-md">‹</span>}
             label="Back"
-            onClick={() => navigateTo('hub-screen')}
+            onClick={() => navigateTo('intro-flow-hub-screen')}
           />
           <span className="text-ui-md font-medium text-theme-text-primary">Tic-Tac-Toe</span>
         </div>
@@ -75,7 +75,7 @@ export default function TicTacToeGameScreen() {
           id="how-to-play"
           icon={<span className="text-ui-sm">?</span>}
           label="How to Play"
-          onClick={() => navigateTo('tic-tac-toe-how-to-play-screen')}
+          onClick={() => navigateTo('tic-tac-toe-flow-tic-tac-toe-how-to-play-screen')}
         />
       </div>
       <div className="flex items-center justify-center gap-3 p-3">
@@ -110,7 +110,7 @@ export default function TicTacToeGameScreen() {
         title={winner ? `${winner} wins!` : "It's a draw"}
         message={winner ? `Player ${winner} takes this round.` : 'Nobody gets it this time.'}
         onPlayAgain={handlePlayAgain}
-        onBackToHub={() => navigateTo('hub-screen')}
+        onBackToHub={() => navigateTo('intro-flow-hub-screen')}
       />
     </div>
   )

@@ -20,7 +20,7 @@ export default function WelcomeScreen() {
         </p>
       </div>
       <div className="p-4 pb-8">
-        <PrimaryButton id="play" onClick={() => navigateTo('hub-screen')}>
+        <PrimaryButton id="play" onClick={() => navigateTo('intro-flow-hub-screen')}>
           Play
         </PrimaryButton>
       </div>

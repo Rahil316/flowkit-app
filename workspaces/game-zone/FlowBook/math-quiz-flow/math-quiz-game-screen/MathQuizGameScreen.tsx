@@ -70,7 +70,7 @@ export default function MathQuizGameScreen() {
             id="back-to-hub-header"
             icon={<span className="text-ui-md">‹</span>}
             label="Back"
-            onClick={() => navigateTo('hub-screen')}
+            onClick={() => navigateTo('intro-flow-hub-screen')}
           />
           <span className="text-ui-md font-medium text-theme-text-primary">Math Quiz</span>
         </div>
@@ -78,7 +78,7 @@ export default function MathQuizGameScreen() {
           id="how-to-play"
           icon={<span className="text-ui-sm">?</span>}
           label="How to Play"
-          onClick={() => navigateTo('math-quiz-how-to-play-screen')}
+          onClick={() => navigateTo('math-quiz-flow-math-quiz-how-to-play-screen')}
         />
       </div>
 
@@ -137,7 +137,7 @@ export default function MathQuizGameScreen() {
         title="Wrong answer"
         message={`You solved ${roundScore} in a row. Best: ${Math.max(bestScore, roundScore)}.`}
         onPlayAgain={handlePlayAgain}
-        onBackToHub={() => navigateTo('hub-screen')}
+        onBackToHub={() => navigateTo('intro-flow-hub-screen')}
       />
     </div>
   )

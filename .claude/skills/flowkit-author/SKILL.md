@@ -109,7 +109,7 @@ Memory Match, Math Quiz) — sourced from `scripts/demoBooks/game-demo-scaffold.
 module also used by `create:workspace`/`create-flowkit-app`/`create-flowkit-workspace`. Pass
 **`--empty`** for a bare, valid-but-minimal scaffold instead: zero chapters (`chapters: []`,
 `pageOrder: {}`), no `flowBook/`/`flowStories/` directories at all, stub `lib/data/db.ts`/
-`lib/data/simulator.tsx`. Both forms pass `flowkit check` clean immediately after scaffolding.
+`lib/data/simulator.tsx`. Both forms pass `flowkit audit` clean immediately after scaffolding.
 
 **No more `--lang:ts|js` flag** — scaffolding is TypeScript-only now (removed the same day as the
 game-demo rewrite). If you see `--lang:` referenced anywhere, it's stale.
@@ -296,7 +296,7 @@ items are by definition never registered there at all.
 
 A page folder is expected to contain exactly one real (non-`_`/`__`-prefixed) component file. If
 it contains two or more, the alphabetically-first file is picked deterministically as the real page
-(`pickPageFile()`), and `flowkit check:pages` reports a non-blocking `page/ambiguous-folder`
+(`pickPageFile()`), and `flowkit audit:page` reports a non-blocking `page/ambiguous-folder`
 warning naming the winner and the losers, with `requiresAcknowledgment: true` (surfaced in its own
 boxed section of the printed report, but never counts toward `errorCount` — never blocks the
 build).
@@ -317,7 +317,7 @@ This is real, working parsing logic, unit-tested, and it genuinely does more tha
   `genScreens()` drops the `variant` field before it reaches `virtual:flowkit/pages` — every
   variant file becomes a separate, colliding page with the _same_ page id instead of being grouped,
   so this only works correctly in repo mode.
-- **`flowkit check:pages` actively misfires on a legitimately-authored variant.** It groups
+- **`flowkit audit:page` actively misfires on a legitimately-authored variant.** It groups
   candidate files by `${chapter}::${page}` only — `variant` is not part of that key — so a base
   file plus its variant sitting in the same folder look like 2+ ambiguous candidates. You'll get a
   spurious `page/ambiguous-folder` warning, and the variant file's own `pageMeta` never gets
@@ -362,7 +362,7 @@ with the command itself, see the vocabulary section above). Checks the flat layo
 (`flowStories/*.ts`) first; only falls back to the legacy nested `projects/<proj>/flowStories/`
 layout if the flat directory is empty or absent. `--project:<slug>` scopes to one legacy project;
 omit it to search all of them. This is discovery only — it doesn't validate anything; use
-`flowkit check:flowStories` for that.
+`flowkit audit:story` for that.
 
 ```bash
 flowkit project:ls [--workspace:<name>]
@@ -413,7 +413,7 @@ flowkit list:exports --barrel:lib/components/ui/index.ts [--workspace:<name>]
 the registry, and tells you to run `components:scan` to register it if found that way.
 `components:scan` recursively finds every PascalCase-named, non-`index`-prefixed `.tsx`/`.jsx` file
 under `lib/components/` and registers any not already known — additive only, never removes stale
-entries (that's what `check:components`'s `components/stale-registry` finding is for). `add:export`
+entries (that's what `audit:components`'s `components/stale-registry` finding is for). `add:export`
 requires the named source file to already exist next to the barrel; it does not create files.
 
 ---
@@ -689,19 +689,28 @@ rather than calling into this file.
 # Validating what you authored
 
 ```bash
-flowkit check                       # all 5 domains
-flowkit check:flowStories           # prebuild gate — npm run build always runs this
-flowkit check:pages
-flowkit check:config
-flowkit check:components
-flowkit check:db
-flowkit check:pages:my-workspace    # domain + explicit workspace (colon-chained form)
-flowkit check --workspace:my-workspace --json
+flowkit audit                       # all 6 domains
+flowkit audit:story                 # prebuild gate — npm run build always runs this
+flowkit audit:page
+flowkit audit:chapter
+flowkit audit:book
+flowkit audit:components
+flowkit audit:db
+flowkit audit:page:my-workspace     # domain + explicit workspace (colon-chained form)
+flowkit audit --workspace:my-workspace --json
+flowkit audit:chapter --fix         # existence-only reconciliation of chapter/pageOrder against flowBook/ on disk
+flowkit audit:chapter --rebuild             # preview a full disk-derived regeneration; writes nothing
+flowkit audit:chapter --rebuild --confirm   # actually apply it — destroys authored order, use with care
 ```
 
-Domains map to `scripts/checks/index.js`'s `DOMAINS` table exactly: `pages`, `config`,
-`components`, `db`, `flowStories`. Exits non-zero if `report.errorCount > 0` — this is what blocks
-`npm run build`.
+Domains map to `scripts/audits/index.js`'s `DOMAINS` table exactly: `page`, `chapter`, `book`,
+`story`, `components`, `db`. Exits non-zero if `report.errorCount > 0` — this is what blocks
+`npm run build`. Renamed from `check`/`check:<domain>` — no back-compat alias; `config` was split
+into `chapter` (per-chapter pageOrder consistency) + `book` (whole-workspace, currently zero rules,
+reserved). `--fix` and `--rebuild` currently only have an effect on the `chapter` domain — `--fix`
+drops ghost pageOrder entries and appends orphaned disk-only page directories to the end of their
+chapter's array (never reorders); `--rebuild` is destructive to authored order by design, hence the
+two-step `--confirm` gate.
 
 `--json` output shape (verified live against a clean workspace):
 
@@ -715,30 +724,37 @@ that also have `requiresAcknowledgment: true` — i.e. `page/ambiguous-folder` f
 both `results` and `requiresAcknowledgment` simultaneously, not just one or the other.
 
 Every ruleId, its severity, and whether it requires acknowledgment (verified directly against
-`ruleId:`/`severity:`/`requiresAcknowledgment:` in each `scripts/checks/*.js` file):
+`ruleId:`/`severity:`/`requiresAcknowledgment:` in each `scripts/audits/*.js` file):
 
-| ruleId                           | severity | requiresAcknowledgment |
-| -------------------------------- | -------- | ---------------------- |
-| `page/ambiguous-folder`          | warning  | **true**               |
-| `page/no-default-export`         | error    | —                      |
-| `page/missing-meta`              | error    | —                      |
-| `page/meta-id-mismatch`          | error    | —                      |
-| `page/meta-missing-label`        | warning  | —                      |
-| `config/chapter-mismatch`        | error    | —                      |
-| `config/empty-chapter`           | warning  | —                      |
-| `config/orphaned-id`             | error    | —                      |
-| `config/orphaned-dir`            | warning  | —                      |
-| `components/stale-registry`      | warning  | —                      |
-| `components/unregistered`        | warning  | —                      |
-| `components/barrel-phantom`      | error    | —                      |
-| `components/barrel-gap`          | warning  | —                      |
-| `db/no-exports`                  | error    | —                      |
-| `flowStory/empty-workspace`      | error    | —                      |
-| `flowStory/unreadable`           | error    | —                      |
-| `flowStory/id-filename-mismatch` | error    | —                      |
-| `flowStory/empty-steps`          | warning  | —                      |
-| `flowStory/invalid-page`         | error    | —                      |
-| `flowStory/weak-step`            | warning  | —                      |
+| ruleId                       | severity | requiresAcknowledgment |
+| ----------------------------- | -------- | ---------------------- |
+| `page/ambiguous-folder`      | warning  | **true**               |
+| `page/no-default-export`     | error    | —                      |
+| `page/missing-meta`          | error    | —                      |
+| `page/meta-id-mismatch`      | error    | —                      |
+| `page/meta-missing-label`    | warning  | —                      |
+| `chapter/chapter-mismatch`   | error    | —                      |
+| `chapter/empty-chapter`      | warning  | —                      |
+| `chapter/orphaned-id`        | error    | —                      |
+| `chapter/orphaned-dir`       | warning  | —                      |
+| `components/stale-registry`  | warning  | —                      |
+| `components/unregistered`    | warning  | —                      |
+| `components/barrel-phantom`  | error    | —                      |
+| `components/barrel-gap`      | warning  | —                      |
+| `db/no-exports`              | error    | —                      |
+| `story/empty-workspace`      | error    | —                      |
+| `story/unreadable`           | error    | —                      |
+| `story/id-filename-mismatch` | error    | —                      |
+| `story/empty-steps`          | warning  | —                      |
+| `story/invalid-page`         | error    | —                      |
+| `story/weak-step`            | warning  | —                      |
+
+`book` has no rules yet — it's registered as a domain (shows up in `flowkit audit`'s output) but
+ships empty in this phase, reserved for future whole-workspace-spanning checks.
+
+`chapter/orphaned-id` and `chapter/orphaned-dir` are the two rules `--fix` can act on
+automatically. Every other ruleId above has no auto-fix — `--fix` reports
+`--fix has no effect on N finding(s): <ruleId list>` for those rather than silently skipping them.
 
 **Only `page/ambiguous-folder`** has `requiresAcknowledgment: true` — surfaced in a distinct boxed
 section of the printed report (`printAcknowledgmentSection()`), but never counted toward
@@ -798,7 +814,7 @@ listing mode (default, `--hidden`, `--all`) walks the registered `manifest.ts` c
 non-existent items are by definition never registered there, so `--gone` walks the filesystem
 directly instead.
 
-`check:<domain>:<workspace>` is a real colon-chained form (e.g. `check:pages:my-workspace`),
+`audit:<domain>:<workspace>` is a real colon-chained form (e.g. `audit:page:my-workspace`),
 distinct from `--workspace:<name>` — the bare `check` (all domains) form has no domain segment to
 piggyback a workspace onto, so it takes `--workspace:` instead.
 
@@ -867,7 +883,7 @@ dropped entirely (not renamed), confirmed no code anywhere still constructs or c
 # Page identity internals (`src/shared/utils/pagePathIdentity.js`)
 
 The one shared, dependency-free module (no React, no Vite APIs) that both the browser bundle
-(`useWorkspaceHierarchy.ts`) and Node-side CLI/build tooling (`vite-plugin.js`, `scripts/checks/*`)
+(`useWorkspaceHierarchy.ts`) and Node-side CLI/build tooling (`vite-plugin.js`, `scripts/audits/*`)
 import directly for identity parsing — never reimplemented per-caller.
 
 - `isNonExistent(segment)` — starts with `__`.

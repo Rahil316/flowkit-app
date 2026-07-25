@@ -110,7 +110,7 @@ export default function TwentyFortyEightGameScreen() {
             id="back-to-hub-header"
             icon={<span className="text-ui-md">‹</span>}
             label="Back"
-            onClick={() => navigateTo('hub-screen')}
+            onClick={() => navigateTo('intro-flow-hub-screen')}
           />
           <span className="text-ui-md font-medium text-theme-text-primary">2048</span>
         </div>
@@ -119,13 +119,13 @@ export default function TwentyFortyEightGameScreen() {
             id="view-high-scores"
             icon={<span className="text-ui-sm">🏆</span>}
             label="High Scores"
-            onClick={() => navigateTo('2048-high-scores-screen')}
+            onClick={() => navigateTo('2048-flow-2048-high-scores-screen')}
           />
           <IconButton
             id="how-to-play"
             icon={<span className="text-ui-sm">?</span>}
             label="How to Play"
-            onClick={() => navigateTo('2048-how-to-play-screen')}
+            onClick={() => navigateTo('2048-flow-2048-how-to-play-screen')}
           />
         </div>
       </div>
@@ -200,7 +200,7 @@ export default function TwentyFortyEightGameScreen() {
           message="Keep playing to push your score even higher, or head back to the hub."
           onPlayAgain={handleKeepPlaying}
           primaryLabel="Keep Playing"
-          onBackToHub={() => navigateTo('hub-screen')}
+          onBackToHub={() => navigateTo('intro-flow-hub-screen')}
         />
       )}
       <GameOverModal
@@ -208,7 +208,7 @@ export default function TwentyFortyEightGameScreen() {
         title="Game Over"
         message={`No more moves left. Final score: ${score}.`}
         onPlayAgain={handlePlayAgain}
-        onBackToHub={() => navigateTo('hub-screen')}
+        onBackToHub={() => navigateTo('intro-flow-hub-screen')}
       />
     </div>
   )

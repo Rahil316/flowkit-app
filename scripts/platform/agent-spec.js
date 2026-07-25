@@ -358,8 +358,8 @@ export function cliRows(_ctx) {
   return [
     { cmd: 'flowkit flowStory:ls', what: 'list all flowStories in the workspace' },
     {
-      cmd: 'flowkit check / flowkit check:<domain>',
-      what: 'validate authored content — pages/config/components/db/flowStories',
+      cmd: 'flowkit audit / flowkit audit:<domain>',
+      what: 'validate authored content — page/chapter/book/story/components/db',
     },
     { cmd: 'flowkit project:ls', what: 'list projects and their flowStory counts' },
     { cmd: 'flowkit status', what: 'workspace health: projects, flowStories, sessions, feedback' },

@@ -13,7 +13,7 @@ export default function MathQuizDifficultyScreen() {
     <div className="flex flex-col h-full bg-theme-base">
       <SectionHeader
         title="Math Quiz"
-        onBack={() => navigateTo('hub-screen')}
+        onBack={() => navigateTo('intro-flow-hub-screen')}
         backId="back-to-hub"
       />
       <div className="flex-1 flex flex-col items-center justify-center gap-6 p-6">
@@ -30,7 +30,7 @@ export default function MathQuizDifficultyScreen() {
         />
       </div>
       <div className="p-4 pb-8">
-        <PrimaryButton id="start-quiz" onClick={() => navigateTo('math-quiz-game-screen')}>
+        <PrimaryButton id="start-quiz" onClick={() => navigateTo('math-quiz-flow-math-quiz-game-screen')}>
           Start
         </PrimaryButton>
       </div>

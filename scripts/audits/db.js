@@ -1,4 +1,4 @@
-// flowkit check:db — mock db rules.
+// flowkit audit:db — mock db rules.
 //
 // Corrected from the original flowlint-strategy.md spec (`db/no-default-export`,
 // `db/non-object-export`) after checking real generated db.ts files: BOTH generators

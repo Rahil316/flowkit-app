@@ -19,14 +19,14 @@ export default function TwentyFortyEightHowToPlayScreen() {
     <div className="flex flex-col h-full bg-theme-base">
       <SectionHeader
         title="How to Play"
-        onBack={() => navigateTo('2048-game-screen')}
+        onBack={() => navigateTo('2048-flow-2048-game-screen')}
         backId="back"
       />
       <div className="flex-1 overflow-y-auto p-4">
         <HowToPlayList steps={STEPS} />
       </div>
       <div className="p-4 pb-8">
-        <PrimaryButton id="start-playing" onClick={() => navigateTo('2048-game-screen')}>
+        <PrimaryButton id="start-playing" onClick={() => navigateTo('2048-flow-2048-game-screen')}>
           Start Playing
         </PrimaryButton>
       </div>

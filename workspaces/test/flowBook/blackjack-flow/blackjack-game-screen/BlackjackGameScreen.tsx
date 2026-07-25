@@ -99,7 +99,7 @@ export default function BlackjackGameScreen() {
             id="back-to-hub-header"
             icon={<span className="text-ui-md">‹</span>}
             label="Back"
-            onClick={() => navigateTo('hub-screen')}
+            onClick={() => navigateTo('intro-flow-hub-screen')}
           />
           <span className="text-ui-md font-medium" style={{ color: 'var(--tile-text-light)' }}>
             Blackjack
@@ -109,7 +109,7 @@ export default function BlackjackGameScreen() {
           id="how-to-play"
           icon={<span className="text-ui-sm">?</span>}
           label="How to Play"
-          onClick={() => navigateTo('blackjack-how-to-play-screen')}
+          onClick={() => navigateTo('blackjack-flow-blackjack-how-to-play-screen')}
         />
       </div>
 
@@ -200,7 +200,7 @@ export default function BlackjackGameScreen() {
             <PrimaryButton
               id="exit-to-hub"
               variant="danger"
-              onClick={() => navigateTo('hub-screen')}
+              onClick={() => navigateTo('intro-flow-hub-screen')}
             >
               Exit to Hub
             </PrimaryButton>

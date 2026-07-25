@@ -482,7 +482,7 @@ export async function cmdListPages(_val, args = []) {
   assertScopedWorkspaceDir(wsDir, wsName)
   const filterChapters = parseStringFlag(args, 'chapter')
   // Presence-flags, consistent with the `args.includes('--flag')` convention
-  // used elsewhere in this codebase (e.g. scripts/checks/index.js's --json,
+  // used elsewhere in this codebase (e.g. scripts/audits/index.js's --json,
   // scripts/authoring/chapters.js's --force) — no dedicated boolean-flag helper
   // exists in helpers/args.js, so this matches existing practice rather than
   // inventing a new one.

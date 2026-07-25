@@ -1,5 +1,5 @@
-// Shared recursive page-file walker, used by scripts/checks/pages.js,
-// scripts/checks/flowStories.js, and scripts/platform/sessions/_shared.js. Node-only
+// Shared recursive page-file walker, used by scripts/audits/page.js,
+// scripts/audits/story.js, and scripts/platform/sessions/_shared.js. Node-only
 // (uses fs/path directly) — kept separate from src/shared/utils/pagePathIdentity.js,
 // which is deliberately dependency-free so it can also be imported by the browser bundle.
 import fs from 'fs'

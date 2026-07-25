@@ -20,7 +20,7 @@ export default function MemoryMatchHighScoresScreen() {
     <div className="flex flex-col h-full bg-theme-base">
       <SectionHeader
         title="High Scores"
-        onBack={() => navigateTo('memory-match-game-screen')}
+        onBack={() => navigateTo('memory-match-flow-memory-match-game-screen')}
         backId="back"
       />
       <div className="flex-1 flex items-center justify-center gap-3 p-4">

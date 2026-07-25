@@ -98,7 +98,7 @@ The few hardest rules are inlined into the memory file so they're loaded before 
 
 ## Workspace format
 
-Workspaces use the **flowStory format**: `flowBook/<chapter>/<page>/<Page>.tsx` + `flowStories/*.ts` (directories renamed from `flows/`/`flowplans/`; the CLI verb `watch:flows` keeps its existing name regardless, but `check:flowplans` was itself renamed to `check:flowStories`). Page folders may nest to any depth under `flowBook/<chapter>/` — see FLOWKIT.md's page-authoring section for the full identity/visibility rules. There is no `_playFlow.ts`, no `router.tsx`, no `projects/` directory (unless you've deliberately opted into the nested-layout `projects` field in `manifest.ts` — see CLI.md).
+Workspaces use the **flowStory format**: `flowBook/<chapter>/<page>/<Page>.tsx` + `flowStories/*.ts` (directories renamed from `flows/`/`flowplans/`; the CLI verb `watch:flows` keeps its existing name regardless, but `check:flowplans` was itself renamed to `check:flowStories`, later renamed again to `audit:story`). Page folders may nest to any depth under `flowBook/<chapter>/` — see FLOWKIT.md's page-authoring section for the full identity/visibility rules. There is no `_playFlow.ts`, no `router.tsx`, no `projects/` directory (unless you've deliberately opted into the nested-layout `projects` field in `manifest.ts` — see CLI.md).
 
 ---
 
@@ -150,7 +150,7 @@ Or use the CLI, which handles both steps and works in all three modes: `flowkit 
 
 ### Add a flowStory
 
-Drop a `.ts` file into `flowStories/` using `defineFlow()`, or run `flowkit create:flowStory --name:<flow-id>`. Run `flowkit flowStory:ls` to confirm it's discovered, `flowkit check:flowStories` to validate.
+Drop a `.ts` file into `flowStories/` using `defineFlow()`, or run `flowkit create:flowStory --name:<flow-id>`. Run `flowkit flowStory:ls` to confirm it's discovered, `flowkit audit:story` to validate.
 
 ### Add a flowStory step with a conditional fork
 
@@ -307,8 +307,10 @@ flowkit lr                           # alias for lens:report
 
 ```bash
 flowkit status          # chapters, pages, flowStories, sessions, feedback, agent
-flowkit check           # validate all authored content (pages/config/components/db/flowStories) — exits 1 on error
-flowkit check:<domain>  # validate just one domain — pages/config/components/db/flowStories
+flowkit audit           # validate all authored content (page/chapter/book/story/components/db) — exits 1 on error
+flowkit audit:<domain>  # validate just one domain — page/chapter/book/story/components/db
+flowkit audit:chapter --fix       # reconcile chapter/pageOrder drift against flowBook/ on disk (existence only)
+flowkit audit:chapter --rebuild   # preview a full disk-derived regeneration; add --confirm to apply (destroys authored order)
 flowkit flowStory:ls    # list all flowStories with file paths
 ```
 

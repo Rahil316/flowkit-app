@@ -1,4 +1,4 @@
-// flowkit check:components — component registry rules.
+// flowkit audit:components — component registry rules.
 import fs from 'fs'
 import path from 'path'
 import { readComponents } from '../authoring-support/agent-state.js'

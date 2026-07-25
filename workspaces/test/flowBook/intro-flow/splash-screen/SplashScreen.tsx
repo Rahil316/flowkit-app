@@ -6,7 +6,7 @@ export default function SplashScreen() {
   const { navigateTo } = useAppNav()
 
   useEffect(() => {
-    const timer = setTimeout(() => navigateTo('welcome-screen'), 1400)
+    const timer = setTimeout(() => navigateTo('intro-flow-welcome-screen'), 1400)
     return () => clearTimeout(timer)
   }, [navigateTo])
 

@@ -74,7 +74,7 @@ export default function DiceGameScreen() {
             id="back-to-hub-header"
             icon={<span className="text-ui-md">‹</span>}
             label="Back"
-            onClick={() => navigateTo('hub-screen')}
+            onClick={() => navigateTo('intro-flow-hub-screen')}
           />
           <span className="text-ui-md font-medium" style={{ color: 'var(--tile-text-light)' }}>
             Dice
@@ -84,7 +84,7 @@ export default function DiceGameScreen() {
           id="how-to-play"
           icon={<span className="text-ui-sm">?</span>}
           label="How to Play"
-          onClick={() => navigateTo('dice-how-to-play-screen')}
+          onClick={() => navigateTo('dice-flow-dice-how-to-play-screen')}
         />
       </div>
 
@@ -136,7 +136,7 @@ export default function DiceGameScreen() {
           result === 'win' ? `+$${BET} added to your bankroll.` : `-$${BET} from your bankroll.`
         }
         onPlayAgain={handlePlayAgain}
-        onBackToHub={() => navigateTo('hub-screen')}
+        onBackToHub={() => navigateTo('intro-flow-hub-screen')}
       />
     </div>
   )
