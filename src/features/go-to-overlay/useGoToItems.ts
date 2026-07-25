@@ -1,7 +1,7 @@
 import type { Chapter, PageView } from '@flowkit/types/index'
 import type { PaletteGroup, PaletteItem } from '@flowkit-features/command-palette'
 import { PALETTE_ACCENT_COLORS } from '@flowkit-features/command-palette'
-import { useFlowLibrary } from '@flowkit-features/flow-library'
+import { useStoryLibrary } from '@flowkit-features/flow-library'
 import { useActiveWorkspace } from '@flowkit-shared/contexts/ActiveWorkspaceContext'
 import { useWorkspaceHierarchy } from '@flowkit-shared/utils/useWorkspaceHierarchy'
 import { Folder, GitBranch, Smartphone } from 'lucide-react'
@@ -22,7 +22,7 @@ interface Options {
 
 export function useGoToItems({ chapters, activeViewId, query }: Options): PaletteGroup[] {
   const activeWorkspace = useActiveWorkspace()
-  const { summaries } = useFlowLibrary()
+  const { summaries } = useStoryLibrary()
   const { tree, hasHierarchy } = useWorkspaceHierarchy(activeWorkspace)
   const q = query.toLowerCase()
 

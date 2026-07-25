@@ -6,8 +6,8 @@ export type { CoverageFilter } from './PagesHierarchy'
 export { default as PagesHierarchy } from './PagesHierarchy'
 export type { FlowRunRecord } from './runHistory'
 export { readLastRun, writeLastRun } from './runHistory'
-export type { FlowLibraryData, FlowSummary } from './useFlowLibrary'
-export { useFlowLibrary } from './useFlowLibrary'
+export type { StoryLibraryData, StorySummary } from './useStoryLibrary'
+export { useStoryLibrary } from './useStoryLibrary'
 // Compiler moved to @features/flowStory — re-exported here so existing consumers
 // of this barrel (e.g. FlowMaster's `CompiledFlowStory` type import) keep working.
 export type {

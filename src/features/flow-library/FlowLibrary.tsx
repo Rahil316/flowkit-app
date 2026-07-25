@@ -19,7 +19,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import FlowCanvas from './FlowCanvas'
 import { readLastRun } from './runHistory'
-import { type FlowSummary, useFlowLibrary } from './useFlowLibrary'
+import { type StorySummary, useStoryLibrary } from './useStoryLibrary'
 
 // ── Stories ────────────────────────────────────────────────────────────────
 
@@ -39,7 +39,7 @@ export default function FlowLibrary({
   onDetailChange,
 }: Props) {
   const { navigateTo, firstViewId } = useNavigation()
-  const { summaries } = useFlowLibrary()
+  const { summaries } = useStoryLibrary()
   const playback = useFlowPlaybackOptional()
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -168,7 +168,7 @@ export default function FlowLibrary({
 
 interface GroupProps {
   label: string
-  list: FlowSummary[]
+  list: StorySummary[]
   onSelect: (id: string) => void
 }
 function Group({ label, list, onSelect }: GroupProps) {
@@ -188,7 +188,7 @@ function Group({ label, list, onSelect }: GroupProps) {
 // ─── FlowCard ─────────────────────────────────────────────────────────────────
 
 interface FlowCardProps {
-  summary: FlowSummary
+  summary: StorySummary
   onSelect: () => void
 }
 function FlowCard({ summary, onSelect }: FlowCardProps) {
@@ -272,7 +272,7 @@ function Chip({ icon, label }: { icon: React.ReactNode; label: string }) {
 // ─── FlowDetail ─────────────────────────────────────────────────────────────────
 
 interface FlowDetailProps {
-  summary: FlowSummary
+  summary: StorySummary
   onBack: () => void
   onPlay: () => void
   onStop: () => void

@@ -3,7 +3,7 @@ import { ToolbarTooltipContent } from '@flowkit-core/canvas/ToolbarBtn'
 import PanelBody from '@flowkit-core/layout/PanelBody'
 import type { CoverageFilter } from '@flowkit-features/flow-library'
 import { FlowLibrary, PagesHierarchy } from '@flowkit-features/flow-library'
-import { useFlowLibrary } from '@flowkit-features/flow-library'
+import { useStoryLibrary } from '@flowkit-features/flow-library'
 import { useSessionRecorderOptional } from '@flowkit-features/flowTracer/context'
 import { DEVICE_PRESETS } from '@flowkit-shared/components/devices'
 import FilterPanel, {
@@ -96,7 +96,7 @@ export default function KitSideExplorer({
   const [filterState, setFilterState] = useState<FilterState>({})
 
   const { hasHierarchy, tree } = useWorkspaceHierarchy(activeWorkspaceName)
-  const { allTags: chapterTags } = useFlowLibrary()
+  const { allTags: chapterTags } = useStoryLibrary()
 
   // Collect page tags from hierarchy tree
   const pageTags = useMemo(() => {

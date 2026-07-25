@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
-import { useFlowLibrary } from './useFlowLibrary'
+import { useStoryLibrary } from './useStoryLibrary'
 
 const ANNOTATION_ICONS: Record<string, React.ElementType> = {
   FlaskConical,
@@ -63,7 +63,7 @@ export default function PagesHierarchy({
   const { theme } = useTheme()
   const { activeViewId, navigateTo } = useNavigation()
   const { tree, tagsByPage } = useWorkspaceHierarchy(activeWorkspace)
-  const { coveredPageIds } = useFlowLibrary()
+  const { coveredPageIds } = useStoryLibrary()
 
   const { comments } = useFeedback()
   const commentedPageIds = useMemo(() => new Set(comments.map(c => c.pageId)), [comments])
