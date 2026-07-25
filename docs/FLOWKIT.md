@@ -542,7 +542,7 @@ Workspace switching is done via the browser UI.
 **Consumer mode (flat/multi-workspace):**
 
 ```bash
-npm create flowkit-app@latest my-app     # or: npm create flowkit-workspace@latest my-project
+npm create flowkit-app@latest my-app     # or: npm create flowkit-mono@latest my-project
 cd my-app
 flowkit check:flowStories
 flowkit status

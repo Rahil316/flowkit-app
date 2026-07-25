@@ -46,7 +46,7 @@ FlowStories live at `workspaces/<name>/flowStories/`. Add a new `.ts` file there
 
 ## Using FlowKit in your own project
 
-> Not yet published under the real package names (`flowkit`, `create-flowkit-app`, `create-flowkit-workspace`) — the commands below describe the intended flow once that happens. A scoped canary rehearsal is live today under `@rahil316/*`; see [temp-docs/npm-checklist.md](temp-docs/npm-checklist.md) for real, working install commands in the meantime.
+> Not yet published under the real package names (`flowkit`, `create-flowkit-app`, `create-flowkit-mono`) — the commands below describe the intended flow once that happens. A scoped canary rehearsal is live today under `@rahil316/*`; see [temp-docs/npm-checklist.md](temp-docs/npm-checklist.md) for real, working install commands in the meantime.
 
 Outside this repo, FlowKit ships as installable packages rather than a checkout:
 
@@ -57,10 +57,10 @@ npm create flowkit-app@latest my-app
 cd my-app && npm run dev
 ```
 
-**Multi-workspace project** — scaffold via `create-flowkit-workspace` instead. Each workspace is its own sibling folder at project root (`workspace-1/`, `app-b/`, …), declared explicitly in `package.json`'s `flowkit.workspaces` array.
+**Multi-workspace project** — scaffold via `create-flowkit-mono` instead. Each workspace is its own sibling folder at project root (`workspace-1/`, `app-b/`, …), declared explicitly in `package.json`'s `flowkit.workspaces` array.
 
 ```bash
-npm create flowkit-workspace@latest my-project
+npm create flowkit-mono@latest my-project
 cd my-project && npm run dev   # serves flowkit.workspaces[0] by default
 ```
 
@@ -80,7 +80,7 @@ The rest of the CLI reference below (authoring commands, sessions, export/handof
 
 ## Writing a page
 
-Pages are plain React components. Props are injected automatically — no context imports needed. Import path differs by mode: `@flowkit/types` inside this repo's own `workspaces/<name>/`, `'flowkit'` in a project scaffolded by `create-flowkit-app`/`create-flowkit-workspace`.
+Pages are plain React components. Props are injected automatically — no context imports needed. Import path differs by mode: `@flowkit/types` inside this repo's own `workspaces/<name>/`, `'flowkit'` in a project scaffolded by `create-flowkit-app`/`create-flowkit-mono`.
 
 ```tsx
 // this repo (repo mode)

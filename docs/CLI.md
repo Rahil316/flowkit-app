@@ -8,7 +8,7 @@ Command-line interface for managing workspaces, chapters, pages, FlowStories, se
 | ------------------------ | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | **Repo mode**            | This monorepo checkout                                                                              | `workspaces/<name>/` — multiple workspaces, switched via browser UI                                                        |
 | **Flat mode**            | A project scaffolded by `create-flowkit-app`                                                        | Project root IS the one workspace — no `workspaces/` dir                                                                   |
-| **Multi-workspace mode** | A project scaffolded by `create-flowkit-workspace`, or a flat project after `flowkit convert:multi` | Sibling workspace folders at project root (`workspace-1/`, `app-b/`, …), declared in `package.json`'s `flowkit.workspaces` |
+| **Multi-workspace mode** | A project scaffolded by `create-flowkit-mono`, or a flat project after `flowkit convert:multi` | Sibling workspace folders at project root (`workspace-1/`, `app-b/`, …), declared in `package.json`'s `flowkit.workspaces` |
 
 Flat and multi-workspace mode are collectively "consumer mode" below. See [Workspaces (flat/multi-workspace consumer mode)](#workspaces-flatmulti-workspace-consumer-mode) for the commands specific to those two.
 
@@ -31,7 +31,7 @@ node scripts/flowkit.js <command>
 
 ```bash
 npx create-flowkit-app@latest my-app          # flat mode
-npx create-flowkit-workspace@latest my-project # multi-workspace mode
+npx create-flowkit-mono@latest my-project      # multi-workspace mode
 cd my-app  # or my-project
 flowkit <command>
 ```

@@ -46,15 +46,15 @@ function prompt(rl, question) {
 
 function usage() {
   console.log(`
-  ${b('create-flowkit-workspace')} — scaffold a new FlowKit multi-workspace author project
+  ${b('create-flowkit-mono')} — scaffold a new FlowKit multi-workspace author project
 
   ${b('Usage:')}
-    npm create flowkit-workspace@latest ${c('<project-name>')} ${d('[--empty]')}
-    npx create-flowkit-workspace ${c('<project-name>')}
+    npm create flowkit-mono@latest ${c('<project-name>')} ${d('[--empty]')}
+    npx create-flowkit-mono ${c('<project-name>')}
 
   ${b('Example:')}
-    npm create flowkit-workspace@latest my-project
-    npm create flowkit-workspace@latest my-project -- --empty
+    npm create flowkit-mono@latest my-project
+    npm create flowkit-mono@latest my-project -- --empty
 
   ${d('The scaffolded project starts with one workspace folder ("workspace-1/").')}
   ${d('Add more any time with `npx flowkit create:workspace <name>` inside the project.')}

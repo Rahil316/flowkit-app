@@ -1,4 +1,4 @@
-# create-flowkit-workspace
+# create-flowkit-mono
 
 Scaffold a new [FlowKit](https://github.com/rahil-avj/flowkit-app) multi-workspace author project — multiple sibling prototyping workspaces in one project, switchable at dev time (React 19 + Vite + Tailwind).
 
@@ -7,13 +7,13 @@ Scaffold a new [FlowKit](https://github.com/rahil-avj/flowkit-app) multi-workspa
 ## Usage
 
 ```bash
-npm create flowkit-workspace@latest <project-name> [-- --empty]
+npm create flowkit-mono@latest <project-name> [-- --empty]
 ```
 
 Example:
 
 ```bash
-npm create flowkit-workspace@latest my-project -- --empty
+npm create flowkit-mono@latest my-project -- --empty
 ```
 
 This scaffolds a project with one initial workspace and a root `vite.config.ts` pre-wired for multi-workspace mode. Each workspace gets its own:
@@ -45,13 +45,13 @@ npx flowkit rename:workspace <old> <new>
 
 ## Trying it today
 
-The real `create-flowkit-workspace` / `flowkit` package names are reserved but not yet published. A scoped canary build is live on the npm registry for end-to-end testing:
+The real `create-flowkit-mono` / `flowkit` package names are reserved but not yet published. A scoped canary build is live on the npm registry for end-to-end testing:
 
 ```bash
-npx @rahil316/create-flowkit-workspace@latest my-project
+npx @rahil316/create-flowkit-mono@latest my-project
 ```
 
-Check `npm view @rahil316/create-flowkit-workspace dist-tags` for the current canary version — it advances on every rehearsal publish and is not a stable release channel.
+Check `npm view @rahil316/create-flowkit-mono dist-tags` for the current canary version — it advances on every rehearsal publish and is not a stable release channel.
 
 ## Learn more
 

@@ -1,5 +1,5 @@
 {
-  "name": "create-flowkit-workspace",
+  "name": "create-flowkit-mono",
   "version": "0.0.1-beta.0",
   "description": "Scaffold a new FlowKit multi-workspace author project.",
   "license": "MIT",
@@ -20,7 +20,7 @@
   ],
   "type": "module",
   "bin": {
-    "create-flowkit-workspace": "./index.js"
+    "create-flowkit-mono": "./index.js"
   },
   "files": [
     "index.js",
