@@ -146,7 +146,7 @@ export default function FlowLibrary({
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto px-2 pb-3 flex flex-col gap-1.5 pt-1">
+      <div className="flex-1 overflow-y-auto p-2 pb-3 flex flex-col gap-1.5">
         {pageGroups ? (
           <>
             <Group label="Starts here" list={pageGroups.starts} onSelect={setSelectedId} />

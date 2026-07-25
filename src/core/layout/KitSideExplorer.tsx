@@ -1,5 +1,4 @@
 import type { Chapter } from '@flowkit/types/index'
-import { ToolbarTooltipContent } from '@flowkit-core/canvas/ToolbarBtn'
 import PanelBody from '@flowkit-core/layout/PanelBody'
 import type { CoverageFilter } from '@flowkit-features/flow-library'
 import { FlowLibrary, PagesHierarchy } from '@flowkit-features/flow-library'
@@ -13,7 +12,6 @@ import FilterPanel, {
 import Input from '@flowkit-shared/components/ui/Input'
 import SegmentedControl from '@flowkit-shared/components/ui/SegmentedControl'
 import Select from '@flowkit-shared/components/ui/Select'
-import Tooltip from '@flowkit-shared/components/ui/Tooltip'
 import { useActiveWorkspace } from '@flowkit-shared/contexts/ActiveWorkspaceContext'
 import { useDashboard } from '@flowkit-shared/contexts/DashboardContext'
 import { useTheme } from '@flowkit-shared/contexts/ThemeContext'
@@ -245,7 +243,7 @@ export default function KitSideExplorer({
         }
         footer={
           !hideDeviceControls ? (
-            <div className="flex flex-col gap-2 p-3">
+            <div className="flex flex-col gap-2 p-2">
               <div className="flex items-center gap-1.5">
                 <Select
                   value={devicePreset.label}
@@ -271,11 +269,6 @@ export default function KitSideExplorer({
                   })}
                 </Select>
                 {devicePreset.supportsLandscape !== false && (
-                  <Tooltip
-                    content={<ToolbarTooltipContent label="Toggle orientation" shortcut="\" />}
-                    placement="top"
-                    showDelay={1500}
-                  >
                     <SegmentedControl
                       value={orientation}
                       onChange={v => v !== orientation && toggleOrientation()}
@@ -288,7 +281,6 @@ export default function KitSideExplorer({
                         <Tablet size={12} strokeWidth={2} style={{ transform: 'rotate(90deg)' }} />
                       </SegmentedControl.Segment>
                     </SegmentedControl>
-                  </Tooltip>
                 )}
               </div>
             </div>

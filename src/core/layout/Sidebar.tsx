@@ -62,7 +62,7 @@ export default function Sidebar({
             aria-label={isOpen ? 'Collapse panel' : 'Expand panel'}
             aria-expanded={isOpen}
             variant="ghost"
-            className="w-full h-11 rounded-none text-theme-text-disabled hover:text-theme-text-muted hover:bg-transparent"
+            className="w-full h-12 rounded-none text-theme-text-disabled hover:text-theme-text-muted hover:bg-transparent"
             icon={<CollapseIcon size={18} />}
           />
         </Tooltip>
