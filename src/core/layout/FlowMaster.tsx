@@ -74,14 +74,14 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
     completionDelayMs: flowStory && blindMode ? 4000 : 0,
   })
   const {
-    activeScreenIndex,
-    activeScreen,
+    activePageIndex,
+    activePage,
     activePageId,
     localState,
     transitionLog,
     animClass,
     isAllowed,
-    screenContainerRef,
+    pageContainerRef,
     resetEngine,
     commitNavigation,
     fireRule,
@@ -93,7 +93,7 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
   } = engine
 
   // The current flowStory step, derived SYNCHRONOUSLY from activePageId + the
-  // compiled step list (FlowMaster is the source of truth for the active screen;
+  // compiled step list (FlowMaster is the source of truth for the active page;
   // the context never looks the step up itself). Used by the patch effect, the
   // gating handler, and the actionNote caption.
   const currentStepIndex = flowStory
@@ -114,16 +114,16 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
   }, [currentOn, currentNext])
 
   // Authoring diagnostic — independent of Show Hints/Blind Mode, since a
-  // broken flowStory↔screen id contract is a signal for the author, not a
+  // broken flowStory↔page id contract is a signal for the author, not a
   // hint for the tester. See useFlowStoryElementCheck for the full rationale.
-  const { missing: elementCheckMissing } = useFlowStoryElementCheck(screenContainerRef, {
+  const { missing: elementCheckMissing } = useFlowStoryElementCheck(pageContainerRef, {
     flowStoryId: flowStory?.flowStoryId,
     stepIndex: currentStepIndex,
     pageId: activePageId,
     on: currentOn,
   })
 
-  // ── Per-step db patch: when the active screen changes during flowStory
+  // ── Per-step db patch: when the active page changes during flowStory
   // playback, apply that step's db patch (silently) + advance currentStep.
   const applyStep = playback?.applyStep
   useEffect(() => {
@@ -186,16 +186,16 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
   // on the element the current step expects to be tapped. Unlike flashOffScript,
   // this must have explicit cleanup tied to element identity — activePageId is
   // in the deps (even though currentOn derives from it) so cleanup-then-reapply
-  // happens on every screen transition, not just when the currentOn string value
-  // differs. Without this, a Hotspot button (outside the per-screen
-  // PanelErrorBoundary remount boundary) or a reused ScreenComp could keep a
+  // happens on every page transition, not just when the currentOn string value
+  // differs. Without this, a Hotspot button (outside the per-page
+  // PanelErrorBoundary remount boundary) or a reused PageComp could keep a
   // stale glow after the plan has moved past that element.
   useEffect(() => {
     if (!flowStory || blindMode || !showHints || !currentOn) return
-    const el = screenContainerRef.current?.querySelector<HTMLElement>(`#${CSS.escape(currentOn)}`)
+    const el = pageContainerRef.current?.querySelector<HTMLElement>(`#${CSS.escape(currentOn)}`)
     el?.classList.add('fm-planned-highlight')
     return () => el?.classList.remove('fm-planned-highlight')
-  }, [flowStory, showHints, blindMode, currentOn, activePageId, screenContainerRef])
+  }, [flowStory, showHints, blindMode, currentOn, activePageId, pageContainerRef])
 
   // ── Diverged Hint (Blind Mode only): a soft, low-emphasis warning shown after
   // a delay of no progress toward the next planned step. Must resolve
@@ -265,7 +265,7 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
     [transitionLog]
   )
 
-  // ─── FlowNavCtx — programmatic nav from screens goes through commitNavigation
+  // ─── FlowNavCtx — programmatic nav from pages goes through commitNavigation
   const flowNavValue = useMemo(
     (): FlowNavContextValue => ({
       navigateTo: (target: string) => {
@@ -294,7 +294,7 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
     (e: React.MouseEvent<HTMLDivElement>, isDouble = false) => {
       // ── FlowStory advancement is driven ENTIRELY by the current step (not the
       // engine's interactions map, which keys on element id and would collide
-      // when the same screen/element appears at two journey positions, e.g. a
+      // when the same page/element appears at two journey positions, e.g. a
       // ref'd flow). Resolve the advance target from currentNext; forks resolve
       // via the function form.
       if (flowStory && currentNext !== undefined) {
@@ -355,7 +355,7 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
         x: e.clientX,
         y: e.clientY,
         pageId: activePageId,
-        flowId: flow.id,
+        chapterId: flow.id,
         ...(nearestFkId ? { elementId: nearestFkId } : {}),
       })
     },
@@ -404,7 +404,7 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
   )
 
   // ─── Swipe gestures ───────────────────────────────────────────────────────
-  useSwipeGesture(screenContainerRef, direction => {
+  useSwipeGesture(pageContainerRef, direction => {
     const triggerName = `swipe-${direction}`
     const timestamp = new Date().toLocaleTimeString()
     // Check if any element id has a matching swipe rule; otherwise default swipe-left → next
@@ -445,7 +445,7 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
       if (now - lastTick < 33) return
       lastTick = now
       const pos = cursorPosRef.current
-      const el = screenContainerRef.current
+      const el = pageContainerRef.current
       if (!pos || !el) return
       const rect = el.getBoundingClientRect()
       const x = pos.x - rect.left
@@ -462,12 +462,12 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
     }
     rafId = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafId)
-  }, [recorderOpt, screenContainerRef, activePageId])
+  }, [recorderOpt, pageContainerRef, activePageId])
 
   // ─── Guard / null checks ──────────────────────────────────────────────────
-  if (!isAllowed || !activeScreen) return null
+  if (!isAllowed || !activePage) return null
 
-  const screenProps: PageProps = {
+  const pageProps: PageProps = {
     onAction,
     onNext: () => onAction('next'),
     onBack: () => onAction('back'),
@@ -476,14 +476,14 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
     db: engine.buildCtx().db,
   }
 
-  const isFirst = activeScreenIndex === 0
-  const isLast = activeScreenIndex === flow.pages.length - 1
-  const ScreenComp = activeScreen.component as React.ComponentType<PageProps>
-  const hotspots: Hotspot[] = activeScreen.hotspots ?? []
+  const isFirst = activePageIndex === 0
+  const isLast = activePageIndex === flow.pages.length - 1
+  const PageComp = activePage.component as React.ComponentType<PageProps>
+  const hotspots: Hotspot[] = activePage.hotspots ?? []
 
   return (
     <>
-      {/* Screen transition keyframes */}
+      {/* Page transition keyframes */}
       <style>{`
         @keyframes fm-fade-in        { from{opacity:0}                          to{opacity:1} }
         @keyframes fm-fade-out       { from{opacity:1}                          to{opacity:0} }
@@ -523,7 +523,7 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
       `}</style>
 
       <div
-        ref={screenContainerRef}
+        ref={pageContainerRef}
         className="relative overflow-hidden size-full"
         onClick={handleContainerClick}
         onDoubleClick={handleDoubleClick}
@@ -546,13 +546,13 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
             }
           : {})}
       >
-        {/* Active screen wrapped in FlowNavCtx so useNav() works inside */}
+        {/* Active page wrapped in FlowNavCtx so useNav() works inside */}
         <FlowNavCtx.Provider value={flowNavValue}>
           <PanelErrorBoundary
             key={activePageId}
             fallback={
               <div className="flex items-center justify-center text-xs opacity-40 size-full">
-                Screen crashed — check the console
+                Page crashed — check the console
               </div>
             }
             onError={(error, info) =>
@@ -560,13 +560,13 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
                 message: error.message,
                 stack: error.stack,
                 componentStack: info.componentStack,
-                boundary: 'panel:screen',
+                boundary: 'panel:page',
                 pageId: activePageId,
               })
             }
           >
             <div className={`flex flex-col size-full ${animClass}`}>
-              <ScreenComp {...screenProps} />
+              <PageComp {...pageProps} />
             </div>
           </PanelErrorBoundary>
         </FlowNavCtx.Provider>
@@ -619,16 +619,16 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
             className="absolute bottom-6 flex justify-center gap-1.5 pointer-events-none inset-x-0"
             role="status"
             aria-live="polite"
-            aria-label={`Step ${activeScreenIndex + 1} of ${flow.pages.length}`}
+            aria-label={`Step ${activePageIndex + 1} of ${flow.pages.length}`}
           >
-            {flow.pages.map((screen, i) => (
+            {flow.pages.map((page, i) => (
               <div
-                key={screen.id}
+                key={page.id}
                 className="rounded-full transition-all"
                 style={{
-                  width: i === activeScreenIndex ? 20 : 6,
+                  width: i === activePageIndex ? 20 : 6,
                   height: 6,
-                  background: i === activeScreenIndex ? theme.text.secondary : theme.bg.border,
+                  background: i === activePageIndex ? theme.text.secondary : theme.bg.border,
                 }}
               />
             ))}
@@ -651,7 +651,7 @@ export default function FlowMaster({ flow }: { flow: ChapterConfig }) {
             role="status"
             aria-live="polite"
           >
-            ⚠ Missing #{currentOn} on this screen
+            ⚠ Missing #{currentOn} on this page
           </div>
         )}
 

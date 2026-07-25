@@ -9,7 +9,7 @@
 // deps on this repo.
 //
 // Demo content (config chapters/pages, flowStories, db, game-logic,
-// components) comes from the shared scripts/helpers/game-demo-scaffold.js
+// components) comes from the shared scripts/demoBooks/game-demo-scaffold.js
 // module — the same one scripts/helpers/scaffold.js (repo mode) uses. There is
 // only one copy of the demo content to maintain; this file's own job is just
 // the flat/multi-workspace-specific mechanics (writing files to disk,
@@ -26,7 +26,7 @@
 import fs from 'fs'
 import path from 'path'
 import { WORKSPACE_CONFIG_FILENAME } from './config-filenames.js'
-import { gameDemoScaffold, gameDemoWorkspaceConfig } from './game-demo-scaffold.js'
+import { gameDemoScaffold, gameDemoWorkspaceConfig } from '../demoBooks/game-demo-scaffold.js'
 
 function writeFile(dir, relPath, content) {
   const fullPath = path.join(dir, relPath)

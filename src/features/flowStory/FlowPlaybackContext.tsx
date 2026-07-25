@@ -64,7 +64,7 @@ const FlowPlaybackContext =
   createContext<FlowPlaybackValue | null>(null)
 
 export function FlowPlaybackProvider({ children }: { children: React.ReactNode }) {
-  const { flowPlaySetDb, resetDb, setActiveFlowHomeScreen } = useDashboard()
+  const { flowPlaySetDb, resetDb, setActiveStoryStart } = useDashboard()
   const flowLens = useFlowLensModeOptional()
   const recorder = useSessionRecorderShared()
   const replayActive = flowLens?.replayActive ?? false
@@ -91,22 +91,22 @@ export function FlowPlaybackProvider({ children }: { children: React.ReactNode }
       workingDbRef.current = copy
       flowPlaySetDb(copy)
       setActiveFlowStory(compiled)
-      setActiveFlowHomeScreen(compiled.__flowStory.homeScreen ?? null)
+      setActiveStoryStart(compiled.__flowStory.homeScreen ?? null)
       setCurrentStepIndex(0)
       // Auto-record: only fires when the ActionCenter toggle is ON (recorder.setAutoStartOnFlow syncs it).
       if (recorder && !recorder.isRecording) recorder.autoStartSession()
     },
-    [replayActive, flowPlaySetDb, recorder, setActiveFlowHomeScreen]
+    [replayActive, flowPlaySetDb, recorder, setActiveStoryStart]
   )
 
   const exit = useCallback(() => {
     setActiveFlowStory(null)
-    setActiveFlowHomeScreen(null)
+    setActiveStoryStart(null)
     setCurrentStepIndex(-1)
     workingDbRef.current = {}
     baselineDbRef.current = {}
     resetDb()
-  }, [resetDb, setActiveFlowHomeScreen])
+  }, [resetDb, setActiveStoryStart])
 
   const restart = useCallback(() => {
     if (!activeFlowStory) return

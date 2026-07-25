@@ -87,7 +87,7 @@ Creates a new workspace under `workspaces/<name>/` with the full folder structur
 
 By default the demo content is a playable 7-chapter arcade ("Game Zone" — a splash/welcome
 intro into a hub of 6 mini-games: Blackjack, Dice, Tic-Tac-Toe, 2048, Memory Match, Math
-Quiz), sourced from `scripts/helpers/game-demo-scaffold.js` — the single shared module also
+Quiz), sourced from `scripts/demoBooks/game-demo-scaffold.js` — the single shared module also
 used by `create:workspace`/`create-flowkit-app`/`create-flowkit-workspace`, so all four
 scaffolding entry points ship byte-identical demo content. Pass `--empty` for a bare,
 zero-chapter workspace instead (see the flags table below).

@@ -7,9 +7,9 @@ import { libraryDir, workspacePageIds } from './_shared.js'
 
 export function cmdSessionsSample(val) {
   const ws = resolveWorkspace(val)
-  const screens = [...workspacePageIds(ws)]
-  if (screens.length === 0) {
-    console.error(r(`✗ "${ws}" has no screens to sample from — create a flow first.`))
+  const pages = [...workspacePageIds(ws)]
+  if (pages.length === 0) {
+    console.error(r(`✗ "${ws}" has no pages to sample from — create a chapter first.`))
     process.exit(1)
   }
 
@@ -24,17 +24,17 @@ export function cmdSessionsSample(val) {
     timestamp: seq * 600,
     payload,
   })
-  const events = [ev('screen.visited', { pageId: screens[0] })]
-  for (let i = 1; i < screens.length; i++) {
-    events.push(ev('interaction.tap', { pageId: screens[i - 1], elementId: 'primary-cta' }))
-    events.push(ev('navigation.programmatic', { to: screens[i], from: screens[i - 1] }))
-    events.push(ev('screen.visited', { pageId: screens[i] }))
+  const events = [ev('page.visited', { pageId: pages[0] })]
+  for (let i = 1; i < pages.length; i++) {
+    events.push(ev('interaction.tap', { pageId: pages[i - 1], elementId: 'primary-cta' }))
+    events.push(ev('navigation.programmatic', { to: pages[i], from: pages[i - 1] }))
+    events.push(ev('page.visited', { pageId: pages[i] }))
   }
-  events.push(ev('flow.completed', { flowId: 'sample' }))
+  events.push(ev('chapter.completed', { chapterId: 'sample' }))
 
   const cursorSamples = []
   let cseq = 0
-  for (const sid of screens)
+  for (const sid of pages)
     for (let i = 0; i < 30; i++) {
       cursorSamples.push({
         sessionId: id,
@@ -79,7 +79,7 @@ export function cmdSessionsSample(val) {
       d(`→ workspaces/${ws}/lib/flowLens/sessions/…/${path.basename(dest)}`)
   )
   console.log(
-    d(`  ${screens.length} screens · ${events.length} events · marked [test]. Remove with: `) +
+    d(`  ${pages.length} pages · ${events.length} events · marked [test]. Remove with: `) +
       c(`flowkit sessions:rm ${id}`)
   )
 }

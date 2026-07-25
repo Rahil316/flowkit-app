@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react'
 // ── useFlowStoryElementCheck ──────────────────────────────────────────────────────
 //
 // Authoring-time diagnostic: a flowStory step's `on` field names a DOM element id
-// the screen is expected to render. If the screen never actually sets that id
-// (author forgot it, renamed it, or the screen's advance button uses custom
+// the page is expected to render. If the page never actually sets that id
+// (author forgot it, renamed it, or the page's advance button uses custom
 // logic instead), the step silently degrades to "off-script on every tap" —
 // nothing errors, so the mismatch was previously invisible.
 //
@@ -18,12 +18,12 @@ import { useEffect, useState } from 'react'
 //      the broken step is actually reached during playback.
 
 export interface FlowStoryElementCheckResult {
-  /** True when `on` is set but no matching element exists on the active screen. */
+  /** True when `on` is set but no matching element exists on the active page. */
   missing: boolean
 }
 
 export function useFlowStoryElementCheck(
-  screenContainerRef: React.RefObject<HTMLElement | null>,
+  pageContainerRef: React.RefObject<HTMLElement | null>,
   params: {
     flowStoryId?: string
     stepIndex: number
@@ -43,20 +43,20 @@ export function useFlowStoryElementCheck(
         setMissing(false)
         return
       }
-      const el = screenContainerRef.current?.querySelector(`#${CSS.escape(on)}`)
+      const el = pageContainerRef.current?.querySelector(`#${CSS.escape(on)}`)
       const isMissing = !el
       setMissing(isMissing)
       if (isMissing && import.meta.env.DEV) {
         console.warn(
           `[Flowkit] flowStory "${flowStoryId ?? '?'}" step ${stepIndex + 1} expects ` +
-            `#${on} on screen "${pageId}" but no matching element exists. ` +
+            `#${on} on page "${pageId}" but no matching element exists. ` +
             `Add id="${on}" to the element that should advance this step, or update ` +
-            `the flowStory's "on" field to match the screen's real element id.`
+            `the flowStory's "on" field to match the page's real element id.`
         )
       }
     }, 0)
     return () => clearTimeout(t)
-  }, [screenContainerRef, flowStoryId, stepIndex, pageId, on])
+  }, [pageContainerRef, flowStoryId, stepIndex, pageId, on])
 
   return { missing }
 }

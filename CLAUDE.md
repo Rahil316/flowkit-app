@@ -181,7 +181,7 @@ npm run dev
 
 **CLI (flowkit)**
 
-- `flowkit nw:<name> [--kit:<name>] [--empty]` — scaffold new workspace ✅ (rollback on failure) — **repo mode only**. Default content is a 7-chapter playable game demo (Blackjack, Dice, Tic-Tac-Toe, 2048, Memory Match, Math Quiz behind a hub); `--empty` scaffolds a bare, valid workspace instead (zero chapters, empty db/simulator stubs) — see `scripts/helpers/game-demo-scaffold.js`, the single shared source for this demo content also used by `create:workspace`/`create-flowkit-app`/`create-flowkit-workspace`. No `--lang:` flag anymore — scaffolding is TypeScript-only
+- `flowkit nw:<name> [--kit:<name>] [--empty]` — scaffold new workspace ✅ (rollback on failure) — **repo mode only**. Default content is a 7-chapter playable game demo (Blackjack, Dice, Tic-Tac-Toe, 2048, Memory Match, Math Quiz behind a hub); `--empty` scaffolds a bare, valid workspace instead (zero chapters, empty db/simulator stubs) — see `scripts/demoBooks/game-demo-scaffold.js`, the single shared source for this demo content also used by `create:workspace`/`create-flowkit-app`/`create-flowkit-workspace`. No `--lang:` flag anymore — scaffolding is TypeScript-only
 - `flowkit rw:<name>` — remove workspace — **repo mode only**
 - `flowkit status` — health snapshot: flows, sessions, feedback, agent
 - `flowkit watch` — watch workspace for file changes (help shows `watch:flows`; dispatcher matches `watch`) — **repo mode only**

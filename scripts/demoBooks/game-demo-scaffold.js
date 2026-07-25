@@ -25,7 +25,7 @@
 // gameDemoScaffold() directly instead of hand-porting content, so there is no
 // second copy to keep in sync (unlike the old onboarding demo's two
 // independent, already-drifted hand-ports).
-import { FLOW_BOOK_DIRNAME, FLOW_STORIES_DIRNAME } from './config-filenames.js'
+import { FLOW_BOOK_DIRNAME, FLOW_STORIES_DIRNAME } from '../helpers/config-filenames.js'
 
 const OVERVIEW_MD = `# {{name}} — Project Overview
 

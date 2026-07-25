@@ -129,9 +129,9 @@ export function useNavigationShortcuts({
 
       if (e.shiftKey) {
         // Jump to the first screen of the prev / next flow
-        const flowIdx = chapters.findIndex(f => activeViewId.startsWith(f.id))
-        if (flowIdx === -1) return
-        const nextFlow = chapters[flowIdx + dir]
+        const chapterIdx = chapters.findIndex(f => activeViewId.startsWith(f.id))
+        if (chapterIdx === -1) return
+        const nextFlow = chapters[chapterIdx + dir]
         if (!nextFlow) return
         const firstScreen = (nextFlow.children ?? []).find(v => !v.id.endsWith('-play'))
         if (firstScreen) navigateTo(firstScreen.id)

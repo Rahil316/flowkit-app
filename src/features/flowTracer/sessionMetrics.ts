@@ -12,13 +12,13 @@ export interface PageMetrics {
   entryCount: number
 }
 
-export interface FlowMetrics {
-  flowId: string
+export interface ChapterMetrics {
+  chapterId: string
   entryCount: number
   completionCount: number
   blockedCount: number
   completionRate: number // 0–1
-  avgDuration: number // ms from flow.entered to flow.completed
+  avgDuration: number // ms from chapter.entered to chapter.completed
 }
 
 export interface SessionMetrics {
@@ -31,11 +31,19 @@ export interface SessionMetrics {
   interactionBreakdown: Record<string, number>
   remarksCount: number
   pageMetrics: PageMetrics[]
-  flowMetrics: FlowMetrics[]
+  chapterMetrics: ChapterMetrics[]
   qualityScore: number
 }
 
 // ─── Single-session metrics ───────────────────────────────────────────────────
+
+// FlowEngine writes `chapterId` today; sessions recorded before that rename
+// still have the payload keyed `flowId`. Read either so historical session
+// files on disk keep working — this is a read-side compatibility shim, not
+// a schema FlowEngine should ever write going forward.
+function readChapterId(payload: Record<string, unknown>): string {
+  return (payload.chapterId as string) ?? (payload.flowId as string)
+}
 
 export function computeSessionMetrics(session: SessionExport): SessionMetrics {
   const { meta, events } = session
@@ -47,9 +55,9 @@ export function computeSessionMetrics(session: SessionExport): SessionMetrics {
   const pageFrustrated: Record<string, number> = {}
   const chaptersEntered = new Set<string>()
   const chaptersCompleted = new Set<string>()
-  const flowEntryTimes: Record<string, number[]> = {}
-  const flowCompletionTimes: Record<string, number[]> = {}
-  const flowBlockedSet = new Set<string>()
+  const chapterEntryTimes: Record<string, number[]> = {}
+  const chapterCompletionTimes: Record<string, number[]> = {}
+  const chapterBlockedSet = new Set<string>()
   const navBreakdown: Record<string, number> = {}
   const interactionBreakdown: Record<string, number> = {}
 
@@ -82,18 +90,18 @@ export function computeSessionMetrics(session: SessionExport): SessionMetrics {
     } else if (ev.type.startsWith('interaction.')) {
       interactionBreakdown[ev.type] = (interactionBreakdown[ev.type] ?? 0) + 1
     } else if (ev.type === 'chapter.entered') {
-      const fid = ev.payload.flowId as string
+      const fid = readChapterId(ev.payload)
       chaptersEntered.add(fid)
-      flowEntryTimes[fid] = flowEntryTimes[fid] ?? []
-      flowEntryTimes[fid].push(ev.timestamp)
+      chapterEntryTimes[fid] = chapterEntryTimes[fid] ?? []
+      chapterEntryTimes[fid].push(ev.timestamp)
     } else if (ev.type === 'chapter.completed') {
-      const fid = ev.payload.flowId as string
+      const fid = readChapterId(ev.payload)
       chaptersCompleted.add(fid)
-      flowCompletionTimes[fid] = flowCompletionTimes[fid] ?? []
-      flowCompletionTimes[fid].push(ev.timestamp)
+      chapterCompletionTimes[fid] = chapterCompletionTimes[fid] ?? []
+      chapterCompletionTimes[fid].push(ev.timestamp)
     } else if (ev.type === 'chapter.blocked') {
-      const fid = ev.payload.flowId as string
-      flowBlockedSet.add(fid)
+      const fid = readChapterId(ev.payload)
+      chapterBlockedSet.add(fid)
     } else if (ev.type.startsWith('navigation.')) {
       navBreakdown[ev.type] = (navBreakdown[ev.type] ?? 0) + 1
     }
@@ -118,18 +126,18 @@ export function computeSessionMetrics(session: SessionExport): SessionMetrics {
     }
   })
 
-  const flowMetrics: FlowMetrics[] = Array.from(chaptersEntered).map(fid => {
-    const entries = (flowEntryTimes[fid] ?? []).length
-    const completions = (flowCompletionTimes[fid] ?? []).length
-    const avgDuration = computeAvgFlowDuration(
-      flowEntryTimes[fid] ?? [],
-      flowCompletionTimes[fid] ?? []
+  const chapterMetrics: ChapterMetrics[] = Array.from(chaptersEntered).map(fid => {
+    const entries = (chapterEntryTimes[fid] ?? []).length
+    const completions = (chapterCompletionTimes[fid] ?? []).length
+    const avgDuration = computeAvgChapterDuration(
+      chapterEntryTimes[fid] ?? [],
+      chapterCompletionTimes[fid] ?? []
     )
     return {
-      flowId: fid,
+      chapterId: fid,
       entryCount: entries,
       completionCount: completions,
-      blockedCount: flowBlockedSet.has(fid) ? 1 : 0,
+      blockedCount: chapterBlockedSet.has(fid) ? 1 : 0,
       completionRate: entries > 0 ? completions / entries : 0,
       avgDuration,
     }
@@ -145,12 +153,12 @@ export function computeSessionMetrics(session: SessionExport): SessionMetrics {
     interactionBreakdown,
     remarksCount: meta.remarks.length,
     pageMetrics,
-    flowMetrics,
+    chapterMetrics,
     qualityScore: meta.qualityScore,
   }
 }
 
-function computeAvgFlowDuration(entries: number[], completions: number[]): number {
+function computeAvgChapterDuration(entries: number[], completions: number[]): number {
   if (entries.length === 0 || completions.length === 0) return 0
   const pairs = Math.min(entries.length, completions.length)
   let total = 0

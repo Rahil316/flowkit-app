@@ -439,15 +439,15 @@ function FunnelTab({
   onViewAll: () => void
 }) {
   return (
-    <TabBody title="Funnel" hint="Flow completion" onViewAll={onViewAll}>
-      {metrics.flowMetrics.length === 0 ? (
-        <EmptyHint label="No flows entered" />
+    <TabBody title="Funnel" hint="Chapter completion" onViewAll={onViewAll}>
+      {metrics.chapterMetrics.length === 0 ? (
+        <EmptyHint label="No chapters entered" />
       ) : (
         <div className="flex flex-col gap-2">
-          {metrics.flowMetrics.map(f => (
-            <div key={f.flowId}>
+          {metrics.chapterMetrics.map(f => (
+            <div key={f.chapterId}>
               <div className="flex justify-between text-ui-2xs mb-1">
-                <span className="text-theme-text-secondary">{f.flowId}</span>
+                <span className="text-theme-text-secondary">{f.chapterId}</span>
                 <span
                   style={{
                     color:

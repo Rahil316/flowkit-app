@@ -80,8 +80,8 @@ export interface DashboardContextValue extends DashboardState {
   firstViewId: string
   workspaceConfig: WorkspaceConfig
   /** Active flowStory's declared home screen (FlowStoryDef.homeScreen), or null when unset/no flow active. */
-  activeFlowHomeScreen: string | null
-  setActiveFlowHomeScreen: (pageId: string | null) => void
+  activeStoryStart: string | null
+  setActiveStoryStart: (pageId: string | null) => void
   activeFlowDebugInfo: FlowDebugInfo | null
   setActiveFlowDebugInfo: (info: FlowDebugInfo | null) => void
   flowAutoPlayOverride: Partial<AutoPlayConfig> | null
@@ -156,7 +156,7 @@ export function DashboardProvider({
 
   // FlowMaster states
   const [activeFlowDebugInfo, setActiveFlowDebugInfo] = useState<FlowDebugInfo | null>(null)
-  const [activeFlowHomeScreen, setActiveFlowHomeScreen] = useState<string | null>(null)
+  const [activeStoryStart, setActiveStoryStart] = useState<string | null>(null)
   const [flowAutoPlayOverride, setFlowAutoPlayOverride] = useState<Partial<AutoPlayConfig> | null>(
     null
   )
@@ -252,7 +252,7 @@ export function DashboardProvider({
       rec('navigation.programmatic', { to: id, from: activeViewId })
       // state.chapter-set fires whenever navigation targets a flow play node
       if (id.endsWith('-play') || id.endsWith('-flow')) {
-        rec('state.chapter-set', { flowId: id })
+        rec('state.chapter-set', { chapterId: id })
       }
     },
     [activeViewId, rec]
@@ -263,19 +263,19 @@ export function DashboardProvider({
     setHistory(h => (h.length > 1 ? h.slice(0, -1) : h))
   }, [])
 
-  const activeFlowHomeScreenRef = useRef(activeFlowHomeScreen)
+  const activeStoryStartRef = useRef(activeStoryStart)
   useLayoutEffect(() => {
-    activeFlowHomeScreenRef.current = activeFlowHomeScreen
+    activeStoryStartRef.current = activeStoryStart
   })
 
   const goHome = useCallback(() => {
     setActiveFlowDebugInfo(null)
-    setHistory([activeFlowHomeScreenRef.current ?? firstViewId])
+    setHistory([activeStoryStartRef.current ?? firstViewId])
   }, [firstViewId])
 
   const resetToFirst = useCallback(() => {
     setActiveFlowDebugInfo(null)
-    setHistory([activeFlowHomeScreenRef.current ?? firstViewId])
+    setHistory([activeStoryStartRef.current ?? firstViewId])
   }, [firstViewId])
 
   const setDevicePreset = useCallback(
@@ -372,8 +372,8 @@ export function DashboardProvider({
       setSimulatorEnabled,
       firstViewId,
       workspaceConfig: workspaceConfig ?? {},
-      activeFlowHomeScreen,
-      setActiveFlowHomeScreen,
+      activeStoryStart,
+      setActiveStoryStart,
       activeFlowDebugInfo,
       setActiveFlowDebugInfo,
       flowAutoPlayOverride,
@@ -420,7 +420,7 @@ export function DashboardProvider({
       setSimulatorEnabled,
       firstViewId,
       workspaceConfig,
-      activeFlowHomeScreen,
+      activeStoryStart,
       activeFlowDebugInfo,
       setActiveFlowDebugInfo,
       flowAutoPlayOverride,

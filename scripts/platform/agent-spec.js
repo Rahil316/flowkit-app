@@ -134,7 +134,7 @@ export function directives(ctx) {
         kind: 'to',
         task: 'make a page freely navigable from the Screens tab (no chapter active) as well as during chapter playback',
         action:
-          "`const { navigateTo } = useAppNav()` (from `@flowkit-shared/utils`), then call it unconditionally: `onClick={() => navigateTo(id)}`. `useAppNav()` picks FlowMaster's chapter-aware navigateTo when the page is rendered inside a chapter, or DashboardContext's otherwise — no `isChapter` check needed in the page's own code. See scripts/helpers/game-demo-scaffold.js's demo pages for the pattern.",
+          "`const { navigateTo } = useAppNav()` (from `@flowkit-shared/utils`), then call it unconditionally: `onClick={() => navigateTo(id)}`. `useAppNav()` picks FlowMaster's chapter-aware navigateTo when the page is rendered inside a chapter, or DashboardContext's otherwise — no `isChapter` check needed in the page's own code. See scripts/demoBooks/game-demo-scaffold.js's demo pages for the pattern.",
       },
       {
         kind: 'never',

@@ -3,16 +3,16 @@ import { FLOWLENS_ACCENT } from '../flowLensTheme'
 
 interface Props {
   nodes: PathNode[]
-  onScreenClick?: (pageId: string) => void
+  onPageClick?: (pageId: string) => void
 }
 
-export default function PathsView({ nodes, onScreenClick }: Props) {
+export default function PathsView({ nodes, onPageClick }: Props) {
   const maxCount = nodes[0]?.count ?? 1
 
   return (
     <div className="h-full overflow-y-auto p-3">
       <div className="text-[10px] text-theme-text-muted mb-3 font-semibold uppercase tracking-wider">
-        Screen navigation paths
+        Page navigation paths
       </div>
 
       {nodes.length === 0 ? (
@@ -26,9 +26,9 @@ export default function PathsView({ nodes, onScreenClick }: Props) {
             {/* Source node */}
             <div
               className={`py-2 px-3 flex items-center gap-2 ${
-                onScreenClick ? 'cursor-pointer' : 'cursor-default'
-              } ${Object.keys(node.nextScreens).length > 0 ? 'border-b border-theme-border' : ''}`}
-              onClick={() => onScreenClick?.(node.pageId)}
+                onPageClick ? 'cursor-pointer' : 'cursor-default'
+              } ${Object.keys(node.nextPages).length > 0 ? 'border-b border-theme-border' : ''}`}
+              onClick={() => onPageClick?.(node.pageId)}
             >
               <div
                 className="h-1 min-w-1 max-w-20 rounded-sm shrink-0"
@@ -41,17 +41,17 @@ export default function PathsView({ nodes, onScreenClick }: Props) {
               <span className="text-theme-text-muted text-ui-2xs shrink-0">{node.count}×</span>
             </div>
 
-            {/* Next screens */}
-            {Object.entries(node.nextScreens)
+            {/* Next pages */}
+            {Object.entries(node.nextPages)
               .sort((a, b) => b[1] - a[1])
               .slice(0, 4)
               .map(([nextId, count]) => (
                 <div
                   key={nextId}
                   className={`py-1.25 pr-3 pl-7 flex items-center gap-2 ${
-                    onScreenClick ? 'cursor-pointer' : 'cursor-default'
+                    onPageClick ? 'cursor-pointer' : 'cursor-default'
                   }`}
-                  onClick={() => onScreenClick?.(nextId)}
+                  onClick={() => onPageClick?.(nextId)}
                 >
                   <span className="text-theme-text-disabled text-[10px]">→</span>
                   <span className="flex-1 text-ui-2xs text-theme-text-secondary truncate">

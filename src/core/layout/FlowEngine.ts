@@ -17,7 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 export interface FlowStoryGate {
   /** Planned tap target element id for the current step, or undefined (tap-anywhere). */
   currentOn?: string
-  /** Resolved advance target for the current step — a screen id, "__complete__",
+  /** Resolved advance target for the current step — a page id, "__complete__",
    *  or a fork resolver function called fresh at gate-check time with {db, flowState}. */
   currentNext: InteractionRule['goTo'] | undefined
   strictMode: boolean
@@ -27,7 +27,7 @@ export interface FlowEngineOptions {
   flowStoryGate?: FlowStoryGate | null
   /**
    * Delay (ms) before the completion navigateTo/onComplete fires, once the
-   * flow reaches '__complete__' or runs out of screens on 'next'. Default 0
+   * flow reaches '__complete__' or runs out of pages on 'next'. Default 0
    * (today's synchronous behavior). FlowMaster sets this when Blind Mode is
    * active so the pass/fail summary has a visible window before FlowMaster
    * unmounts — without this, navigateTo fires in the same tick as the
@@ -68,8 +68,8 @@ export const BACK_ANIM: Partial<Record<TransitionAnimation, TransitionAnimation>
 
 export interface FlowEngineReturn {
   // State
-  activeScreenIndex: number
-  activeScreen: ChapterConfig['pages'][number] | undefined
+  activePageIndex: number
+  activePage: ChapterConfig['pages'][number] | undefined
   activePageId: string // T5: tags cursor.sample events
   history: string[]
   localState: Record<string, unknown>
@@ -81,7 +81,7 @@ export interface FlowEngineReturn {
   autoPlay: (ChapterConfig['autoPlay'] & Record<string, unknown>) | null
 
   // Refs — stable identity across renders
-  screenContainerRef: React.RefObject<HTMLDivElement | null> // T5: cursor listener attachment
+  pageContainerRef: React.RefObject<HTMLDivElement | null> // T5: cursor listener attachment
 
   // Dispatch — stable, instrumented by name (T5 wires by function name, not line number)
   resetEngine: () => void
@@ -99,7 +99,7 @@ export interface FlowEngineReturn {
   onAction: (actionName: string) => void
   skipToLast: () => void
   setIsAutoPlayPaused: (v: boolean) => void
-  navigateToScreen: (
+  navigateToPage: (
     nextIdx: number,
     logEntry: TransitionLogEntry,
     animation?: TransitionAnimation
@@ -108,7 +108,10 @@ export interface FlowEngineReturn {
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
-export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions): FlowEngineReturn {
+export function useFlowEngine(
+  chapter: ChapterConfig,
+  options?: FlowEngineOptions
+): FlowEngineReturn {
   const flowStoryGate = options?.flowStoryGate ?? null
   const completionDelayMs = options?.completionDelayMs ?? 0
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -135,19 +138,21 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
   })
   const recorder = recorderRef
 
-  // ─── Screen lookup ────────────────────────────────────────────────────────
-  const findScreenIndex = useCallback(
-    (idOrLabel: string) => flow.pages.findIndex(s => s.id === idOrLabel || s.label === idOrLabel),
-    [flow.pages]
+  // ─── Page lookup ─────────────────────────────────────────────────────────
+  const findPageIndex = useCallback(
+    (idOrLabel: string) =>
+      chapter.pages.findIndex(s => s.id === idOrLabel || s.label === idOrLabel),
+    [chapter.pages]
   )
 
-  const initialScreenName = flow.initialPage || flow.pages[0]?.id || flow.pages[0]?.label || ''
-  const initialIndex = findScreenIndex(initialScreenName)
+  const initialPageName =
+    chapter.initialPage || chapter.pages[0]?.id || chapter.pages[0]?.label || ''
+  const initialIndex = findPageIndex(initialPageName)
 
   // ─── State ────────────────────────────────────────────────────────────────
-  const [activeScreenIndex, setActiveScreenIndex] = useState(initialIndex !== -1 ? initialIndex : 0)
-  const [history, setHistory] = useState<string[]>([initialScreenName])
-  const screenEntryTimeRef = useRef<number>(0)
+  const [activePageIndex, setActivePageIndex] = useState(initialIndex !== -1 ? initialIndex : 0)
+  const [history, setHistory] = useState<string[]>([initialPageName])
+  const pageEntryTimeRef = useRef<number>(0)
   const [localState, setLocalState] = useState<Record<string, unknown>>({})
   const [transitionLog, setTransitionLog] = useState<TransitionLogEntry[]>([])
   const [effects, setEffects] = useState<string[]>([])
@@ -161,32 +166,32 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
   const animEndTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const autoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const delayTimersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set())
-  const screenContainerRef = useRef<HTMLDivElement | null>(null)
-  const prevFlowIdRef = useRef(flow.id)
+  const pageContainerRef = useRef<HTMLDivElement | null>(null)
+  const prevChapterRef = useRef(chapter.id)
 
   // ─── Merged auto-play config (runtime override wins) ──────────────────────
   const autoPlay = useMemo(() => {
-    if (!flow.autoPlay && !flowAutoPlayOverride) return null
-    return { ...flow.autoPlay, ...flowAutoPlayOverride } as FlowEngineReturn['autoPlay']
-  }, [flow.autoPlay, flowAutoPlayOverride])
+    if (!chapter.autoPlay && !flowAutoPlayOverride) return null
+    return { ...chapter.autoPlay, ...flowAutoPlayOverride } as FlowEngineReturn['autoPlay']
+  }, [chapter.autoPlay, flowAutoPlayOverride])
 
   // ─── Flow-level entry guard ───────────────────────────────────────────────
   const isAllowed = useMemo(() => {
-    if (flow.canNotEnter && flow.canNotEnter({ db })) return false
-    if (flow.canEnter && !flow.canEnter({ db })) return false
+    if (chapter.canNotEnter && chapter.canNotEnter({ db })) return false
+    if (chapter.canEnter && !chapter.canEnter({ db })) return false
     return true
     // flow omitted — only the guard functions and db drive re-evaluation; adding
     // the whole flow object would re-run on every unrelated flow prop change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flow.canNotEnter, flow.canEnter, db])
+  }, [chapter.canNotEnter, chapter.canEnter, db])
 
   useEffect(() => {
     if (!isAllowed) {
-      recorder.current?.logEvent('chapter.blocked', { flowId: flow.id })
-      navigateTo(flow.canEnterFallback || firstViewId || 'home')
+      recorder.current?.logEvent('chapter.blocked', { chapterId: chapter.id })
+      navigateTo(chapter.canEnterFallback || firstViewId || 'home')
     } else {
-      screenEntryTimeRef.current = performance.now()
-      recorder.current?.logEvent('chapter.entered', { flowId: flow.id, label: flow.label })
+      pageEntryTimeRef.current = performance.now()
+      recorder.current?.logEvent('chapter.entered', { chapterId: chapter.id, label: chapter.label })
     }
     // Stable refs (recorder, navigateTo, flow.id) intentionally omitted — only
     // the guard result should trigger entry/redirect logic.
@@ -194,15 +199,15 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
   }, [isAllowed])
 
   // ─── Sync debugger ────────────────────────────────────────────────────────
-  const activeScreen = flow.pages[activeScreenIndex]
-  const activePageId = activeScreen?.id ?? activeScreen?.label ?? ''
-  const activeScreenLabel = activePageId
+  const activePage = chapter.pages[activePageIndex]
+  const activePageId = activePage?.id ?? activePage?.label ?? ''
+  const activePageLabel = activePageId
 
   useEffect(() => {
     if (!isAllowed) return
     const historyList = history.map(h => {
-      const idx = findScreenIndex(h)
-      return idx !== -1 ? flow.pages[idx].id || flow.pages[idx].label : h
+      const idx = findPageIndex(h)
+      return idx !== -1 ? chapter.pages[idx].id || chapter.pages[idx].label : h
     })
     setActiveFlowDebugInfo({ history: historyList, state: localState, transitionLog, effects })
   }, [
@@ -212,8 +217,8 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
     transitionLog,
     effects,
     setActiveFlowDebugInfo,
-    findScreenIndex,
-    flow.pages,
+    findPageIndex,
+    chapter.pages,
   ])
 
   useEffect(
@@ -223,20 +228,20 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
     [setActiveFlowDebugInfo]
   )
 
-  // ─── Screen-level entry guard ─────────────────────────────────────────────
-  const screenPassesGuard = useCallback(
+  // ─── Page-level entry guard ───────────────────────────────────────────────
+  const pagePassesGuard = useCallback(
     (idx: number): boolean => {
-      const screen = flow.pages[idx]
-      if (!screen?.meta) return true
-      if (screen.meta.canNotEnter && screen.meta.canNotEnter({ db })) return false
-      if (screen.meta.canEnter && !screen.meta.canEnter({ db })) return false
+      const page = chapter.pages[idx]
+      if (!page?.meta) return true
+      if (page.meta.canNotEnter && page.meta.canNotEnter({ db })) return false
+      if (page.meta.canEnter && !page.meta.canEnter({ db })) return false
       return true
     },
-    [flow.pages, db]
+    [chapter.pages, db]
   )
 
-  // ─── Animated screen transition ───────────────────────────────────────────
-  const navigateToScreen = useCallback(
+  // ─── Animated page transition ─────────────────────────────────────────────
+  const navigateToPage = useCallback(
     (
       nextIdx: number,
       logEntry: TransitionLogEntry,
@@ -244,24 +249,24 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
       historyMode: 'push' | 'pop' = 'push'
     ) => {
       const commit = () => {
-        const s = flow.pages[nextIdx]
+        const s = chapter.pages[nextIdx]
         const name = s.id || s.label
-        // Emit dwell-end for the screen we're leaving
-        const dwell = performance.now() - screenEntryTimeRef.current
+        // Emit dwell-end for the page we're leaving
+        const dwell = performance.now() - pageEntryTimeRef.current
         recorder.current?.logEvent('page.dwell-end', {
           pageId: logEntry.fromPage,
           dwellMs: Math.round(dwell),
-          flowId: flow.id,
+          chapterId: chapter.id,
         })
-        screenEntryTimeRef.current = performance.now()
-        setActiveScreenIndex(nextIdx)
-        // "push" appends the new screen; "pop" (back nav) drops the current tail
+        pageEntryTimeRef.current = performance.now()
+        setActivePageIndex(nextIdx)
+        // "push" appends the new page; "pop" (back nav) drops the current tail
         // so history shrinks instead of duplicating the target.
         setHistory(h => (historyMode === 'pop' ? h.slice(0, -1) : [...h, name]))
         setTransitionLog(prev => [...prev, { ...logEntry, toPage: name }])
         recorder.current?.logEvent('page.visited', {
           pageId: name,
-          flowId: flow.id,
+          chapterId: chapter.id,
           from: logEntry.fromPage,
           action: logEntry.action,
         })
@@ -286,9 +291,9 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
       }, ANIM_DURATION)
     },
     // State setters and recorder ref are stable; flow.id is structurally stable
-    // per flow instance. Only flow.pages drives screen-lookup re-computation.
+    // per flow instance. Only flow.pages drives page-lookup re-computation.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [flow.pages]
+    [chapter.pages]
   )
 
   // ─── Build InteractionCtx ─────────────────────────────────────────────────
@@ -337,15 +342,15 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
             {
               timestamp,
               action: actionName,
-              fromPage: activeScreenLabel,
+              fromPage: activePageLabel,
               toPage: `[Blocked: ${target}]`,
               warnings,
             },
           ])
           recorder.current?.logEvent('page.blocked', {
             pageId: target,
-            flowId: flow.id,
-            fromPage: activeScreenLabel,
+            chapterId: chapter.id,
+            fromPage: activePageLabel,
             strict: true,
           })
           return
@@ -358,49 +363,49 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
           {
             timestamp,
             action: actionName,
-            fromPage: activeScreenLabel,
+            fromPage: activePageLabel,
             toPage: '[Flow Completed]',
             warnings,
           },
         ])
         recorder.current?.logEvent('chapter.completed', {
-          flowId: flow.id,
-          fromPage: activeScreenLabel,
+          chapterId: chapter.id,
+          fromPage: activePageLabel,
         })
         if (completionTimerRef.current) clearTimeout(completionTimerRef.current)
         completionTimerRef.current = setTimeout(() => {
-          if (flow.onComplete) flow.onComplete(navigateTo)
+          if (chapter.onComplete) chapter.onComplete(navigateTo)
           else navigateTo(firstViewId || 'home')
         }, completionDelayMs)
         return
       }
       if (target === 'next') {
-        let nextIndex = activeScreenIndex + 1
-        while (nextIndex < flow.pages.length && !screenPassesGuard(nextIndex)) nextIndex++
-        if (nextIndex >= flow.pages.length) {
+        let nextIndex = activePageIndex + 1
+        while (nextIndex < chapter.pages.length && !pagePassesGuard(nextIndex)) nextIndex++
+        if (nextIndex >= chapter.pages.length) {
           setTransitionLog(prev => [
             ...prev,
             {
               timestamp,
               action: actionName,
-              fromPage: activeScreenLabel,
+              fromPage: activePageLabel,
               toPage: '[Flow Completed]',
               warnings,
             },
           ])
           if (completionTimerRef.current) clearTimeout(completionTimerRef.current)
           completionTimerRef.current = setTimeout(() => {
-            if (flow.onComplete) flow.onComplete(navigateTo)
+            if (chapter.onComplete) chapter.onComplete(navigateTo)
             else navigateTo(firstViewId || 'home')
           }, completionDelayMs)
           return
         }
-        navigateToScreen(
+        navigateToPage(
           nextIndex,
           {
             timestamp,
             action: actionName,
-            fromPage: activeScreenLabel,
+            fromPage: activePageLabel,
             toPage: '',
             warnings,
           },
@@ -411,17 +416,17 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
       if (target === 'back') {
         if (history.length > 1) {
           const prevName = history[history.length - 2]
-          const prevIdx = findScreenIndex(prevName)
+          const prevIdx = findPageIndex(prevName)
           if (prevIdx !== -1) {
             const backAnim = BACK_ANIM[animation] ?? animation
-            // historyMode "pop" — navigateToScreen drops the current tail so we
+            // historyMode "pop" — navigateToPage drops the current tail so we
             // land on prevName with history shrunk (no duplicate append).
-            navigateToScreen(
+            navigateToPage(
               prevIdx,
               {
                 timestamp,
                 action: actionName,
-                fromPage: activeScreenLabel,
+                fromPage: activePageLabel,
                 toPage: prevName,
                 warnings,
               },
@@ -435,60 +440,60 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
         return
       }
 
-      const nextIdx = findScreenIndex(target)
+      const nextIdx = findPageIndex(target)
       if (nextIdx === -1) {
         setTransitionLog(prev => [
           ...prev,
           {
             timestamp,
             action: actionName,
-            fromPage: activeScreenLabel,
+            fromPage: activePageLabel,
             toPage: `[External: ${target}]`,
             warnings,
           },
         ])
         recorder.current?.logEvent('chapter.exited-early', {
-          flowId: flow.id,
-          fromPage: activeScreenLabel,
+          chapterId: chapter.id,
+          fromPage: activePageLabel,
           to: target,
         })
         navigateTo(target)
         return
       }
-      if (nextIdx === activeScreenIndex) {
+      if (nextIdx === activePageIndex) {
         setTransitionLog(prev => [
           ...prev,
           {
             timestamp,
             action: actionName,
-            fromPage: activeScreenLabel,
+            fromPage: activePageLabel,
             toPage: `${target} (state updated)`,
             warnings,
           },
         ])
         return
       }
-      if (!screenPassesGuard(nextIdx)) {
-        warnings.push(`Navigation to "${target}" blocked — screen guard denied.`)
+      if (!pagePassesGuard(nextIdx)) {
+        warnings.push(`Navigation to "${target}" blocked — page guard denied.`)
         setTransitionLog(prev => [
           ...prev,
           {
             timestamp,
             action: actionName,
-            fromPage: activeScreenLabel,
+            fromPage: activePageLabel,
             toPage: `[Blocked: ${target}]`,
             warnings,
           },
         ])
         recorder.current?.logEvent('page.blocked', {
           pageId: target,
-          flowId: flow.id,
-          fromPage: activeScreenLabel,
+          chapterId: chapter.id,
+          fromPage: activePageLabel,
         })
         recorder.current?.logEvent('chapter.transition', {
-          flowId: flow.id,
+          chapterId: chapter.id,
           action: actionName,
-          from: activeScreenLabel,
+          from: activePageLabel,
           to: target,
           blocked: true,
           warnings,
@@ -497,10 +502,10 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
       }
 
       const resolvedAnim =
-        animation !== 'none' ? animation : (flow.pages[nextIdx].enterAnimation ?? 'none')
-      navigateToScreen(
+        animation !== 'none' ? animation : (chapter.pages[nextIdx].enterAnimation ?? 'none')
+      navigateToPage(
         nextIdx,
-        { timestamp, action: actionName, fromPage: activeScreenLabel, toPage: '', warnings },
+        { timestamp, action: actionName, fromPage: activePageLabel, toPage: '', warnings },
         resolvedAnim
       )
     },
@@ -509,15 +514,15 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
     // db are read only inside the flowStory gate branch (fork resolver call).
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
-      activeScreenLabel,
-      activeScreenIndex,
-      flow,
+      activePageLabel,
+      activePageIndex,
+      chapter,
       history,
       firstViewId,
-      findScreenIndex,
+      findPageIndex,
       navigateTo,
-      navigateToScreen,
-      screenPassesGuard,
+      navigateToPage,
+      pagePassesGuard,
       flowStoryGate,
       localState,
       db,
@@ -548,7 +553,7 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
         elementId,
         trigger: triggerName,
         pageId: activePageId,
-        flowId: flow.id,
+        chapterId: chapter.id,
         ...(fkId ? { fkId } : {}),
       })
 
@@ -558,7 +563,7 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
           recorder.current?.logEvent('interaction.effect', {
             elementId,
             pageId: activePageId,
-            flowId: flow.id,
+            chapterId: chapter.id,
           })
         } catch (e: unknown) {
           warnings.push(
@@ -574,8 +579,8 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
             {
               timestamp,
               action: `${triggerName} → ${elementId}`,
-              fromPage: activeScreenLabel,
-              toPage: activeScreenLabel + ' (state updated)',
+              fromPage: activePageLabel,
+              toPage: activePageLabel + ' (state updated)',
               warnings,
             },
           ])
@@ -596,8 +601,8 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
             {
               timestamp,
               action: `${triggerName} → ${elementId}`,
-              fromPage: activeScreenLabel,
-              toPage: activeScreenLabel,
+              fromPage: activePageLabel,
+              toPage: activePageLabel,
               warnings,
             },
           ])
@@ -611,9 +616,9 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
       // replay shows WHY a tap misbehaved, not just that it happened.
       if (warnings.length > 0) {
         recorder.current?.logEvent('chapter.transition', {
-          flowId: flow.id,
+          chapterId: chapter.id,
           action: `${triggerName} → ${elementId}`,
-          from: activeScreenLabel,
+          from: activePageLabel,
           to: target,
           error: true,
           warnings,
@@ -635,28 +640,28 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
       } else commit()
     },
     // flow.interactions and delayTimersRef are accessed via buildCtx / stable ref —
-    // both are correctly omitted. activeScreenLabel and commitNavigation are the
+    // both are correctly omitted. activePageLabel and commitNavigation are the
     // only values that meaningfully change the callback's behavior.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [buildCtx, activeScreenLabel, commitNavigation]
+    [buildCtx, activePageLabel, commitNavigation]
   )
 
   // ─── Look up interaction rules for an element id ──────────────────────────
   const getRulesFor = useCallback(
     (elementId: string, trigger: string): InteractionRule[] => {
-      const entry = flow.interactions?.[elementId]
+      const entry = chapter.interactions?.[elementId]
       if (!entry) return []
       const rules = Array.isArray(entry) ? entry : [entry]
       return rules.filter(r => (r.trigger ?? 'tap') === trigger)
     },
-    [flow.interactions]
+    [chapter.interactions]
   )
 
   // ─── onAction (escape hatch for programmatic triggers) ────────────────────
   const onAction = useCallback(
     (actionName: string) => {
       const timestamp = new Date().toLocaleTimeString()
-      const entry = flow.interactions?.[actionName]
+      const entry = chapter.interactions?.[actionName]
       if (entry) {
         const rules = Array.isArray(entry) ? entry : [entry]
         rules.forEach(r => fireRule(r, actionName, 'tap'))
@@ -664,15 +669,15 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
       }
       commitNavigation(actionName, 'none', timestamp, actionName, [])
     },
-    [flow.interactions, fireRule, commitNavigation]
+    [chapter.interactions, fireRule, commitNavigation]
   )
 
-  // ─── Per-screen auto-advance ──────────────────────────────────────────────
+  // ─── Per-page auto-advance ────────────────────────────────────────────────
   useEffect(() => {
     // Auto-play owns advancing when enabled — don't let auto-advance also fire,
-    // or both timers race and a screen gets skipped.
+    // or both timers race and a page gets skipped.
     if (autoPlay?.enabled && !isAutoPlayPaused) return
-    const delay = activeScreen?.autoAdvanceDelay ?? flow.autoAdvanceDelay
+    const delay = activePage?.autoAdvanceDelay ?? chapter.autoAdvanceDelay
     if (delay === undefined) return
     if (autoTimerRef.current) clearTimeout(autoTimerRef.current)
     autoTimerRef.current = setTimeout(() => {
@@ -680,21 +685,21 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
       recorder.current?.logEvent('navigation.auto-advance', {
         pageId: activePageId,
         delayMs: delay,
-        flowId: flow.id,
+        chapterId: chapter.id,
       })
       commitNavigation('next', 'none', timestamp, `auto-advance (${delay}ms)`, [], 'engine')
     }, delay)
     return () => {
       if (autoTimerRef.current) clearTimeout(autoTimerRef.current)
     }
-    // activePageId is derived from activeScreenIndex + activeScreen (already in
+    // activePageId is derived from activePageIndex + activePage (already in
     // deps), so adding it would be redundant. recorder.current is a stable ref.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    activeScreenIndex,
-    activeScreen,
-    flow.autoAdvanceDelay,
-    flow.id,
+    activePageIndex,
+    activePage,
+    chapter.autoAdvanceDelay,
+    chapter.id,
     commitNavigation,
     autoPlay,
     isAutoPlayPaused,
@@ -708,21 +713,21 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
 
     const timer = setTimeout(() => {
       const timestamp = new Date().toLocaleTimeString()
-      if (activeScreenIndex >= flow.pages.length - 1) {
+      if (activePageIndex >= chapter.pages.length - 1) {
         if (autoPlay.loop) {
-          navigateToScreen(
+          navigateToPage(
             0,
             {
               timestamp,
               action: 'auto-play',
-              fromPage: activeScreenLabel,
+              fromPage: activePageLabel,
               toPage: '',
               warnings: [],
             },
             animation
           )
         } else {
-          if (flow.onComplete) flow.onComplete(navigateTo)
+          if (chapter.onComplete) chapter.onComplete(navigateTo)
           else navigateTo(firstViewId || 'home')
         }
       } else {
@@ -732,15 +737,15 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
 
     return () => clearTimeout(timer)
   }, [
-    activeScreenIndex,
+    activePageIndex,
     autoPlay,
     isAutoPlayPaused,
-    flow,
-    activeScreenLabel,
+    chapter,
+    activePageLabel,
     navigateTo,
     firstViewId,
     commitNavigation,
-    navigateToScreen,
+    navigateToPage,
   ])
 
   // ─── Cleanup ──────────────────────────────────────────────────────────────
@@ -762,36 +767,36 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
     if (animEndTimerRef.current) clearTimeout(animEndTimerRef.current)
     delayTimersRef.current.forEach(t => clearTimeout(t))
     delayTimersRef.current.clear()
-    setActiveScreenIndex(initialIndex !== -1 ? initialIndex : 0)
-    setHistory([initialScreenName])
+    setActivePageIndex(initialIndex !== -1 ? initialIndex : 0)
+    setHistory([initialPageName])
     setLocalState({})
     setTransitionLog([])
     setEffects([])
     setAnimClass('')
-  }, [initialIndex, initialScreenName])
+  }, [initialIndex, initialPageName])
 
   // Reset engine when the active flow changes — skip mount since state is already at initial values.
   useEffect(() => {
-    if (prevFlowIdRef.current === flow.id) return
-    prevFlowIdRef.current = flow.id
+    if (prevChapterRef.current === chapter.id) return
+    prevChapterRef.current = chapter.id
     resetEngine()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flow.id])
+  }, [chapter.id])
 
   // ─── Skip to last (debug) ─────────────────────────────────────────────────
   const skipToLast = useCallback(() => {
     ;[autoTimerRef, animTimerRef, animEndTimerRef].forEach(r => {
       if (r.current) clearTimeout(r.current)
     })
-    const last = flow.pages[flow.pages.length - 1]
+    const last = chapter.pages[chapter.pages.length - 1]
     setAnimClass('')
-    setActiveScreenIndex(flow.pages.length - 1)
+    setActivePageIndex(chapter.pages.length - 1)
     setHistory(h => [...h, last.id || last.label])
-  }, [flow.pages])
+  }, [chapter.pages])
 
   return {
-    activeScreenIndex,
-    activeScreen,
+    activePageIndex,
+    activePage,
     activePageId,
     history,
     localState,
@@ -801,7 +806,7 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
     isAutoPlayPaused,
     isAllowed,
     autoPlay,
-    screenContainerRef,
+    pageContainerRef,
     resetEngine,
     commitNavigation,
     fireRule,
@@ -810,6 +815,6 @@ export function useFlowEngine(flow: ChapterConfig, options?: FlowEngineOptions):
     onAction,
     skipToLast,
     setIsAutoPlayPaused,
-    navigateToScreen,
+    navigateToPage,
   }
 }

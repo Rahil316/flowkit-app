@@ -1,12 +1,12 @@
 import { WORKSPACE_CONFIG_FILENAME, FLOW_BOOK_DIRNAME } from './config-filenames.js'
-import { gameDemoScaffold, gameDemoWorkspaceConfig } from './game-demo-scaffold.js'
+import { gameDemoScaffold, gameDemoWorkspaceConfig } from '../demoBooks/game-demo-scaffold.js'
 
 // NOTE: packages/create-flowkit-app/index.js's write*Screen/writeDb/writeFlowStories
 // functions hand-port this same demo content for standalone publishing (it can't
 // import this file — see that file's own top-of-file comment on why). If you add
 // or remove a demo page/chapter here, update it there too — both this file and
 // workspace-template.js pull demo content from the single shared
-// scripts/helpers/game-demo-scaffold.js module, so there is only one place to
+// scripts/demoBooks/game-demo-scaffold.js module, so there is only one place to
 // change; only workspace.ts's own config differs (mode-correct defineConfig
 // import line).
 // scripts/tests/scaffold-consistency.test.js checks structural shape (page/chapter

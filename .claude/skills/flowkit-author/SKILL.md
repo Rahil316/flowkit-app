@@ -105,7 +105,7 @@ flowkit nw:my-app [--kit:<name>] [--empty]
 
 Default scaffold content (as of the 2026-07-24 game-demo rewrite) is a full playable 7-chapter
 demo — a splash/welcome intro into a hub of 6 mini-games (Blackjack, Dice, Tic-Tac-Toe, 2048,
-Memory Match, Math Quiz) — sourced from `scripts/helpers/game-demo-scaffold.js`, the single shared
+Memory Match, Math Quiz) — sourced from `scripts/demoBooks/game-demo-scaffold.js`, the single shared
 module also used by `create:workspace`/`create-flowkit-app`/`create-flowkit-workspace`. Pass
 **`--empty`** for a bare, valid-but-minimal scaffold instead: zero chapters (`chapters: []`,
 `pageOrder: {}`), no `flowBook/`/`flowStories/` directories at all, stub `lib/data/db.ts`/

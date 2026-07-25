@@ -65,13 +65,13 @@ export default function MetricsView({ metrics }: Props) {
         ))}
       </Section>
 
-      {/* Flow metrics */}
-      {metrics.flowMetrics.length > 0 && (
-        <Section title="Flow completion">
-          {metrics.flowMetrics.map(f => (
+      {/* Chapter metrics */}
+      {metrics.chapterMetrics.length > 0 && (
+        <Section title="Chapter completion">
+          {metrics.chapterMetrics.map(f => (
             <Row
-              key={f.flowId}
-              label={f.flowId}
+              key={f.chapterId}
+              label={f.chapterId}
               value={`${Math.round(f.completionRate * 100)}%`}
               sub={`${f.completionCount}/${f.entryCount} entries`}
               bar={f.completionRate}

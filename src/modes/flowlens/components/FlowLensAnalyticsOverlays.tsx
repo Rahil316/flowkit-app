@@ -49,10 +49,10 @@ export default function FlowLensAnalyticsOverlays({
 
   if (overlay === 'paths') {
     return (
-      <AnalyticsOverlay title="Path explorer" subtitle="Screen-to-screen flow" onClose={onClose}>
+      <AnalyticsOverlay title="Path explorer" subtitle="Page-to-page flow" onClose={onClose}>
         <PathsView
           nodes={pathNodes}
-          onScreenClick={sid => {
+          onPageClick={sid => {
             const ev = session.events.find(
               e => e.type === 'page.visited' && e.payload.pageId === sid
             )

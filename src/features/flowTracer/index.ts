@@ -17,8 +17,8 @@ export { eventsCsvBlob, markdownSummaryBlob, metricsCsvBlob } from './exportBlob
 export { default as SessionsPanel } from './panel'
 export { SessionDb } from './sessionDb'
 export {
+  type ChapterMetrics,
   computeSessionMetrics,
-  type FlowMetrics,
   type PageMetrics,
   type SessionMetrics,
 } from './sessionMetrics'
