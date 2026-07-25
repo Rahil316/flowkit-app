@@ -72,7 +72,10 @@ export async function checkChapter(wsDir, report) {
         severity: 'warning',
         file: WORKSPACE_CONFIG_FILENAME,
         message: `Chapter id '${chapterId}' isn't kebab-case (lowercase, hyphen-separated) — only reachable by hand-editing manifest.ts, since the CLI always scaffolds kebab-case ids.`,
-        fix: `Rename to a kebab-case id, e.g. '${chapterId.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}'.`,
+        fix: `Rename to a kebab-case id, e.g. '${chapterId
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')}'.`,
       })
     }
   }

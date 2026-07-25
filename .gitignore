@@ -10,5 +10,5 @@ dist-standalone/
 docs/api/
 foamy-brewing-quasar.md
 
-workspaces/test/
-workspaces/game-zone/
+workspaces
+tdir

@@ -86,12 +86,13 @@ describe('Suite C — flowkit audit', () => {
     const parsed = JSON.parse(result.stdout)
     assert.equal(parsed.workspace, WS)
     assert.equal(parsed.errors, 0)
-    // Exactly the 5 expected navigations findings (1 unreachable-page + 4
-    // unreachable-from-start) — see C1 for the full explanation.
-    assert.equal(parsed.results.length, 5)
+    // Exactly the 10 expected findings (1 unreachable-page + 4 unreachable-from-start
+    // + 5 unused-flowStory) — see C1 for the full explanation.
+    assert.equal(parsed.results.length, 10)
     const ruleIds = parsed.results.map(r => r.ruleId)
     assert.equal(ruleIds.filter(id => id === 'navigations/unreachable-page').length, 1)
     assert.equal(ruleIds.filter(id => id === 'navigations/unreachable-from-start').length, 4)
+    assert.equal(ruleIds.filter(id => id === 'story/unused-flowStory').length, 5)
     assert.equal(parsed.dynamicNavCallSites, 1)
   })
 

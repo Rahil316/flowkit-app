@@ -641,7 +641,9 @@ export const pageMeta = { label: 'Root', id: '${makePageId('misc', 'RootScreen')
     await checkStory(wsDir, report)
     const ownFile = `${FLOW_STORIES_DIRNAME}/dup-consecutive.ts`
     assert.ok(
-      report.findings.some(f => f.file === ownFile && f.ruleId === 'story/duplicate-consecutive-step')
+      report.findings.some(
+        f => f.file === ownFile && f.ruleId === 'story/duplicate-consecutive-step'
+      )
     )
   })
 
@@ -666,7 +668,9 @@ export const pageMeta = { label: 'Root', id: '${makePageId('misc', 'RootScreen')
     await checkStory(wsDir, report)
     const ownFile = `${FLOW_STORIES_DIRNAME}/no-dup-consecutive.ts`
     assert.ok(
-      !report.findings.some(f => f.file === ownFile && f.ruleId === 'story/duplicate-consecutive-step')
+      !report.findings.some(
+        f => f.file === ownFile && f.ruleId === 'story/duplicate-consecutive-step'
+      )
     )
   })
 
@@ -698,7 +702,9 @@ export const pageMeta = { label: 'Root', id: '${makePageId('misc', 'RootScreen')
     await checkStory(wsDir, report)
     const ownFile = `${FLOW_STORIES_DIRNAME}/fork-same-page.ts`
     assert.ok(
-      !report.findings.some(f => f.file === ownFile && f.ruleId === 'story/duplicate-consecutive-step')
+      !report.findings.some(
+        f => f.file === ownFile && f.ruleId === 'story/duplicate-consecutive-step'
+      )
     )
   })
 
@@ -715,11 +721,16 @@ export const pageMeta = { label: 'Root', id: '${makePageId('misc', 'RootScreen')
     const report = createReport()
     await checkStory(wsDir, report)
     const ownFile = `${FLOW_STORIES_DIRNAME}/ref-missing.ts`
-    assert.ok(report.findings.some(f => f.file === ownFile && f.ruleId === 'story/ref-target-missing'))
+    assert.ok(
+      report.findings.some(f => f.file === ownFile && f.ruleId === 'story/ref-target-missing')
+    )
   })
 
   it('D33 — checkStory: story/ref-target-missing does NOT fire when the ref target is a real FlowStory id', async () => {
-    write(`${FLOW_STORIES_DIRNAME}/ref-target.ts`, `export default { id: 'ref-target', name: 'Ref Target', steps: [{ pageId: '${makePageId('onboarding', 'welcome')}', actionNote: 'x' }] }\n`)
+    write(
+      `${FLOW_STORIES_DIRNAME}/ref-target.ts`,
+      `export default { id: 'ref-target', name: 'Ref Target', steps: [{ pageId: '${makePageId('onboarding', 'welcome')}', actionNote: 'x' }] }\n`
+    )
     write(
       `${FLOW_STORIES_DIRNAME}/ref-valid.ts`,
       `export default {
@@ -732,10 +743,12 @@ export const pageMeta = { label: 'Root', id: '${makePageId('misc', 'RootScreen')
     const report = createReport()
     await checkStory(wsDir, report)
     const ownFile = `${FLOW_STORIES_DIRNAME}/ref-valid.ts`
-    assert.ok(!report.findings.some(f => f.file === ownFile && f.ruleId === 'story/ref-target-missing'))
+    assert.ok(
+      !report.findings.some(f => f.file === ownFile && f.ruleId === 'story/ref-target-missing')
+    )
   })
 
-  it('D34 — checkStory: story/unused-flowStory does NOT fire once a FlowStory is ref\'d by another', async () => {
+  it("D34 — checkStory: story/unused-flowStory does NOT fire once a FlowStory is ref'd by another", async () => {
     // ref-target.ts (written in D33) is now ref'd by ref-valid.ts — must not be
     // flagged unused. This test depends on D33 having run first (Suite D's wsDir is
     // shared/cumulative by design) — matches the existing convention (e.g. D15
@@ -743,7 +756,9 @@ export const pageMeta = { label: 'Root', id: '${makePageId('misc', 'RootScreen')
     const report = createReport()
     await checkStory(wsDir, report)
     const ownFile = `${FLOW_STORIES_DIRNAME}/ref-target.ts`
-    assert.ok(!report.findings.some(f => f.file === ownFile && f.ruleId === 'story/unused-flowStory'))
+    assert.ok(
+      !report.findings.some(f => f.file === ownFile && f.ruleId === 'story/unused-flowStory')
+    )
   })
 })
 
@@ -1140,7 +1155,7 @@ describe('Suite N — scripts/audits/chapter.js + book.js new rules', () => {
 
   // --- chapter/bare-id-collision-with-composite ---
 
-  it('N1 — chapter/bare-id-collision-with-composite: a bare pageOrder entry that is really another chapter\'s composite id', async () => {
+  it("N1 — chapter/bare-id-collision-with-composite: a bare pageOrder entry that is really another chapter's composite id", async () => {
     nWritePage('chapter-a', 'shared-name')
     nWritePage('chapter-b', 'thing')
     // chapter-b's pageOrder lists 'chapter-a-shared-name' as if it were a bare id —
@@ -1154,7 +1169,7 @@ describe('Suite N — scripts/audits/chapter.js + book.js new rules', () => {
     assert.ok(nRuleIds(report).includes('chapter/bare-id-collision-with-composite'))
   })
 
-  it('N2 — chapter/bare-id-collision-with-composite: clean when no bare id collides with another chapter\'s composite id', async () => {
+  it("N2 — chapter/bare-id-collision-with-composite: clean when no bare id collides with another chapter's composite id", async () => {
     nWritePage('chapter-a', 'page-one')
     nWriteManifest({ chapters: ['chapter-a'], pageOrder: { 'chapter-a': ['page-one'] } })
     const report = createReport()
