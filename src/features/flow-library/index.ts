@@ -2,6 +2,7 @@
 // Import from '@flowkit-features/flow-library' — never reach inside internals.
 export { default as FlowCanvas } from './FlowCanvas'
 export { default as FlowLibrary } from './FlowLibrary'
+export type { CoverageFilter } from './PagesHierarchy'
 export { default as PagesHierarchy } from './PagesHierarchy'
 export type { FlowRunRecord } from './runHistory'
 export { readLastRun, writeLastRun } from './runHistory'

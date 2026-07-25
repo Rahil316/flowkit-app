@@ -1,6 +1,7 @@
 import type { Chapter } from '@flowkit/types/index'
 import { ToolbarTooltipContent } from '@flowkit-core/canvas/ToolbarBtn'
 import PanelBody from '@flowkit-core/layout/PanelBody'
+import type { CoverageFilter } from '@flowkit-features/flow-library'
 import { FlowLibrary, PagesHierarchy } from '@flowkit-features/flow-library'
 import { useFlowLibrary } from '@flowkit-features/flow-library'
 import { useSessionRecorderOptional } from '@flowkit-features/flowTracer/context'
@@ -48,10 +49,10 @@ function writeStorage(key: string, value: unknown) {
 
 // ── Left panel tabs ───────────────────────────────────────────────────────────
 
-type LeftTab = 'screens' | 'chapters'
+type LeftTab = 'pages' | 'chapters'
 
 const LEFT_TAB_META: Record<LeftTab, { label: string; icon: React.ElementType }> = {
-  screens: { label: 'Screens', icon: Layers },
+  pages: { label: 'Pages', icon: Layers },
   chapters: { label: 'Stories', icon: GitBranch },
 }
 
@@ -90,15 +91,15 @@ export default function KitSideExplorer({
   const recorder = useSessionRecorderOptional()
 
   const activeWorkspaceName = useActiveWorkspace()
-  const [tab, setTab] = useState<LeftTab>(() => readStorage(STORAGE_LEFT_TAB, 'screens') as LeftTab)
+  const [tab, setTab] = useState<LeftTab>(() => readStorage(STORAGE_LEFT_TAB, 'pages') as LeftTab)
   const [pageFilter, setPageFilter] = useState<string | null>(null)
   const [filterState, setFilterState] = useState<FilterState>({})
 
   const { hasHierarchy, tree } = useWorkspaceHierarchy(activeWorkspaceName)
-  const { allTags: flowTags } = useFlowLibrary()
+  const { allTags: chapterTags } = useFlowLibrary()
 
   // Collect page tags from hierarchy tree
-  const screenTags = useMemo(() => {
+  const pageTags = useMemo(() => {
     const set = new Set<string>()
     function walk(nodes: typeof tree) {
       for (const n of nodes) {
@@ -112,7 +113,7 @@ export default function KitSideExplorer({
 
   // Build filter groups per tab
   const filterGroups = useMemo((): FilterGroup[] => {
-    const tags = tab === 'chapters' ? flowTags : screenTags
+    const tags = tab === 'chapters' ? chapterTags : pageTags
     const groups: FilterGroup[] = []
     if (tags.length > 0) {
       groups.push({
@@ -122,23 +123,24 @@ export default function KitSideExplorer({
         options: tags.map(t => ({ value: t, label: t })),
       })
     }
-    if (tab === 'screens') {
+    if (tab === 'pages') {
       groups.push({
         key: 'coverage',
         label: 'Coverage',
         type: 'single',
         noneValue: 'all',
         options: [
-          { value: 'all', label: 'All screens' },
-          { value: 'covered', label: 'Covered by a flow' },
-          { value: 'uncovered', label: 'Not in any flow' },
+          { value: 'all', label: 'All pages' },
+          { value: 'covered', label: 'Covered by a story' },
+          { value: 'uncovered', label: 'Not in any story' },
         ],
       })
     }
     return groups
-  }, [tab, flowTags, screenTags])
+  }, [tab, chapterTags, pageTags])
 
   const activeTags = (filterState['tags'] as Set<string> | undefined) ?? new Set<string>()
+  const coverageFilter = (filterState['coverage'] as CoverageFilter | undefined) ?? 'all'
 
   useEffect(() => {
     writeStorage(STORAGE_LEFT_TAB, tab)
@@ -190,7 +192,7 @@ export default function KitSideExplorer({
     )
   )
 
-  const searchPlaceholder = tab === 'chapters' ? 'Search chapters…' : 'Search screens…'
+  const searchPlaceholder = tab === 'chapters' ? 'Search chapters…' : 'Search pages…'
 
   // ── Content pane ──────────────────────────────────────────────────────────────
   const contentPane =
@@ -303,11 +305,12 @@ export default function KitSideExplorer({
           </div>
         )}
 
-        {/* Screens — hierarchy */}
-        {tab === 'screens' && hasHierarchy && (
+        {/* Pages — hierarchy */}
+        {tab === 'pages' && hasHierarchy && (
           <PagesHierarchy
             search={search}
             activeTags={activeTags}
+            coverageFilter={coverageFilter}
             onFindInLibrary={(pageId: string) => {
               setPageFilter(pageId)
               setTab('chapters')
@@ -322,7 +325,7 @@ export default function KitSideExplorer({
       <div className="flex flex-row size-full">
         {/* Mobile sub-tab rail — desktop SidebarButton style */}
         <div className="w-11 shrink-0 flex flex-col border-r border-theme-border bg-theme-elevated">
-          {(['screens', 'chapters'] as LeftTab[]).map(t => {
+          {(['pages', 'chapters'] as LeftTab[]).map(t => {
             const active = tab === t
             const Icon = LEFT_TAB_META[t].icon
             return (
@@ -356,7 +359,7 @@ export default function KitSideExplorer({
         onToggle={() => onOpenChange(!isOpen)}
         onOpenSettings={onOpenSettings}
       >
-        {(['screens', 'chapters'] as LeftTab[]).map(t => (
+        {(['pages', 'chapters'] as LeftTab[]).map(t => (
           <SidebarButton
             key={t}
             label={LEFT_TAB_META[t].label}

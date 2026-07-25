@@ -25,7 +25,7 @@ function useGoToHandlers({ chapters, activeViewId, navigateTo, onClose }: Props)
 
       if (meta?.kind === 'page') {
         navigateTo(item.id)
-        dispatchExplorerCommand({ type: 'switchTab', tab: 'screens' })
+        dispatchExplorerCommand({ type: 'switchTab', tab: 'pages' })
         if (meta.chapterId) {
           dispatchExplorerCommand({
             type: 'expandAndHighlight',
@@ -34,7 +34,7 @@ function useGoToHandlers({ chapters, activeViewId, navigateTo, onClose }: Props)
           })
         }
       } else if (meta?.kind === 'chapter') {
-        dispatchExplorerCommand({ type: 'switchTab', tab: 'screens' })
+        dispatchExplorerCommand({ type: 'switchTab', tab: 'pages' })
         if (meta.chapterId) {
           const firstPageId = meta.firstPageId ?? ''
           dispatchExplorerCommand({

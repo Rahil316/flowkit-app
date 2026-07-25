@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 
 export type ExplorerCommand =
-  | { type: 'switchTab'; tab: 'screens' | 'chapters' }
+  | { type: 'switchTab'; tab: 'pages' | 'chapters' }
   | { type: 'expandAndHighlight'; chapterId: string; pageId: string }
   | { type: 'openFlowStoryDetail'; flowStoryId: string }
 

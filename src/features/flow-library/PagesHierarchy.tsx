@@ -19,6 +19,8 @@ import {
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
+import { useFlowLibrary } from './useFlowLibrary'
+
 const ANNOTATION_ICONS: Record<string, React.ElementType> = {
   FlaskConical,
   Star,
@@ -35,6 +37,9 @@ const ANNOTATION_ICONS: Record<string, React.ElementType> = {
 // Screens tab: a project → flow → screen tree with tag filtering, A/B variant
 // picker, FlowStory-coverage dimming, and a ▶ "find in Stories" jump.
 
+/** Values matching the `coverage` FilterGroup options in KitSideExplorer. */
+export type CoverageFilter = 'all' | 'covered' | 'uncovered'
+
 interface Props {
   /** Called when ▶ on a screen jumps to the Stories filtered by that screen. */
   onFindInLibrary: (pageId: string) => void
@@ -42,6 +47,8 @@ interface Props {
   search?: string
   /** Lifted tag filter state from the parent panel header. */
   activeTags?: Set<string>
+  /** Lifted flowStory-coverage filter from the parent panel header. Defaults to 'all'. */
+  coverageFilter?: CoverageFilter
 }
 
 import { LS_HIERARCHY_EXPANDED as LS_EXPANDED } from '@flowkit-shared/constants/storageKeys'
@@ -50,11 +57,13 @@ export default function PagesHierarchy({
   onFindInLibrary,
   search: searchProp,
   activeTags: activeTagsProp,
+  coverageFilter = 'all',
 }: Props) {
   const activeWorkspace = useActiveWorkspace()
   const { theme } = useTheme()
   const { activeViewId, navigateTo } = useNavigation()
   const { tree, tagsByPage } = useWorkspaceHierarchy(activeWorkspace)
+  const { coveredPageIds } = useFlowLibrary()
 
   const { comments } = useFeedback()
   const commentedPageIds = useMemo(() => new Set(comments.map(c => c.pageId)), [comments])
@@ -97,6 +106,8 @@ export default function PagesHierarchy({
     const tags = v.meta?.tags ?? []
     // Inclusive-OR; untagged always shown.
     if (activeTags.size > 0 && tags.length > 0 && !tags.some(t => activeTags.has(t))) return false
+    if (coverageFilter === 'covered' && !coveredPageIds.has(v.id)) return false
+    if (coverageFilter === 'uncovered' && coveredPageIds.has(v.id)) return false
     return true
   }
 
