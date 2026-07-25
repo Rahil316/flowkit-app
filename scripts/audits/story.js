@@ -16,8 +16,10 @@
 // added noise for this pass. Revisit if fork usage becomes common.
 import fs from 'fs'
 import path from 'path'
-import { readFlowStoryModule, FLOW_STORIES_DIRNAME } from './lib/config-io.js'
+import { readFlowStoryModule, FLOW_BOOK_DIRNAME, FLOW_STORIES_DIRNAME } from './lib/config-io.js'
 import { collectAllPageIds } from './lib/reachability.js'
+import { walkPageFiles } from '../helpers/page-walk.js'
+import { resolveVisibility, parsePageSegments } from '../../src/shared/utils/pagePathIdentity.js'
 
 function listFlowStoryFiles(wsDir) {
   const dir = path.join(wsDir, FLOW_STORIES_DIRNAME)
@@ -31,6 +33,32 @@ function listFlowStoryFiles(wsDir) {
 /** True for a plain FlowStep entry (has pageId) — excludes FlowStoryRef ({ ref }) entries. */
 function isPageStep(entry) {
   return entry && typeof entry === 'object' && typeof entry.pageId === 'string'
+}
+
+/** True for a FlowStoryRef entry ({ ref }) — mirrors isPageStep's hand-rolled style
+ * rather than importing isFlowStoryRef from src/types/index.ts, which is only
+ * reachable via the Vite-only @flowkit/types alias plain Node can't resolve. */
+function isRefStep(entry) {
+  return entry && typeof entry === 'object' && typeof entry.ref === 'string'
+}
+
+/**
+ * Workspace-wide bare page ids, per chapter (a bare id is only meaningful within its
+ * own chapter's scope — the same bare name can legitimately exist in two different
+ * chapters). Returns Set<string> of every bare `page` value seen anywhere, used by
+ * story/bare-id-in-step to recognize "this looks like a leftover bare id from
+ * pre-composite-id content," not to resolve it to a specific chapter.
+ */
+function collectBarePageIds(wsDir) {
+  const chaptersDir = path.join(wsDir, FLOW_BOOK_DIRNAME)
+  const bareIds = new Set()
+  if (!fs.existsSync(chaptersDir)) return bareIds
+  for (const { segments } of walkPageFiles(chaptersDir, [])) {
+    if (resolveVisibility(segments) === 'non-existent') continue
+    const parsed = parsePageSegments(segments)
+    if (parsed) bareIds.add(parsed.page)
+  }
+  return bareIds
 }
 
 /**
@@ -83,10 +111,29 @@ export async function checkStory(wsDir, report) {
   }
 
   const { ids: knownPageIds } = collectAllPageIds(wsDir)
+  const bareIds = collectBarePageIds(wsDir)
+
+  // First pass: read every FlowStory once, up front — story/ref-target-missing and
+  // story/unused-flowStory both need the full set of ids/refs across ALL files, not
+  // just the one file currently being validated in the second pass below.
+  const parsedFlowStories = []
+  const allFlowStoryIds = new Set()
+  const allRefTargets = new Set()
 
   for (const { file, fullPath } of files) {
     const relPath = path.relative(wsDir, fullPath)
     const flowStory = await readFlowStoryModule(fullPath)
+    const expectedId = file.replace(/\.(ts|js)$/, '')
+    parsedFlowStories.push({ relPath, expectedId, flowStory })
+    if (flowStory) {
+      allFlowStoryIds.add(flowStory.id ?? expectedId)
+      for (const step of flowStory.steps ?? []) {
+        if (isRefStep(step)) allRefTargets.add(step.ref)
+      }
+    }
+  }
+
+  for (const { relPath, expectedId, flowStory } of parsedFlowStories) {
     if (!flowStory) {
       report.add({
         ruleId: 'story/unreadable',
@@ -97,7 +144,6 @@ export async function checkStory(wsDir, report) {
       continue
     }
 
-    const expectedId = file.replace(/\.(ts|js)$/, '')
     if (flowStory.id && flowStory.id !== expectedId) {
       report.add({
         ruleId: 'story/id-filename-mismatch',
@@ -120,8 +166,25 @@ export async function checkStory(wsDir, report) {
       continue
     }
 
+    let previousPageStepId = null
+    let previousStepHadForks = false
+
     steps.forEach((step, i) => {
-      if (!isPageStep(step)) return // a FlowStoryRef ({ ref }) — nothing to validate here
+      if (isRefStep(step)) {
+        // story/ref-target-missing: a { ref } entry pointing at a FlowStory id that
+        // doesn't exist anywhere in the workspace.
+        if (!allFlowStoryIds.has(step.ref)) {
+          report.add({
+            ruleId: 'story/ref-target-missing',
+            severity: 'error',
+            file: relPath,
+            message: `step[${i}]'s ref '${step.ref}' does not match any FlowStory id in this workspace.`,
+            fix: 'Fix the ref, or create the missing FlowStory.',
+          })
+        }
+        return // nothing else to validate on a ref entry
+      }
+      if (!isPageStep(step)) return
 
       if (!knownPageIds.has(step.pageId)) {
         report.add({
@@ -131,7 +194,48 @@ export async function checkStory(wsDir, report) {
           message: `step[${i}]'s pageId '${step.pageId}' is not a real page in this workspace. Expected the 'chapter-page' composite id form (see makePageId).`,
           fix: 'Update the step to reference a real, composite chapter-page id.',
         })
+
+        // story/bare-id-in-step: a specific, actionable diagnostic on the same
+        // failure — this pageId isn't a valid composite id, but it DOES match some
+        // chapter's bare page id exactly, the documented "left over from pre-
+        // composite-id content" failure mode (CLAUDE.md: some checked-in demo
+        // content "still uses bare ids... fails check:flowStories").
+        if (bareIds.has(step.pageId)) {
+          report.add({
+            ruleId: 'story/bare-id-in-step',
+            severity: 'error',
+            file: relPath,
+            message: `step[${i}]'s pageId '${step.pageId}' looks like a bare page id left over from pre-composite-id content — it matches a real page's bare folder name, but not in the required 'chapter-page' composite form.`,
+            fix: `Prefix with the correct chapter id, e.g. '<chapter>-${step.pageId}'.`,
+          })
+        }
       }
+
+      // story/duplicate-consecutive-step: same page targeted twice in a row — near-
+      // certainly a duplicate add:step invocation, currently invisible. Skipped when
+      // either step has forks attached: a fork branching out and merging back to the
+      // same page (e.g. "deal hand" -> [fork: hand wins / hand loses] -> "deal again",
+      // all on the same table screen) is a normal, common authored pattern, not a
+      // copy-paste mistake — confirmed against real content (journey-place-a-bet-
+      // blackjack.ts's win/lose fork legitimately re-targets the same page before and
+      // after the fork).
+      const hasForks = (step.forks ?? []).length > 0
+      if (
+        previousPageStepId !== null &&
+        step.pageId === previousPageStepId &&
+        !hasForks &&
+        !previousStepHadForks
+      ) {
+        report.add({
+          ruleId: 'story/duplicate-consecutive-step',
+          severity: 'warning',
+          file: relPath,
+          message: `step[${i}] targets the same pageId ('${step.pageId}') as the immediately preceding step.`,
+          fix: 'Remove the duplicate step, or confirm the repeat is intentional.',
+        })
+      }
+      previousPageStepId = step.pageId
+      previousStepHadForks = hasForks
 
       if (!step.actionNote && !step.on) {
         report.add({
@@ -152,5 +256,21 @@ export async function checkStory(wsDir, report) {
         })
       }
     })
+  }
+
+  // story/unused-flowStory: a FlowStory never referenced by any other FlowStory's ref.
+  // Low-confidence by design — a standalone top-level story (never ref'd by anything
+  // else) is a valid, common case, not a mistake; the message says so explicitly.
+  for (const { relPath, expectedId, flowStory } of parsedFlowStories) {
+    if (!flowStory) continue
+    const id = flowStory.id ?? expectedId
+    if (!allRefTargets.has(id)) {
+      report.add({
+        ruleId: 'story/unused-flowStory',
+        severity: 'warning',
+        file: relPath,
+        message: `FlowStory '${id}' is never referenced by any other FlowStory's ref. This may be intentional (a standalone top-level story) — not necessarily a mistake.`,
+      })
+    }
   }
 }

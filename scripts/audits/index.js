@@ -76,7 +76,9 @@ export async function dispatchAudit(sub, args) {
 
   if (fixFlag && moveVal) {
     if (domain && domain !== 'chapter') {
-      console.error(r(`✗ --move is only valid for the 'chapter' domain (pageOrder), not '${domain}'.`))
+      console.error(
+        r(`✗ --move is only valid for the 'chapter' domain (pageOrder), not '${domain}'.`)
+      )
       process.exit(1)
     }
     const toVal = parseStringFlag(args, 'to')

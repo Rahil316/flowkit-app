@@ -38,16 +38,31 @@ describe('Suite C — flowkit audit', () => {
   it('C1 — audit on a freshly scaffolded workspace → exit 0, zero errors', async () => {
     // The game-demo scaffold pre-registers every lib/components/ui/*.tsx file in
     // .flowkit/components.json (see game-demo-scaffold.js), so page/chapter/book/
-    // story/components/db all report clean. navigations/unreachable-page is the one
-    // expected finding: math-quiz-difficulty-screen is only reachable via HubScreen's
-    // dynamic navigateTo(game.pageId) call, which the tool correctly can't trace
-    // statically (see the accompanying "dynamic navigateTo() call site" notice) —
-    // this is a real, known gap in the demo content's static reachability, not a
-    // test-fixture bug. Exit 0 confirms it's a warning, not an error.
+    // components/db all report clean. 10 expected warnings, all real and correct:
+    //
+    // navigations/unreachable-page (1): math-quiz-difficulty-screen is only reachable
+    // via HubScreen's dynamic navigateTo(game.pageId) call, which the tool correctly
+    // can't trace statically.
+    //
+    // navigations/unreachable-from-start (4): dice-game-screen, dice-how-to-play-screen,
+    // math-quiz-game-screen, math-quiz-how-to-play-screen. HubScreen's only link to ANY
+    // game sub-flow is that same dynamic call — 4 of the 6 games (blackjack, tic-tac-toe,
+    // 2048, memory-match) each have a FlowStory step hub-screen -> their game-screen,
+    // a real, static, traceable edge rule 4's BFS can follow; dice and math-quiz have no
+    // FlowStory covering their entry point at all. A real, known content gap (two games
+    // with no scripted flowStory demo), not a test-fixture bug.
+    //
+    // story/unused-flowStory (5, one per FlowStory file): every FlowStory in the demo
+    // scaffold is a standalone top-level story, never ref'd by another — exactly the
+    // valid, common case this low-confidence rule's own message calls out.
+    //
+    // Exit 0 confirms all 10 are warnings, not errors.
     const result = await spawnCLI(['audit', `--workspace:${WS}`])
     assert.equal(result.code, 0, `stderr: ${result.stderr}`)
     assert.match(result.stdout, /navigations\/unreachable-page/)
-    assert.match(result.stdout, /1 warning/)
+    assert.match(result.stdout, /navigations\/unreachable-from-start/)
+    assert.match(result.stdout, /story\/unused-flowStory/)
+    assert.match(result.stdout, /10 warnings/)
     assert.match(result.stdout, /1 dynamic navigateTo\(\) call site/)
   })
 
@@ -71,9 +86,12 @@ describe('Suite C — flowkit audit', () => {
     const parsed = JSON.parse(result.stdout)
     assert.equal(parsed.workspace, WS)
     assert.equal(parsed.errors, 0)
-    // Exactly the one expected navigations/unreachable-page warning — see C1.
-    assert.equal(parsed.results.length, 1)
-    assert.equal(parsed.results[0].ruleId, 'navigations/unreachable-page')
+    // Exactly the 5 expected navigations findings (1 unreachable-page + 4
+    // unreachable-from-start) — see C1 for the full explanation.
+    assert.equal(parsed.results.length, 5)
+    const ruleIds = parsed.results.map(r => r.ruleId)
+    assert.equal(ruleIds.filter(id => id === 'navigations/unreachable-page').length, 1)
+    assert.equal(ruleIds.filter(id => id === 'navigations/unreachable-from-start').length, 4)
     assert.equal(parsed.dynamicNavCallSites, 1)
   })
 
@@ -202,12 +220,7 @@ describe('Suite C — flowkit audit', () => {
       // Starting order: ['splash-screen', 'welcome-screen', 'hub-screen']. Move
       // 'hub-screen' to index 0 — front of the array, other two shift right by one
       // but keep their relative order.
-      const result = await spawnCLI([
-        `audit:chapter:${WS}`,
-        '--fix',
-        '--move:hub-screen',
-        '--to:0',
-      ])
+      const result = await spawnCLI([`audit:chapter:${WS}`, '--fix', '--move:hub-screen', '--to:0'])
       assert.equal(result.code, 0, `stderr: ${result.stderr}`)
       assert.match(result.stdout, /Moved 'hub-screen' from index 2 to 0/)
 

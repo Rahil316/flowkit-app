@@ -64,8 +64,15 @@ extends.
   - Confirmed-safe fix today: drop ghost `pageOrder`/ledger entries
     (ledger says exists, disk doesn't); append orphaned disk pages
     (disk has it, ledger doesn't) to the end of their chapter's list.
-  - Can also reposition an existing entry **on request** — needs a concrete
-    CLI surface before buildable (open question below).
+  - Reposition — **built** (2026-07-26, `scripts/audits/fix.js`'s `runFixMove`).
+    `flowkit audit:chapter --fix --move:<pageId> --to:<index>` — an explicit,
+    opt-in mode of `--fix` (not a new top-level flag, per the original framing
+    "fix can also reposition on request"). `--move` requires `--fix`; plain
+    `--fix` with no `--move` never repositions anything, only the existing
+    ghost-drop/orphan-append flow. Validates the named page actually exists in
+    `pageOrder` (errors clearly, doesn't silently no-op) and clamps
+    out-of-range `--to:` values to append rather than erroring. Touches exactly
+    one page's position; every other entry's relative order is unchanged.
 
 - **`rebuild` action** — `flowkit audit:<domain> rebuild`
   - Full regenerate-from-disk. Destructive to authored order by nature.
@@ -81,19 +88,33 @@ extends.
    a decision before `fix` can be implemented at all, since "fix" today only
    has a defined meaning for existence-class issues, not position-class ones.
 
-2. **`navigations` domain scope — not yet defined.** Three candidate rules
-   surfaced in discussion, never confirmed:
-   - Unguarded `useDashboard().navigateTo()` calls (no `isChapter` guard) —
-     CLAUDE.md's own documented, currently-unenforced gotcha.
-   - Invalid navigation targets — `useAppNav()`/`navigateTo()` calls whose
-     target id doesn't resolve to a real page (same class as
-     `check:flowStories`'s existing `invalid-page` rule, applied to plain
-     nav calls instead of FlowStory steps).
-   - Unreachable pages — pages that exist on disk/in the ledger but have no
-     `navigateTo` call or FlowStory step anywhere that ever targets them.
-     Needs one more decision pass; not equivalent effort (the first is a
-     static-analysis grep-shaped check, the third requires building a full
-     reference graph across every page and every FlowStory).
+2. **`navigations` domain — built** (2026-07-25/26, `scripts/audits/navigations.js` +
+   `scripts/audits/lib/{ast-walk,nav-bindings,reachability}.js`). Four rules,
+   not three — a fourth was added once the graph infra existed:
+   - `navigations/unguarded-dashboard-navigate` (warning) — direct
+     `useDashboard().navigateTo()` calls with no `isChapter` guard. Does NOT
+     apply to `useAppNav().navigateTo()`, which self-guards via `FlowNavCtx`
+     and never needs one. v1 only detects direct-wrap guards (`&&`, both
+     ternary polarities); `if (!isChapter) return` early-return is an
+     acknowledged, deliberately unhandled gap (documented + tested).
+   - `navigations/invalid-target` (error) — literal `navigateTo('...')`
+     targets that don't resolve to a real page. Non-literal arguments
+     (`navigateTo(game.pageId)`) are never flagged — tracked as a disclosed
+     `dynamicNavCallSites` count on the report instead.
+   - `navigations/unreachable-page` (warning) — zero inbound edges from
+     anywhere (a true-island check). `pageOrder` membership alone is
+     explicitly not an edge.
+   - `navigations/unreachable-from-start` (warning) — the stronger check: not
+     reachable via any path starting at the resolved `startPage`, via a real
+     directed-adjacency-graph BFS (catches a page with a nonzero in-degree
+     whose only linker is itself unreachable — rule 3 can't see this). Skips
+     any page already flagged by rule 3 (same underlying problem, one rule
+     id). Doesn't run at all if `startPage` doesn't resolve, rather than
+     flagging every page in the workspace. Caught a real, live bug in the
+     shipped demo content on first run: ~45 `navigateTo()` calls used bare
+     page ids instead of the required composite `chapter-page` form — fixed
+     at the source (`scripts/demoBooks/game-demo-scaffold.js`) and propagated
+     to both `workspaces/test`/`workspaces/game-zone`.
 
 3. **`sessions` domain — structurally different, needs its own scoping
    pass.** Sessions are IndexedDB-backed recorded data (`WriteBatcher`, see

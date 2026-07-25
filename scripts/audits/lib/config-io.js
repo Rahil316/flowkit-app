@@ -111,4 +111,51 @@ export async function readFlowStoryModule(filePath) {
   return readTsModule(filePath)
 }
 
+// Path to the platform's own DevicePreset data, resolved relative to this file rather
+// than the caller's cwd, so it works the same in repo mode regardless of which
+// workspace is active — this is platform data, not per-workspace authored content.
+const DEVICES_ENTRY = path.join(
+  path.dirname(new URL(import.meta.url).pathname),
+  '../../../src/shared/components/devices/index.ts'
+)
+
+let cachedDevicePresetLabels = null
+
+/**
+ * Returns the real DEVICE_PRESETS[].label values from
+ * src/shared/components/devices/index.ts, for book/invalid-default-device to check
+ * manifest.ts's defaultDevice against. This file (and every per-device leaf file it
+ * imports) has a `import type { DevicePreset } from '@flowkit/types/index'` — a
+ * Vite-only path alias plain Node can't resolve — but it's type-only in every file,
+ * so esbuild erases it entirely during bundling; no alias/shim is needed here (unlike
+ * SHIM_SPECIFIERS above, which exists for *value* imports). Confirmed by direct test:
+ * esbuild.build() on this exact entry point with zero alias config bundles clean and
+ * the evaluated module exposes the real preset array. Result is cached in-process
+ * (not to disk) since this is static platform data, not authored content that can
+ * change between calls within one audit run.
+ */
+export async function readDevicePresetLabels() {
+  if (cachedDevicePresetLabels) return cachedDevicePresetLabels
+  if (!fs.existsSync(DEVICES_ENTRY)) return null // repo layout changed — don't crash the audit
+
+  const hash = DEVICES_ENTRY.replace(/[^a-z0-9]/gi, '_').slice(-40)
+  const outfile = path.join(os.tmpdir(), `flowkit-audit-devices-${hash}.mjs`)
+  try {
+    await esbuild.build({
+      entryPoints: [DEVICES_ENTRY],
+      bundle: true,
+      format: 'esm',
+      outfile,
+      external: ['react', 'react-dom'],
+      logLevel: 'silent',
+    })
+  } catch {
+    return null
+  }
+  const fileUrl = `${pathToFileURL(outfile).href}?t=${Date.now()}`
+  const mod = await import(fileUrl)
+  cachedDevicePresetLabels = (mod.DEVICE_PRESETS ?? []).map(d => d.label)
+  return cachedDevicePresetLabels
+}
+
 export { WORKSPACE_CONFIG_FILENAME, FLOW_BOOK_DIRNAME, FLOW_STORIES_DIRNAME }

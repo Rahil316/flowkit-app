@@ -51,25 +51,37 @@ export function collectAllPageIds(wsDir) {
 
 /**
  * Resolves manifest.ts's bare `startPage` (e.g. 'splash-screen', no chapter field) to
- * its composite id. startPage is stored bare, so this scans every chapter's pages for
- * one whose bare page segment matches — the same walk collectAllPageIds performs
- * internally, just matched on `.page` instead of building every composite id.
- * Returns null if startPage is unset or doesn't resolve to any real page (a separate
- * concern, tracked as backlog item book/invalid-start-page — this function just
- * reports "no edge contributed," it never throws).
+ * every chapter/page pair whose bare page segment matches it — startPage is stored
+ * bare with no chapter field, so a page named the same thing in two different
+ * chapters is a genuine ambiguity, not something safe to silently pick one of.
+ * Returns every match found, each as { chapter, page, id } — never just the
+ * concatenated composite id string, since chapter ids and page ids can both
+ * legally contain hyphens, making a composite id like 'a-b-c' impossible to split
+ * back into { chapter, page } reliably by string manipulation alone. Callers that
+ * only care about "resolved to something, pick any one" (today: navigations.js's
+ * BFS root) should take candidates[0]?.id; callers that care about ambiguity
+ * (book/invalid-start-page) or which chapter specifically (chapter/startPage-
+ * wrong-chapter-scope) should use the full array.
+ * Returns [] if startPage is unset or doesn't resolve to any real page — this
+ * function never throws, it just reports "no candidates."
  */
 export function resolveStartPageId(wsDir, config) {
-  if (!config?.startPage) return null
+  if (!config?.startPage) return []
   const chaptersDir = path.join(wsDir, FLOW_BOOK_DIRNAME)
-  if (!fs.existsSync(chaptersDir)) return null
+  if (!fs.existsSync(chaptersDir)) return []
+  const candidates = []
   for (const { segments } of walkPageFiles(chaptersDir, [])) {
     if (resolveVisibility(segments) === 'non-existent') continue
     const parsed = parsePageSegments(segments)
     if (parsed && parsed.page === config.startPage) {
-      return makePageId(parsed.chapter, parsed.page)
+      candidates.push({
+        chapter: parsed.chapter,
+        page: parsed.page,
+        id: makePageId(parsed.chapter, parsed.page),
+      })
     }
   }
-  return null
+  return candidates
 }
 
 /** True for a plain FlowStep entry (has pageId) — excludes FlowStoryRef ({ ref }) entries. */

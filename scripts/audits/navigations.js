@@ -68,11 +68,21 @@ export async function checkNavigations(wsDir, report) {
 
   const { ids: knownIds, pathById } = collectAllPageIds(wsDir)
   const resolvedLiteralTargets = []
+  // Source-tracked pairs for rule 4's adjacency graph — { from: composite id of the
+  // page file containing the call, to: the resolved target }. Rule 3's
+  // resolvedLiteralTargets is direction-less (just the target); rule 4 needs the
+  // source too, so this is collected in the same pass rather than re-parsing every
+  // page file a second time.
+  const literalTargetEdges = []
 
-  for (const { fullPath } of walkPageFiles(chaptersDir, [])) {
+  for (const { segments, fullPath } of walkPageFiles(chaptersDir, [])) {
     const relPath = path.relative(wsDir, fullPath)
     const ast = parseFull(fullPath)
     if (!ast) continue // unparseable — tsc/eslint's job to report syntax errors, not this rule's
+
+    const parsedSelf =
+      resolveVisibility(segments) === 'non-existent' ? null : parsePageSegments(segments)
+    const selfPageId = parsedSelf ? makePageId(parsedSelf.chapter, parsedSelf.page) : null
 
     const bindings = collectNavBindings(ast)
     const navCalls = findCallExpressions(ast, isNavigateToCallee)
@@ -117,6 +127,7 @@ export async function checkNavigations(wsDir, report) {
         })
       } else {
         resolvedLiteralTargets.push(literal)
+        if (selfPageId) literalTargetEdges.push({ from: selfPageId, to: literal })
       }
     }
   }
@@ -124,7 +135,10 @@ export async function checkNavigations(wsDir, report) {
   // Rule 3: reachability. Reuses rule 2's resolvedLiteralTargets as edges — no second
   // AST pass over every page file.
   const config = await readWorkspaceConfig(wsDir)
-  const startPageId = resolveStartPageId(wsDir, config)
+  // resolveStartPageId now returns every candidate match (ambiguity is a real
+  // finding book/invalid-start-page cares about) — this BFS root only needs "resolved
+  // to something, pick any one," so the first candidate is sufficient here.
+  const startPageId = resolveStartPageId(wsDir, config)[0]?.id ?? null
 
   const flowStoryPaths = listFlowStoryFiles(wsDir)
   const flowStories = []
@@ -140,8 +154,10 @@ export async function checkNavigations(wsDir, report) {
     startPageId,
   })
 
+  const flaggedByRule3 = new Set()
   for (const [pageId, count] of inDegree) {
     if (count > 0) continue
+    flaggedByRule3.add(pageId)
     report.add({
       ruleId: 'navigations/unreachable-page',
       severity: 'warning',
@@ -149,5 +165,29 @@ export async function checkNavigations(wsDir, report) {
       message: `'${pageId}' has no inbound navigation edge — no FlowStory step, static navigateTo() call, or startPage reference targets it. (Being listed in pageOrder does not count as an edge.)`,
       meta: { pageId },
     })
+  }
+
+  // Rule 4: reachable-from-start. Skips a workspace with no resolvable startPage
+  // entirely (findReachableFromStart returns an empty Set for a null/unresolved
+  // startPageId, which would otherwise make every single known page look
+  // "unreachable" — that's "traversal can't run," not a real finding, so this rule
+  // simply doesn't run rather than flagging the whole workspace).
+  if (startPageId) {
+    const adjacency = buildAdjacencyGraph({ knownIds, flowStories, literalTargetEdges })
+    const reachable = findReachableFromStart(adjacency, startPageId)
+
+    for (const pageId of knownIds) {
+      if (reachable.has(pageId)) continue
+      // Already flagged as a true island by rule 3 — same underlying problem,
+      // don't double-report it under a second rule id.
+      if (flaggedByRule3.has(pageId)) continue
+      report.add({
+        ruleId: 'navigations/unreachable-from-start',
+        severity: 'warning',
+        file: path.relative(wsDir, pathById.get(pageId) ?? ''),
+        message: `'${pageId}' has an inbound navigation edge, but no path from the resolved startPage ('${startPageId}') reaches it — the page(s) linking to it aren't themselves reachable from start.`,
+        meta: { pageId },
+      })
+    }
   }
 }

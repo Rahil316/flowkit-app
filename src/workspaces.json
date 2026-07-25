@@ -1,13 +1,13 @@
 {
   "workspaces": [
     {
-      "name": "game-zone",
-      "label": "Game Zone"
+      "name": "cliverify",
+      "label": "Cliverify"
     },
     {
-      "name": "test",
-      "label": "Test"
+      "name": "twscheck2",
+      "label": "Twscheck2"
     }
   ],
-  "active": "test"
+  "active": "cliverify"
 }

@@ -1,5 +1,5 @@
-import { useAppNav } from '@flowkit-shared/utils'
 import { useDashboard } from '@flowkit-shared/contexts'
+import { useAppNav } from '@flowkit-shared/utils'
 
 // Known gap, deliberate (see lib/nav-bindings.js's isGuardedByIsChapter doc comment):
 // this call IS safely guarded in reality (the early return protects it), but v1's

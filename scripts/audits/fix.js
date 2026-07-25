@@ -123,9 +123,7 @@ export async function runFixMove(wsDir, wsName, pageId, toIndex) {
 
   if (!chapterId) {
     console.error(
-      r(
-        `✗ Page '${pageId}' was not found in any chapter's pageOrder — nothing to reposition.`
-      )
+      r(`✗ Page '${pageId}' was not found in any chapter's pageOrder — nothing to reposition.`)
     )
     process.exit(1)
   }

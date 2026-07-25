@@ -12,6 +12,7 @@ import { checkPage } from '../audits/page.js'
 import { checkDb } from '../audits/db.js'
 import { checkStory } from '../audits/story.js'
 import { checkChapter } from '../audits/chapter.js'
+import { checkBook } from '../audits/book.js'
 import { checkComponents } from '../audits/components.js'
 import { checkNavigations } from '../audits/navigations.js'
 import { FLOW_BOOK_DIRNAME, FLOW_STORIES_DIRNAME } from '../helpers/config-filenames.js'
@@ -108,7 +109,11 @@ export const pageMeta = { label: 'Welcome' }
     )
     const report = createReport()
     await checkStory(wsDir, report)
-    assert.deepEqual(ruleIds(report), [])
+    // Not deepEqual([]) — story/unused-flowStory correctly fires here too, since this
+    // fixture (Suite D's shared, cumulative wsDir) is never ref'd by anything else in
+    // this test file. This test's actual concern is the pageId resolving cleanly.
+    assert.ok(!ruleIds(report).includes('story/invalid-page'))
+    assert.ok(!ruleIds(report).includes('story/bare-id-in-step'))
   })
 
   it('D7 — checkStory: step referencing a nonexistent screen → story/invalid-page', async () => {
@@ -490,6 +495,256 @@ export const pageMeta = { label: 'Root', id: '${makePageId('misc', 'RootScreen')
     // recursion actually descended two levels rather than stopping at the first fork.
     assert.match(forkFindings[0].message, /Outer fork.*Inner fork/)
   })
+
+  it('D21 — checkPage: page/duplicate-variant fires when 2+ files resolve to the same variant', () => {
+    write(
+      `${FLOW_BOOK_DIRNAME}/dup-variant/screen/Screen.variant-red.tsx`,
+      `export default function ScreenA() { return null }\nexport const pageMeta = { label: 'A' }\n`
+    )
+    write(
+      `${FLOW_BOOK_DIRNAME}/dup-variant/screen/OtherName.variant-red.tsx`,
+      `export default function ScreenB() { return null }\nexport const pageMeta = { label: 'B' }\n`
+    )
+    const report = createReport()
+    checkPage(wsDir, report)
+    const ownFindings = report.findings.filter(f => f.file.includes('dup-variant/screen'))
+    assert.ok(ownFindings.some(f => f.ruleId === 'page/duplicate-variant'))
+  })
+
+  it('D22 — checkPage: distinct variants of the same page do NOT trigger page/duplicate-variant', () => {
+    write(
+      `${FLOW_BOOK_DIRNAME}/ok-variant/screen/Screen.tsx`,
+      `export default function Screen() { return null }\nexport const pageMeta = { label: 'Default' }\n`
+    )
+    write(
+      `${FLOW_BOOK_DIRNAME}/ok-variant/screen/Screen.variant-red.tsx`,
+      `export default function ScreenRed() { return null }\nexport const pageMeta = { label: 'Red' }\n`
+    )
+    const report = createReport()
+    checkPage(wsDir, report)
+    const ownFindings = report.findings.filter(f => f.file.includes('ok-variant/screen'))
+    assert.ok(!ownFindings.some(f => f.ruleId === 'page/duplicate-variant'))
+  })
+
+  it('D23 — checkPage: page/composite-id-in-bare-context fires when pageMeta.id is a real composite id for a DIFFERENT chapter', () => {
+    write(
+      `${FLOW_BOOK_DIRNAME}/chapter-x/target/Target.tsx`,
+      `export default function Target() { return null }\nexport const pageMeta = { label: 'Target' }\n`
+    )
+    write(
+      `${FLOW_BOOK_DIRNAME}/chapter-y/leftover/Leftover.tsx`,
+      `export default function Leftover() { return null }\nexport const pageMeta = { label: 'Leftover', id: '${makePageId('chapter-x', 'target')}' }\n`
+    )
+    const report = createReport()
+    checkPage(wsDir, report)
+    const ownFindings = report.findings.filter(f => f.file.includes('chapter-y/leftover'))
+    assert.ok(ownFindings.some(f => f.ruleId === 'page/composite-id-in-bare-context'))
+    // The general meta-id-mismatch rule must be narrowed to skip this specific,
+    // more-specific case — no double-report of the same underlying mistake.
+    assert.ok(!ownFindings.some(f => f.ruleId === 'page/meta-id-mismatch'))
+  })
+
+  it('D24 — checkPage: page/meta-id-mismatch still fires for a garbage/typo id that matches no real chapter', () => {
+    write(
+      `${FLOW_BOOK_DIRNAME}/chapter-z/typo/Typo.tsx`,
+      `export default function Typo() { return null }\nexport const pageMeta = { label: 'Typo', id: 'totally-made-up-garbage' }\n`
+    )
+    const report = createReport()
+    checkPage(wsDir, report)
+    const ownFindings = report.findings.filter(f => f.file.includes('chapter-z/typo'))
+    assert.ok(ownFindings.some(f => f.ruleId === 'page/meta-id-mismatch'))
+    assert.ok(!ownFindings.some(f => f.ruleId === 'page/composite-id-in-bare-context'))
+  })
+
+  it('D25 — checkPage: page/hidden-prefix-inconsistent fires when a `_`-hidden page has a structurally identical non-hidden sibling', () => {
+    write(
+      `${FLOW_BOOK_DIRNAME}/hidden-check/normal-page/Page.tsx`,
+      `export default function Page() { return null }\nexport const pageMeta = { label: 'Normal' }\n`
+    )
+    write(
+      `${FLOW_BOOK_DIRNAME}/hidden-check/_normal-page/Page.tsx`,
+      `export default function Page() { return null }\nexport const pageMeta = { label: 'Hidden Copy' }\n`
+    )
+    const report = createReport()
+    checkPage(wsDir, report)
+    const ownFindings = report.findings.filter(f => f.file.includes('hidden-check'))
+    assert.ok(ownFindings.some(f => f.ruleId === 'page/hidden-prefix-inconsistent'))
+  })
+
+  it('D26 — checkPage: page/hidden-prefix-inconsistent does NOT fire for a normally-hidden page with no non-hidden sibling', () => {
+    write(
+      `${FLOW_BOOK_DIRNAME}/hidden-alone/_only-page/Page.tsx`,
+      `export default function Page() { return null }\nexport const pageMeta = { label: 'Only Hidden' }\n`
+    )
+    const report = createReport()
+    checkPage(wsDir, report)
+    const ownFindings = report.findings.filter(f => f.file.includes('hidden-alone'))
+    assert.ok(!ownFindings.some(f => f.ruleId === 'page/hidden-prefix-inconsistent'))
+  })
+
+  it('D27 — checkPage: page/nested-non-existent-mismatch fires when a `__`-hidden folder contains fully-authored content', () => {
+    write(
+      `${FLOW_BOOK_DIRNAME}/nested-check/__gone/Gone.tsx`,
+      `export default function Gone() { return null }\nexport const pageMeta = { label: 'Fully Authored' }\n`
+    )
+    const report = createReport()
+    checkPage(wsDir, report)
+    const ownFindings = report.findings.filter(f => f.file.includes('__gone'))
+    assert.ok(ownFindings.some(f => f.ruleId === 'page/nested-non-existent-mismatch'))
+  })
+
+  it('D28 — checkPage: page/nested-non-existent-mismatch does NOT fire for WIP-looking (no label) `__`-hidden content', () => {
+    write(
+      `${FLOW_BOOK_DIRNAME}/nested-wip/__gone-wip/GoneWip.tsx`,
+      `export default function GoneWip() { return null }\n// no pageMeta at all — clearly WIP, not finished\n`
+    )
+    const report = createReport()
+    checkPage(wsDir, report)
+    const ownFindings = report.findings.filter(f => f.file.includes('__gone-wip'))
+    assert.ok(!ownFindings.some(f => f.ruleId === 'page/nested-non-existent-mismatch'))
+  })
+
+  it('D29 — checkStory: story/bare-id-in-step fires for a step pageId matching a real bare page id, not the composite form', async () => {
+    write(
+      `${FLOW_STORIES_DIRNAME}/bare-id-test.ts`,
+      `export default {
+  id: 'bare-id-test',
+  name: 'Bare Id Test',
+  steps: [
+    { pageId: 'welcome', actionNote: 'bare id, should have been onboarding-welcome' },
+  ],
+}
+`
+    )
+    const report = createReport()
+    await checkStory(wsDir, report)
+    const ownFile = `${FLOW_STORIES_DIRNAME}/bare-id-test.ts`
+    const ownFindings = report.findings.filter(f => f.file === ownFile)
+    assert.ok(ownFindings.some(f => f.ruleId === 'story/invalid-page'))
+    assert.ok(ownFindings.some(f => f.ruleId === 'story/bare-id-in-step'))
+  })
+
+  it('D30 — checkStory: story/duplicate-consecutive-step fires when two consecutive steps target the same pageId', async () => {
+    write(
+      `${FLOW_STORIES_DIRNAME}/dup-consecutive.ts`,
+      `export default {
+  id: 'dup-consecutive',
+  name: 'Dup Consecutive',
+  steps: [
+    { pageId: '${makePageId('onboarding', 'welcome')}', actionNote: 'first' },
+    { pageId: '${makePageId('onboarding', 'welcome')}', actionNote: 'duplicate of the one before' },
+  ],
+}
+`
+    )
+    const report = createReport()
+    await checkStory(wsDir, report)
+    const ownFile = `${FLOW_STORIES_DIRNAME}/dup-consecutive.ts`
+    assert.ok(
+      report.findings.some(f => f.file === ownFile && f.ruleId === 'story/duplicate-consecutive-step')
+    )
+  })
+
+  it('D31 — checkStory: story/duplicate-consecutive-step does NOT fire for two different consecutive steps', async () => {
+    write(
+      `${FLOW_BOOK_DIRNAME}/onboarding/second/Second.tsx`,
+      `export default function Second() { return null }\nexport const pageMeta = { label: 'Second' }\n`
+    )
+    write(
+      `${FLOW_STORIES_DIRNAME}/no-dup-consecutive.ts`,
+      `export default {
+  id: 'no-dup-consecutive',
+  name: 'No Dup Consecutive',
+  steps: [
+    { pageId: '${makePageId('onboarding', 'welcome')}', actionNote: 'first' },
+    { pageId: '${makePageId('onboarding', 'second')}', actionNote: 'different page' },
+  ],
+}
+`
+    )
+    const report = createReport()
+    await checkStory(wsDir, report)
+    const ownFile = `${FLOW_STORIES_DIRNAME}/no-dup-consecutive.ts`
+    assert.ok(
+      !report.findings.some(f => f.file === ownFile && f.ruleId === 'story/duplicate-consecutive-step')
+    )
+  })
+
+  it('D31b — checkStory: story/duplicate-consecutive-step does NOT fire when a fork branches out and merges back to the same page', async () => {
+    // Real-content pattern (journey-place-a-bet-blackjack.ts): "deal hand" -> [fork:
+    // hand wins / hand loses, both ending back on the same table] -> "deal again" —
+    // the same pageId legitimately repeats across the fork boundary; this is not a
+    // copy-paste duplicate.
+    write(
+      `${FLOW_STORIES_DIRNAME}/fork-same-page.ts`,
+      `export default {
+  id: 'fork-same-page',
+  name: 'Fork Same Page',
+  steps: [
+    {
+      pageId: '${makePageId('onboarding', 'welcome')}',
+      on: 'deal',
+      actionNote: 'deals',
+      forks: [
+        { label: 'wins', steps: [{ pageId: '${makePageId('onboarding', 'welcome')}', on: 'stand', actionNote: 'wins' }], mergesTo: 'next' },
+      ],
+    },
+    { pageId: '${makePageId('onboarding', 'welcome')}', on: 'deal', actionNote: 'deals again' },
+  ],
+}
+`
+    )
+    const report = createReport()
+    await checkStory(wsDir, report)
+    const ownFile = `${FLOW_STORIES_DIRNAME}/fork-same-page.ts`
+    assert.ok(
+      !report.findings.some(f => f.file === ownFile && f.ruleId === 'story/duplicate-consecutive-step')
+    )
+  })
+
+  it('D32 — checkStory: story/ref-target-missing fires when a ref entry points at a nonexistent FlowStory id', async () => {
+    write(
+      `${FLOW_STORIES_DIRNAME}/ref-missing.ts`,
+      `export default {
+  id: 'ref-missing',
+  name: 'Ref Missing',
+  steps: [{ ref: 'does-not-exist-anywhere' }],
+}
+`
+    )
+    const report = createReport()
+    await checkStory(wsDir, report)
+    const ownFile = `${FLOW_STORIES_DIRNAME}/ref-missing.ts`
+    assert.ok(report.findings.some(f => f.file === ownFile && f.ruleId === 'story/ref-target-missing'))
+  })
+
+  it('D33 — checkStory: story/ref-target-missing does NOT fire when the ref target is a real FlowStory id', async () => {
+    write(`${FLOW_STORIES_DIRNAME}/ref-target.ts`, `export default { id: 'ref-target', name: 'Ref Target', steps: [{ pageId: '${makePageId('onboarding', 'welcome')}', actionNote: 'x' }] }\n`)
+    write(
+      `${FLOW_STORIES_DIRNAME}/ref-valid.ts`,
+      `export default {
+  id: 'ref-valid',
+  name: 'Ref Valid',
+  steps: [{ ref: 'ref-target' }],
+}
+`
+    )
+    const report = createReport()
+    await checkStory(wsDir, report)
+    const ownFile = `${FLOW_STORIES_DIRNAME}/ref-valid.ts`
+    assert.ok(!report.findings.some(f => f.file === ownFile && f.ruleId === 'story/ref-target-missing'))
+  })
+
+  it('D34 — checkStory: story/unused-flowStory does NOT fire once a FlowStory is ref\'d by another', async () => {
+    // ref-target.ts (written in D33) is now ref'd by ref-valid.ts — must not be
+    // flagged unused. This test depends on D33 having run first (Suite D's wsDir is
+    // shared/cumulative by design) — matches the existing convention (e.g. D15
+    // depending on D1's fixture).
+    const report = createReport()
+    await checkStory(wsDir, report)
+    const ownFile = `${FLOW_STORIES_DIRNAME}/ref-target.ts`
+    assert.ok(!report.findings.some(f => f.file === ownFile && f.ruleId === 'story/unused-flowStory'))
+  })
 })
 
 describe('Suite E — screenPathIdentity.js parseVariant()', () => {
@@ -750,5 +1005,385 @@ describe('Suite M — scripts/audits/navigations.js (unguarded-dashboard-navigat
       ),
       'the resolved startPage must count as reachable even with zero other inbound edges'
     )
+  })
+
+  /** Writes a page with a single navigateTo() literal call to `targetPageName`. */
+  function writeLinkingPage(pageName, targetPageName) {
+    const dir = path.join(navWsDir, FLOW_BOOK_DIRNAME, 'chapter-one', pageName)
+    fs.mkdirSync(dir, { recursive: true })
+    fs.writeFileSync(
+      path.join(dir, 'Page.tsx'),
+      `import { useAppNav } from '@flowkit-shared/utils'
+export default function Page() {
+  const { navigateTo } = useAppNav()
+  return <button onClick={() => navigateTo('${makePageId('chapter-one', targetPageName)}')}>Go</button>
+}
+`
+    )
+  }
+
+  it('M14 — a transitive chain (start -> B -> C) is reachable-from-start via BFS, not just direct edges', async () => {
+    writeManifest({ startPage: 'page-a' })
+    writeLinkingPage('page-a', 'page-b')
+    writeLinkingPage('page-b', 'page-c')
+    writeTargetPage('page-c')
+    const report = createReport()
+    await checkNavigations(navWsDir, report)
+    const findingIds = report.findings.map(f => f.meta?.pageId).filter(Boolean)
+    assert.ok(
+      !findingIds.includes(makePageId('chapter-one', 'page-b')),
+      'page-b (one hop from start) must not be flagged unreachable-from-start'
+    )
+    assert.ok(
+      !findingIds.includes(makePageId('chapter-one', 'page-c')),
+      'page-c (two hops from start, transitively reachable via BFS) must not be flagged unreachable-from-start'
+    )
+    assert.ok(
+      !report.findings.some(f => f.ruleId === 'navigations/unreachable-from-start'),
+      `expected no unreachable-from-start findings, got: ${JSON.stringify(report.findings)}`
+    )
+  })
+
+  it('M15 — a page with a real inbound edge from an island is unreachable-from-start but NOT double-reported as unreachable-page', async () => {
+    // page-island has zero inbound edges of its own (a true island — flagged by
+    // rule 3), and it links to page-orphaned-branch. That link gives
+    // page-orphaned-branch a nonzero in-degree (so rule 3 does NOT flag it), but
+    // since page-island itself is never reached from start, page-orphaned-branch
+    // isn't reachable from start either — this is exactly the case rule 3 can't
+    // catch and rule 4 exists for.
+    writeManifest({ startPage: 'page-start' })
+    writeTargetPage('page-start')
+    writeLinkingPage('page-island', 'page-orphaned-branch')
+    writeTargetPage('page-orphaned-branch')
+
+    const report = createReport()
+    await checkNavigations(navWsDir, report)
+
+    const islandId = makePageId('chapter-one', 'page-island')
+    const branchId = makePageId('chapter-one', 'page-orphaned-branch')
+
+    assert.ok(
+      report.findings.some(
+        f => f.ruleId === 'navigations/unreachable-page' && f.meta?.pageId === islandId
+      ),
+      'page-island has zero inbound edges — must be flagged unreachable-page'
+    )
+    assert.ok(
+      !report.findings.some(
+        f => f.ruleId === 'navigations/unreachable-page' && f.meta?.pageId === branchId
+      ),
+      'page-orphaned-branch has a real inbound edge (from page-island) — must NOT be flagged unreachable-page'
+    )
+    assert.ok(
+      report.findings.some(
+        f => f.ruleId === 'navigations/unreachable-from-start' && f.meta?.pageId === branchId
+      ),
+      "page-orphaned-branch is not reachable from start (its only linker, page-island, isn't reachable either) — must be flagged unreachable-from-start"
+    )
+    assert.ok(
+      !report.findings.some(
+        f => f.ruleId === 'navigations/unreachable-from-start' && f.meta?.pageId === islandId
+      ),
+      'page-island is already flagged by unreachable-page — must not be double-reported under unreachable-from-start too'
+    )
+  })
+
+  it('M16 — no resolvable startPage → unreachable-from-start does not run at all (not "everything is unreachable")', async () => {
+    writeManifest() // no startPage set
+    writeTargetPage('page-a')
+    const report = createReport()
+    await checkNavigations(navWsDir, report)
+    assert.ok(
+      !report.findings.some(f => f.ruleId === 'navigations/unreachable-from-start'),
+      'with no resolvable startPage, unreachable-from-start must not fire at all'
+    )
+  })
+})
+
+describe('Suite N — scripts/audits/chapter.js + book.js new rules', () => {
+  let nWsDir
+
+  beforeEach(() => {
+    nWsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'flowkit-audit-n-'))
+  })
+
+  afterEach(() => {
+    fs.rmSync(nWsDir, { recursive: true, force: true })
+  })
+
+  /** Writes a manifest.ts with exactly the fields given — undefined fields are omitted
+   * entirely rather than written as `undefined`, so each test's manifest only declares
+   * what it actually needs (many of these rules need mutually-exclusive shapes). */
+  function nWriteManifest({ chapters = [], pageOrder = {}, startPage, defaultDevice } = {}) {
+    const lines = [
+      `export default {`,
+      `  workspace: { name: 'n-test' },`,
+      startPage !== undefined ? `  startPage: '${startPage}',` : '',
+      defaultDevice !== undefined ? `  defaultDevice: '${defaultDevice}',` : '',
+      `  chapters: ${JSON.stringify(chapters)},`,
+      `  pageOrder: ${JSON.stringify(pageOrder)},`,
+      `}`,
+      '',
+    ]
+    fs.writeFileSync(path.join(nWsDir, 'manifest.ts'), lines.filter(Boolean).join('\n'))
+  }
+
+  function nWritePage(chapterId, pageId) {
+    const dir = path.join(nWsDir, FLOW_BOOK_DIRNAME, chapterId, pageId)
+    fs.mkdirSync(dir, { recursive: true })
+    fs.writeFileSync(path.join(dir, 'Page.tsx'), `export default function Page() { return null }\n`)
+  }
+
+  function nRuleIds(report) {
+    return report.findings.map(f => f.ruleId)
+  }
+
+  // --- chapter/bare-id-collision-with-composite ---
+
+  it('N1 — chapter/bare-id-collision-with-composite: a bare pageOrder entry that is really another chapter\'s composite id', async () => {
+    nWritePage('chapter-a', 'shared-name')
+    nWritePage('chapter-b', 'thing')
+    // chapter-b's pageOrder lists 'chapter-a-shared-name' as if it were a bare id —
+    // it's actually chapter-a's real composite id.
+    nWriteManifest({
+      chapters: ['chapter-a', 'chapter-b'],
+      pageOrder: { 'chapter-a': ['shared-name'], 'chapter-b': ['thing', 'chapter-a-shared-name'] },
+    })
+    const report = createReport()
+    await checkChapter(nWsDir, report)
+    assert.ok(nRuleIds(report).includes('chapter/bare-id-collision-with-composite'))
+  })
+
+  it('N2 — chapter/bare-id-collision-with-composite: clean when no bare id collides with another chapter\'s composite id', async () => {
+    nWritePage('chapter-a', 'page-one')
+    nWriteManifest({ chapters: ['chapter-a'], pageOrder: { 'chapter-a': ['page-one'] } })
+    const report = createReport()
+    await checkChapter(nWsDir, report)
+    assert.ok(!nRuleIds(report).includes('chapter/bare-id-collision-with-composite'))
+  })
+
+  // --- chapter/pageOrder-duplicate-entry ---
+
+  it('N3 — chapter/pageOrder-duplicate-entry: same page id listed twice in one chapter', async () => {
+    nWritePage('chapter-a', 'page-one')
+    nWriteManifest({
+      chapters: ['chapter-a'],
+      pageOrder: { 'chapter-a': ['page-one', 'page-one'] },
+    })
+    const report = createReport()
+    await checkChapter(nWsDir, report)
+    assert.ok(nRuleIds(report).includes('chapter/pageOrder-duplicate-entry'))
+  })
+
+  it('N4 — chapter/pageOrder-duplicate-entry: clean when every entry is unique', async () => {
+    nWritePage('chapter-a', 'page-one')
+    nWritePage('chapter-a', 'page-two')
+    nWriteManifest({
+      chapters: ['chapter-a'],
+      pageOrder: { 'chapter-a': ['page-one', 'page-two'] },
+    })
+    const report = createReport()
+    await checkChapter(nWsDir, report)
+    assert.ok(!nRuleIds(report).includes('chapter/pageOrder-duplicate-entry'))
+  })
+
+  // --- chapter/id-not-kebab ---
+
+  it('N5 — chapter/id-not-kebab: an uppercase/underscore chapter id fails kebab-case', async () => {
+    nWriteManifest({ chapters: ['Not_Kebab'], pageOrder: {} })
+    const report = createReport()
+    await checkChapter(nWsDir, report)
+    assert.ok(nRuleIds(report).includes('chapter/id-not-kebab'))
+  })
+
+  it('N6 — chapter/id-not-kebab: a leading-digit chapter id (real, shipped pattern) is NOT flagged', async () => {
+    // '2048-flow' is real, shipped content — this rule is deliberately more permissive
+    // than scripts/helpers/validate.js's assertKebab (leading-letter-only).
+    nWriteManifest({ chapters: ['2048-flow'], pageOrder: {} })
+    const report = createReport()
+    await checkChapter(nWsDir, report)
+    assert.ok(!nRuleIds(report).includes('chapter/id-not-kebab'))
+  })
+
+  // --- chapter/startPage-wrong-chapter-scope ---
+
+  it('N7 — chapter/startPage-wrong-chapter-scope: startPage resolves to a chapter that is not chapters[0]', async () => {
+    nWritePage('chapter-a', 'page-one')
+    nWritePage('chapter-b', 'start-here')
+    nWriteManifest({
+      chapters: ['chapter-a', 'chapter-b'],
+      pageOrder: { 'chapter-a': ['page-one'], 'chapter-b': ['start-here'] },
+      startPage: 'start-here',
+    })
+    const report = createReport()
+    await checkChapter(nWsDir, report)
+    assert.ok(nRuleIds(report).includes('chapter/startPage-wrong-chapter-scope'))
+  })
+
+  it('N8 — chapter/startPage-wrong-chapter-scope: clean when startPage resolves to chapters[0]', async () => {
+    nWritePage('chapter-a', 'start-here')
+    nWriteManifest({
+      chapters: ['chapter-a'],
+      pageOrder: { 'chapter-a': ['start-here'] },
+      startPage: 'start-here',
+    })
+    const report = createReport()
+    await checkChapter(nWsDir, report)
+    assert.ok(!nRuleIds(report).includes('chapter/startPage-wrong-chapter-scope'))
+  })
+
+  // --- book/no-chapters ---
+
+  it('N9 — book/no-chapters: empty chapters[]', async () => {
+    nWriteManifest({ chapters: [], pageOrder: {} })
+    const report = createReport()
+    await checkBook(nWsDir, report)
+    assert.ok(nRuleIds(report).includes('book/no-chapters'))
+  })
+
+  it('N10 — book/no-chapters: clean when at least one chapter is declared', async () => {
+    nWritePage('chapter-a', 'page-one')
+    nWriteManifest({ chapters: ['chapter-a'], pageOrder: { 'chapter-a': ['page-one'] } })
+    const report = createReport()
+    await checkBook(nWsDir, report)
+    assert.ok(!nRuleIds(report).includes('book/no-chapters'))
+  })
+
+  // --- book/duplicate-chapter-id ---
+
+  it('N11 — book/duplicate-chapter-id: same chapter id listed twice', async () => {
+    nWriteManifest({ chapters: ['chapter-a', 'chapter-a'], pageOrder: {} })
+    const report = createReport()
+    await checkBook(nWsDir, report)
+    assert.ok(nRuleIds(report).includes('book/duplicate-chapter-id'))
+  })
+
+  it('N12 — book/duplicate-chapter-id: clean when every chapter id is unique', async () => {
+    nWriteManifest({ chapters: ['chapter-a', 'chapter-b'], pageOrder: {} })
+    const report = createReport()
+    await checkBook(nWsDir, report)
+    assert.ok(!nRuleIds(report).includes('book/duplicate-chapter-id'))
+  })
+
+  // --- book/duplicate-composite-id ---
+
+  it('N13 — book/duplicate-composite-id: two different chapter/page pairs collide on the same composite id', async () => {
+    // chapter 'a-b' + page 'c'  ==  chapter 'a' + page 'b-c'  ==  composite 'a-b-c'
+    nWritePage('a-b', 'c')
+    nWritePage('a', 'b-c')
+    nWriteManifest({
+      chapters: ['a-b', 'a'],
+      pageOrder: { 'a-b': ['c'], a: ['b-c'] },
+    })
+    const report = createReport()
+    await checkBook(nWsDir, report)
+    assert.ok(nRuleIds(report).includes('book/duplicate-composite-id'))
+  })
+
+  it('N14 — book/duplicate-composite-id: clean when no chapter/page pairs collide', async () => {
+    nWritePage('chapter-a', 'page-one')
+    nWritePage('chapter-b', 'page-two')
+    nWriteManifest({
+      chapters: ['chapter-a', 'chapter-b'],
+      pageOrder: { 'chapter-a': ['page-one'], 'chapter-b': ['page-two'] },
+    })
+    const report = createReport()
+    await checkBook(nWsDir, report)
+    assert.ok(!nRuleIds(report).includes('book/duplicate-composite-id'))
+  })
+
+  // --- book/invalid-start-page ---
+
+  it('N15 — book/invalid-start-page: startPage does not resolve to any real page', async () => {
+    nWritePage('chapter-a', 'page-one')
+    nWriteManifest({
+      chapters: ['chapter-a'],
+      pageOrder: { 'chapter-a': ['page-one'] },
+      startPage: 'does-not-exist',
+    })
+    const report = createReport()
+    await checkBook(nWsDir, report)
+    assert.ok(nRuleIds(report).includes('book/invalid-start-page'))
+  })
+
+  it('N16 — book/invalid-start-page: startPage resolves ambiguously (2+ chapters have a page with that bare name)', async () => {
+    nWritePage('chapter-a', 'shared-name')
+    nWritePage('chapter-b', 'shared-name')
+    nWriteManifest({
+      chapters: ['chapter-a', 'chapter-b'],
+      pageOrder: { 'chapter-a': ['shared-name'], 'chapter-b': ['shared-name'] },
+      startPage: 'shared-name',
+    })
+    const report = createReport()
+    await checkBook(nWsDir, report)
+    assert.ok(nRuleIds(report).includes('book/invalid-start-page'))
+  })
+
+  it('N17 — book/invalid-start-page: clean when startPage resolves to exactly one real page', async () => {
+    nWritePage('chapter-a', 'page-one')
+    nWriteManifest({
+      chapters: ['chapter-a'],
+      pageOrder: { 'chapter-a': ['page-one'] },
+      startPage: 'page-one',
+    })
+    const report = createReport()
+    await checkBook(nWsDir, report)
+    assert.ok(!nRuleIds(report).includes('book/invalid-start-page'))
+  })
+
+  // --- book/invalid-default-device ---
+
+  it('N18 — book/invalid-default-device: defaultDevice does not match any real DevicePreset label', async () => {
+    nWritePage('chapter-a', 'page-one')
+    nWriteManifest({
+      chapters: ['chapter-a'],
+      pageOrder: { 'chapter-a': ['page-one'] },
+      defaultDevice: 'Not A Real Device',
+    })
+    const report = createReport()
+    await checkBook(nWsDir, report)
+    assert.ok(nRuleIds(report).includes('book/invalid-default-device'))
+  })
+
+  it('N19 — book/invalid-default-device: clean when defaultDevice is a real DevicePreset label', async () => {
+    // 'Compact' is a real label from src/shared/components/devices/phones/compact.ts —
+    // exercising the real esbuild-bundle import path, not a fabricated fixture value.
+    nWritePage('chapter-a', 'page-one')
+    nWriteManifest({
+      chapters: ['chapter-a'],
+      pageOrder: { 'chapter-a': ['page-one'] },
+      defaultDevice: 'Compact',
+    })
+    const report = createReport()
+    await checkBook(nWsDir, report)
+    assert.ok(!nRuleIds(report).includes('book/invalid-default-device'))
+  })
+
+  // --- book/misc-chapter-orphan ---
+
+  it('N20 — book/misc-chapter-orphan: a depth-0 page resolves to "misc", but chapters[] never declares it', async () => {
+    // Depth-0 file directly under flowBook/ (no chapter folder) — resolves to the
+    // 'misc' fallback chapter per pagePathIdentity.js's own documented convention.
+    fs.mkdirSync(path.join(nWsDir, FLOW_BOOK_DIRNAME), { recursive: true })
+    fs.writeFileSync(
+      path.join(nWsDir, FLOW_BOOK_DIRNAME, 'RootPage.tsx'),
+      `export default function RootPage() { return null }\n`
+    )
+    nWriteManifest({ chapters: ['chapter-a'], pageOrder: {} })
+    const report = createReport()
+    await checkBook(nWsDir, report)
+    assert.ok(nRuleIds(report).includes('book/misc-chapter-orphan'))
+  })
+
+  it('N21 — book/misc-chapter-orphan: clean when "misc" is properly declared in chapters[]', async () => {
+    fs.mkdirSync(path.join(nWsDir, FLOW_BOOK_DIRNAME), { recursive: true })
+    fs.writeFileSync(
+      path.join(nWsDir, FLOW_BOOK_DIRNAME, 'RootPage.tsx'),
+      `export default function RootPage() { return null }\n`
+    )
+    nWriteManifest({ chapters: ['misc'], pageOrder: { misc: ['RootPage'] } })
+    const report = createReport()
+    await checkBook(nWsDir, report)
+    assert.ok(!nRuleIds(report).includes('book/misc-chapter-orphan'))
   })
 })
