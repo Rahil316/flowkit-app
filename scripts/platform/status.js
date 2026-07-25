@@ -25,20 +25,20 @@ export function cmdStatus(wsArg) {
   console.log(b(` Status — ${ws}`))
   console.log(d(' ────────────────────────────────────────────'))
 
-  const flatPlansDir = path.join(wsDir, FLOW_STORIES_DIRNAME)
+  const flowStoriesDir = path.join(wsDir, FLOW_STORIES_DIRNAME)
 
   // Recursively walks a chapter folder (variable depth, mirroring
-  // scripts/checks/screens.js's walkScreenFiles) counting real screen files.
+  // scripts/helpers/page-walk.js's walkPageFiles) counting real page files.
   // `__`-prefixed segments are pruned entirely (never descended into); `_`-prefixed
-  // segments are still counted here (status counts total authored screens, not just
+  // segments are still counted here (status counts total authored pages, not just
   // visible ones) — excluded only when non-existent.
-  function countScreenFiles(dir) {
+  function countPageFiles(dir) {
     let count = 0
     for (const entry of fs.readdirSync(dir)) {
       if (isNonExistent(entry)) continue
       const full = path.join(dir, entry)
       if (fs.statSync(full).isDirectory()) {
-        count += countScreenFiles(full)
+        count += countPageFiles(full)
       } else if (
         (entry.endsWith('.tsx') || entry.endsWith('.jsx')) &&
         !isHidden(entry) &&
@@ -50,29 +50,29 @@ export function cmdStatus(wsArg) {
     return count
   }
 
-  // Chapters + screens: flowBook/<chapter>/.../<screen>/<Screen>.tsx (variable depth)
+  // Chapters + pages: flowBook/<chapter>/.../<page>/<Page>.tsx (variable depth)
   let chapterCount = 0,
-    screenCount = 0
+    pageCount = 0
   if (fs.existsSync(chaptersDir)) {
     for (const folder of fs.readdirSync(chaptersDir)) {
       if (isNonExistent(folder)) continue
       const full = path.join(chaptersDir, folder)
       if (!fs.statSync(full).isDirectory()) continue
-      const total = countScreenFiles(full)
+      const total = countPageFiles(full)
       if (total > 0) {
         chapterCount++
-        screenCount += total
+        pageCount += total
       }
     }
   }
-  console.log(`  Chapters:        ${b(chapterCount)}  (${screenCount} screens total)`)
+  console.log(`  Chapters:        ${b(chapterCount)}  (${pageCount} pages total)`)
 
   // FlowStories
-  if (fs.existsSync(flatPlansDir)) {
-    const planCount = fs
-      .readdirSync(flatPlansDir)
+  if (fs.existsSync(flowStoriesDir)) {
+    const flowStoryCount = fs
+      .readdirSync(flowStoriesDir)
       .filter(f => f.endsWith('.ts') || f.endsWith('.js')).length
-    console.log(`  FlowStories:       ${b(planCount)}`)
+    console.log(`  FlowStories:       ${b(flowStoryCount)}`)
   }
 
   // Session library — sessions/<study>/*.json under lib/flowLens/

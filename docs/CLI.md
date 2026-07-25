@@ -175,7 +175,7 @@ export default defineConfig({
   // Explicit page ordering within each chapter for the Screens tab sidebar.
   // Unlisted pages are appended after declared ones, alphabetically.
   // NOTE: unlike flowStory step `pageId`s (which use the composite
-  // `${flowId}-${pageId}` form), pageOrder's arrays stay BARE page ids —
+  // `${chapterId}-${pageId}` form), pageOrder's arrays stay BARE page ids —
   // this map is already chapter-scoped by its own outer key, so no prefix is
   // needed to avoid collisions here. See Screen identity below.
   pageOrder: {
@@ -328,23 +328,23 @@ import { defineFlow } from '@flowkit-core/config'
 import { defineFlow } from 'flowkit'
 
 export default defineFlow({
-  id: 'checkout-flow', // required — unique plan id
+  id: 'checkout-flow', // required — unique flowStory id
   name: 'Checkout', // required — display name
   description: 'Happy path.', // optional
   tags: ['buyer', 'status:approved'], // optional — prefixes: role: type: state: status:
 
-  // Screen the device home button targets while this plan is playing.
+  // Screen the device home button targets while this flowStory is playing.
   // Optional — falls back to the workspace's `startPage` (see workspace.ts) when unset.
   homeScreen: 'product-detail',
 
-  // Flow-level db baseline — deep-copied on play, restored on exit.
+  // Chapter-level db baseline — deep-copied on play, restored on exit.
   // Keys are dot-paths; objects deep-merge, arrays replace entirely.
   db: {
     user: { id: 'u1', verified: true },
     cart: { count: 1 },
   },
 
-  // Flow-level simulator controls shown during playback.
+  // Chapter-level simulator controls shown during playback.
   simulator: {
     controls: [
       { label: 'Cart items', path: 'cart.count', type: 'count', min: 0, max: 10 },
@@ -354,7 +354,7 @@ export default defineFlow({
 
   steps: [
     {
-      pageId: 'checkout-flow-product-detail', // required — composite `${flowId}-${pageId}` id of the screen to show
+      pageId: 'checkout-flow-product-detail', // required — composite `${chapterId}-${pageId}` id of the screen to show
       on: 'add-to-cart', // element id whose tap advances this step (omit = tap-anywhere)
       actionNote: 'Taps Add to Cart', // what the user does (shown during playback)
       decisionNote: 'Entry point.', // narrative context (shown in step list)
@@ -381,7 +381,7 @@ export default defineFlow({
       decisionNote: 'End of happy path.',
     },
 
-    // Inline another plan's steps (screen ids namespaced as "other-plan-id::screen-id"):
+    // Inline another flowStory's steps (page ids namespaced as "other-flowStory-id::page-id"):
     // { ref: "quick-reorder-flow" },
   ],
 })
@@ -389,15 +389,15 @@ export default defineFlow({
 
 **Step fields summary:**
 
-| Field          | Purpose                                                                                                                           |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `pageId`       | Composite `${flowId}-${pageId}` id of the screen to show (required) — see [Screen identity](#screen-identity-composite-ids) below |
-| `on`           | Element id whose tap advances this step; omit for tap-anywhere                                                                    |
-| `actionNote`   | What the user does — shown as caption during playback                                                                             |
-| `decisionNote` | Narrative note shown in the step list                                                                                             |
-| `annotation`   | Free-text sticky note shown on canvas node and step list                                                                          |
-| `db`           | Dot-path patch applied to the flow db when this step activates                                                                    |
-| `forks`        | Inline conditional branches                                                                                                       |
+| Field          | Purpose                                                                                                                              |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `pageId`       | Composite `${chapterId}-${pageId}` id of the screen to show (required) — see [Screen identity](#screen-identity-composite-ids) below |
+| `on`           | Element id whose tap advances this step; omit for tap-anywhere                                                                       |
+| `actionNote`   | What the user does — shown as caption during playback                                                                                |
+| `decisionNote` | Narrative note shown in the step list                                                                                                |
+| `annotation`   | Free-text sticky note shown on canvas node and step list                                                                             |
+| `db`           | Dot-path patch applied to the chapter db when this step activates                                                                    |
+| `forks`        | Inline conditional branches                                                                                                          |
 
 **Fork fields:** `label`, `db` (condition patch), `steps`, `mergesTo: "next"` (rejoin) or omit (terminal).
 
@@ -504,7 +504,7 @@ flowBook/<flow>/.../<screen>/<File>.tsx
 - A file directly at `flowBook/<File>.tsx` (no folders at all) falls back to chapter id `"misc"`, with the page id taken from the filename minus extension.
 - Page files no longer need to end in a literal `Screen`/`Page` suffix — `create:page` still generates `...Page.tsx` by convention/default, but hand-authored files aren't required to follow it.
 
-The registered, globally-unique page id is a **composite**: `${flowId}-${pageId}`. This makes ids collision-proof across chapters — two different chapters can each have a page folder literally named the same thing without colliding. FlowStory step `pageId` values (and any other cross-chapter/global reference) use this composite form. `workspace.ts`'s `pageOrder` map is the one exception — it stays **bare** (page id only, no chapter prefix), because that map is already chapter-scoped by its own outer key (`pageOrder['onboarding-flow'] = ['welcome-screen', ...]`).
+The registered, globally-unique page id is a **composite**: `${chapterId}-${pageId}`. This makes ids collision-proof across chapters — two different chapters can each have a page folder literally named the same thing without colliding. FlowStory step `pageId` values (and any other cross-chapter/global reference) use this composite form. `workspace.ts`'s `pageOrder` map is the one exception — it stays **bare** (page id only, no chapter prefix), because that map is already chapter-scoped by its own outer key (`pageOrder['onboarding-flow'] = ['welcome-screen', ...]`).
 
 **One real page per folder:** if 2+ unprefixed candidate `.tsx`/`.jsx` files exist in the same page folder, the alphabetically-first one is deterministically picked as the real page, and `flowkit check:pages` reports a non-blocking `page/ambiguous-folder` warning naming the winner and suggesting you `_`-prefix, remove, or rename the others. This never fails the build.
 

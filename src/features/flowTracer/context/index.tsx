@@ -127,8 +127,8 @@ export function SessionRecorderProvider({
   const sessionNameRef = useRef<string>('Untitled session')
   const sessionTagsRef = useRef<string[]>([])
   const remarksRef = useRef<SessionRemark[]>([])
-  const flowEntryCountRef = useRef(0)
-  const screenCountRef = useRef(0)
+  const chapterEntryCountRef = useRef(0)
+  const pageVisitCountRef = useRef(0)
   const startTimeRef = useRef<number>(0)
   const [isTestModeState, setIsTestModeState] = useState<boolean>(false)
   const isTestModeRef = useRef<boolean>(false)
@@ -236,8 +236,8 @@ export function SessionRecorderProvider({
     sessionIdRef.current = id
     sequenceRef.current = 0
     eventCountRef.current = 0
-    flowEntryCountRef.current = 0
-    screenCountRef.current = 0
+    chapterEntryCountRef.current = 0
+    pageVisitCountRef.current = 0
     remarksRef.current = []
     sessionNameRef.current = autoName
     sessionTagsRef.current = []
@@ -288,8 +288,8 @@ export function SessionRecorderProvider({
         if (!id) return
         const duration = Date.now() - startTimeRef.current
         const qualityScore = computeQuality({
-          flowEntryCount: flowEntryCountRef.current,
-          screenCount: screenCountRef.current,
+          chapterEntryCount: chapterEntryCountRef.current,
+          pageVisitCount: pageVisitCountRef.current,
           durationMs: duration,
         })
         // Same quality gate as an explicit stop — don't keep junk idle sessions.
@@ -330,9 +330,9 @@ export function SessionRecorderProvider({
       const seq = nextSeq()
       eventCountRef.current += 1
 
-      if (type === 'chapter.entered') flowEntryCountRef.current += 1
+      if (type === 'chapter.entered') chapterEntryCountRef.current += 1
       if (type === 'page.visited') {
-        screenCountRef.current += 1
+        pageVisitCountRef.current += 1
         setCurrentPageId((payload.pageId as string) ?? (payload.viewId as string) ?? null)
       }
       if (type === 'session.remark') {
@@ -401,8 +401,8 @@ export function SessionRecorderProvider({
       sessionIdRef.current = id
       sequenceRef.current = 0
       eventCountRef.current = 0
-      flowEntryCountRef.current = 0
-      screenCountRef.current = 0
+      chapterEntryCountRef.current = 0
+      pageVisitCountRef.current = 0
       remarksRef.current = []
       sessionNameRef.current = name
       sessionTagsRef.current = tags
@@ -453,8 +453,8 @@ export function SessionRecorderProvider({
 
       const duration = Date.now() - startTimeRef.current
       const qualityScore = computeQuality({
-        flowEntryCount: flowEntryCountRef.current,
-        screenCount: screenCountRef.current,
+        chapterEntryCount: chapterEntryCountRef.current,
+        pageVisitCount: pageVisitCountRef.current,
         durationMs: duration,
       })
 
@@ -541,15 +541,15 @@ export function SessionRecorderProvider({
       SessionDb.getEvents(id),
       SessionDb.getCursorSamples(id),
     ])
-    const flowEntryCount = events.filter(e => e.type === 'chapter.entered').length
-    const screenCount = events.filter(e => e.type === 'page.visited').length
+    const chapterEntryCount = events.filter(e => e.type === 'chapter.entered').length
+    const pageVisitCount = events.filter(e => e.type === 'page.visited').length
     // event.timestamp is performance.now() from the crashed page load, so it
     // can't be turned into a wall-clock end time on recovery. Estimate duration
     // from the span of recorded timestamps (intra-session deltas are valid).
     const span = events.length
       ? Math.max(0, Math.round(events[events.length - 1].timestamp - events[0].timestamp))
       : 0
-    const qualityScore = computeQuality({ flowEntryCount, screenCount, durationMs: span })
+    const qualityScore = computeQuality({ chapterEntryCount, pageVisitCount, durationMs: span })
     const firstTs = events[0]?.timestamp ?? 0
     const remarks: SessionRemark[] = events
       .filter(e => e.type === 'session.remark')
@@ -666,17 +666,17 @@ function isChannelEnabled(type: EventType, ch: ChannelConfig): boolean {
 }
 
 function computeQuality({
-  flowEntryCount,
-  screenCount,
+  chapterEntryCount,
+  pageVisitCount,
   durationMs,
 }: {
-  flowEntryCount: number
-  screenCount: number
+  chapterEntryCount: number
+  pageVisitCount: number
   durationMs: number
 }): number {
   let score = 0
-  if (flowEntryCount >= 1) score += 40
-  if (screenCount >= 3) score += 30
+  if (chapterEntryCount >= 1) score += 40
+  if (pageVisitCount >= 3) score += 30
   if (durationMs >= 30_000) score += 30
   return score
 }

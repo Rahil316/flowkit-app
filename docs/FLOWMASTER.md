@@ -1,6 +1,6 @@
 # FlowMaster — Developer Walkthrough
 
-FlowMaster is Flowkit's flow engine — a proper state machine giving you conditional branching, isolated per-flow state, global mock database access, and a live debugger panel, all driven by flowplan files.
+FlowMaster is Flowkit's chapter engine — a proper state machine giving you conditional branching, isolated per-chapter state, global mock database access, and a live debugger panel, all driven by flowStory files.
 
 **This doc covers all three deployment modes** (repo, flat, and multi-workspace consumer). Examples use repo-mode imports (`@flowkit-core/config`). In consumer mode (flat/multi-workspace), import `defineFlow` from `'flowkit'` instead — the API is identical. See [CLI.md](CLI.md#import-aliases) for details.
 
@@ -9,7 +9,7 @@ FlowMaster is Flowkit's flow engine — a proper state machine giving you condit
 ## Mental model
 
 - **Pages are dumb** — they render UI. They never know what page comes next.
-- **Flowplans are smart** — `flowStories/<flow>.ts` owns all routing logic via `steps[]`. FlowMaster reads it and drives navigation.
+- **FlowStories are smart** — `flowStories/<chapter>.ts` owns all routing logic via `steps[]`. FlowMaster reads it and drives navigation.
 - **Two kinds of state** — `flowState` (per-chapter sandbox, reset when the chapter exits) and `db` (global mock db, persists across the session).
 
 ---
@@ -36,11 +36,11 @@ workspaces/<ws>/
         ConfirmationScreen.tsx
 ```
 
-Pages are discovered at runtime by `useWorkspaceHierarchy()` via Vite glob — no router file is generated or needed. Page folders can nest to any depth under `flowBook/<flow>/` (extra cosmetic folders in between are ignored for identity), and the registered, cross-chapter-unique page id is the composite `${flowId}-${pageId}` — see [FLOWKIT.md](FLOWKIT.md#page-authoring-folders-identity-and-visibility) for the full identity/visibility rules. The step examples below use bare ids for brevity; in a real flowplan, `pageId` values are the composite form.
+Pages are discovered at runtime by `useWorkspaceHierarchy()` via Vite glob — no router file is generated or needed. Page folders can nest to any depth under `flowBook/<chapter>/` (extra cosmetic folders in between are ignored for identity), and the registered, cross-chapter-unique page id is the composite `${chapterId}-${pageId}` — see [FLOWKIT.md](FLOWKIT.md#page-authoring-folders-identity-and-visibility) for the full identity/visibility rules. The step examples below use bare ids for brevity; in a real flowStory, `pageId` values are the composite form.
 
 ---
 
-## Flowplan — full config reference
+## FlowStory — full config reference
 
 ```ts
 import { defineFlow } from '@flowkit-core/config'
@@ -51,14 +51,14 @@ export default defineFlow({
   description: 'Full purchase flow',
   tags: ['buyer', 'status:approved'],
 
-  // Flow-level db baseline — deep-copied on play, restored on exit.
+  // Chapter-level db baseline — deep-copied on play, restored on exit.
   // Keys are dot-paths; objects deep-merge, arrays replace entirely.
   db: {
     user: { id: 'u1', verified: true },
     cart: { count: 1 },
   },
 
-  // Flow-level simulator controls shown during playback.
+  // Chapter-level simulator controls shown during playback.
   simulator: {
     controls: [
       { label: 'Cart items', path: 'cart.count', type: 'count', min: 0, max: 10 },
@@ -68,7 +68,7 @@ export default defineFlow({
 
   steps: [
     {
-      pageId: 'cart', // required — id of the screen to show
+      pageId: 'cart', // required — id of the page to show
       on: 'checkout-btn', // element id whose tap advances this step (omit = tap-anywhere)
       actionNote: 'Taps Checkout', // what the user does (shown during playback)
       decisionNote: 'Entry point.',
@@ -84,7 +84,7 @@ export default defineFlow({
           label: 'Empty cart',
           db: { 'cart.count': 0 },
           steps: [{ pageId: 'cart-empty', actionNote: 'Sees empty state' }],
-          // mergesTo: 'next',  // rejoin the main flow after the fork; omit = terminal branch
+          // mergesTo: 'next',  // rejoin the main chapter after the fork; omit = terminal branch
         },
       ],
     },
@@ -94,7 +94,7 @@ export default defineFlow({
       decisionNote: 'End of happy path.',
     },
 
-    // Inline another plan's steps (screen ids namespaced as "other-plan-id::screen-id"):
+    // Inline another flowStory's steps (page ids namespaced as "other-flowStory-id::page-id"):
     // { ref: 'quick-reorder-flow' },
   ],
 })
@@ -102,35 +102,35 @@ export default defineFlow({
 
 ### Step fields
 
-| Field          | Purpose                                                             |
-| -------------- | ------------------------------------------------------------------- |
-| `pageId`       | Composite `${flowId}-${pageId}` id of the screen to show (required) |
-| `on`           | Element id whose tap advances this step; omit for tap-anywhere      |
-| `actionNote`   | What the user does — shown as caption during playback               |
-| `decisionNote` | Narrative note shown in the step list                               |
-| `annotation`   | Free-text sticky note shown on canvas node and step list            |
-| `db`           | Dot-path patch applied to the flow db when this step activates      |
-| `simulator`    | Per-step simulator control visibility (add/hide/exclusive)          |
-| `forks`        | Inline conditional branches (see below)                             |
+| Field          | Purpose                                                                |
+| -------------- | ---------------------------------------------------------------------- |
+| `pageId`       | Composite `${chapterId}-${pageId}` id of the screen to show (required) |
+| `on`           | Element id whose tap advances this step; omit for tap-anywhere         |
+| `actionNote`   | What the user does — shown as caption during playback                  |
+| `decisionNote` | Narrative note shown in the step list                                  |
+| `annotation`   | Free-text sticky note shown on canvas node and step list               |
+| `db`           | Dot-path patch applied to the chapter db when this step activates      |
+| `simulator`    | Per-step simulator control visibility (add/hide/exclusive)             |
+| `forks`        | Inline conditional branches (see below)                                |
 
 ### Fork fields
 
-| Field      | Purpose                                                                     |
-| ---------- | --------------------------------------------------------------------------- |
-| `label`    | Display name for the branch                                                 |
-| `db`       | Db condition patch — evaluated against current db to select this branch     |
-| `steps`    | Steps to run on this branch                                                 |
-| `mergesTo` | `"next"` to rejoin the main flow after the fork; omit for a terminal branch |
+| Field      | Purpose                                                                        |
+| ---------- | ------------------------------------------------------------------------------ |
+| `label`    | Display name for the branch                                                    |
+| `db`       | Db condition patch — evaluated against current db to select this branch        |
+| `steps`    | Steps to run on this branch                                                    |
+| `mergesTo` | `"next"` to rejoin the main chapter after the fork; omit for a terminal branch |
 
-### Plan composition
+### FlowStory composition
 
-`{ ref: 'plan-id' }` inlines another plan's steps at that position. The referenced plan's screen ids are namespaced as `plan-id::screen-id` to avoid collisions.
+`{ ref: 'flowStory-id' }` inlines another flowStory's steps at that position. The referenced flowStory's page ids are namespaced as `flowStory-id::page-id` to avoid collisions.
 
 ---
 
 ## Page component
 
-Pages render UI and give elements ids. Navigation is wired in the flowplan — pages never import routing logic.
+Pages render UI and give elements ids. Navigation is wired in the flowStory — pages never import routing logic.
 
 ```tsx
 import type { PageProps } from '@flowkit/types'
@@ -169,9 +169,9 @@ export const pageMeta = {
 | `onNext`    | `() => void`               | Advance to the next page in order                                            |
 | `onBack`    | `() => void`               | Go to the previous page                                                      |
 
-> Prefer element `id` + flowplan `on:` over `onAction`/`onNext`/`onBack` for simple taps — it keeps pages free of routing logic.
+> Prefer element `id` + the flowStory's `on:` over `onAction`/`onNext`/`onBack` for simple taps — it keeps pages free of routing logic.
 
-> **Screens tab vs. Flows tab:** `onAction`/`onNext`/`onBack` are only wired up during flowplan playback (Flows tab / FlowMaster) — those callbacks are `undefined` when a page is viewed standalone from the **Screens tab**, so `onClick={() => onNext?.()}`-style handlers no-op silently there. That's by design, not a bug. If a page should also be freely clickable from the Screens tab, use `useAppNav()` instead: `const { navigateTo } = useAppNav(); onClick={() => navigateTo(id)}` (see "Navigate from screen logic" below). `useAppNav()` picks the flow-aware `navigateTo` automatically when the page is rendered inside a chapter, so it's always safe to call unconditionally — no `isChapter` check needed in the page's own code.
+> **Screens tab vs. Flow Library tab:** `onAction`/`onNext`/`onBack` are only wired up during flowStory playback (Flow Library tab / FlowMaster) — those callbacks are `undefined` when a page is viewed standalone from the **Screens tab**, so `onClick={() => onNext?.()}`-style handlers no-op silently there. That's by design, not a bug. If a page should also be freely clickable from the Screens tab, use `useAppNav()` instead: `const { navigateTo } = useAppNav(); onClick={() => navigateTo(id)}` (see "Navigate from page logic" below). `useAppNav()` picks the chapter-aware `navigateTo` automatically when the page is rendered inside a chapter, so it's always safe to call unconditionally — no `isChapter` check needed in the page's own code.
 
 ### `pageMeta` fields
 
@@ -207,7 +207,7 @@ Page-level guards are surfaced in the sidebar as a lock icon.
 
 ---
 
-## Navigate from screen logic
+## Navigate from page logic
 
 For state-driven or async navigation (after a form submit, API call, etc.) use `useNav()`:
 
@@ -224,9 +224,9 @@ const submit = async () => {
 
 Targets: a page id, `"next"`, `"back"`, or `"complete"`.
 
-> **During flow playback**, use `useNav()`, not `useDashboard()`'s `navigateTo` — guards, animations, and session replay only fire through FlowMaster's `commitNavigation`. `useNav()` itself throws if called from a page with no `FlowMaster` ancestor (i.e. previewed standalone from the Screens tab), so it isn't a drop-in replacement there.
+> **During chapter playback**, use `useNav()`, not `useDashboard()`'s `navigateTo` — guards, animations, and session replay only fire through FlowMaster's `commitNavigation`. `useNav()` itself throws if called from a page with no `FlowMaster` ancestor (i.e. previewed standalone from the Screens tab), so it isn't a drop-in replacement there.
 >
-> A page that should **also** be freely clickable from the Screens tab (no chapter active) should call `useAppNav()` (`@flowkit-shared/utils`) instead of `useNav()` or `useDashboard()` directly: `const { navigateTo } = useAppNav(); onClick={() => navigateTo(id)}`. `useAppNav()` reads whichever navigation context actually applies — FlowMaster's flow-aware one when rendered inside a chapter, `DashboardContext`'s otherwise — so the same call is correct in both places with no `isChapter` check written by the page. See `scripts/helpers/scaffold.js`'s demo pages for the pattern.
+> A page that should **also** be freely clickable from the Screens tab (no chapter active) should call `useAppNav()` (`@flowkit-shared/utils`) instead of `useNav()` or `useDashboard()` directly: `const { navigateTo } = useAppNav(); onClick={() => navigateTo(id)}`. `useAppNav()` reads whichever navigation context actually applies — FlowMaster's chapter-aware one when rendered inside a chapter, `DashboardContext`'s otherwise — so the same call is correct in both places with no `isChapter` check written by the page. See `scripts/helpers/scaffold.js`'s demo pages for the pattern.
 
 ---
 
@@ -243,13 +243,13 @@ The debugger panel (right sidebar → Debugger tab) shows:
 
 ## Analytics & recording (FlowTracer)
 
-FlowMaster emits an event stream to the session recorder (FlowTracer) as the user moves through a flow — these power FlowLens replay & analytics. Key events:
+FlowMaster emits an event stream to the session recorder (FlowTracer) as the user moves through a chapter — these power FlowLens replay & analytics. Key events:
 
-- `flow.entered` / `flow.completed` / `flow.exited-early` / `flow.blocked`
-- `screen.visited` / `screen.dwell-end` / `screen.blocked`
+- `chapter.entered` / `chapter.completed` / `chapter.exited-early` / `chapter.blocked`
+- `page.visited` / `page.dwell-end` / `page.blocked`
 - `interaction.tap` / `interaction.double-tap` / `interaction.hover` / `interaction.swipe` / `interaction.effect` / `interaction.frustrated-click`
 - `navigation.auto-advance`
-- **`flow.transition`** — emitted when a navigation resolves with a problem: a screen guard **blocks** it, or a step resolver **throws**. Carries `{ action, from, to, blocked?/error?, warnings[] }` so FlowLens replay shows _why_ a tap misbehaved, not just that it happened.
+- **`chapter.transition`** — emitted when a navigation resolves with a problem: a page guard **blocks** it, or a step resolver **throws**. Carries `{ action, from, to, blocked?/error?, warnings[] }` so FlowLens replay shows _why_ a tap misbehaved, not just that it happened.
 
 Cursor positions are sampled (rAF, throttled) when the `cursorTracking` channel is on. Recording is always available; replaying it is the **FlowLens** mode. See [FLOWLENS.md](FLOWLENS.md).
 
@@ -263,4 +263,4 @@ flowkit check:flowStories  # validates flowStory structure/step references; also
 flowkit status             # workspace health: chapters, pages, flowStories, sessions
 ```
 
-Add pages manually: create `flowBook/<flow>/<screen>/<ScreenName>.tsx` (the filename doesn't need the `Screen`/`Page` suffix — identity comes from the folder, not the file), add a step to `flowStories/<flow>.ts`. `useWorkspaceHierarchy()` discovers pages automatically — no build step needed.
+Add pages manually: create `flowBook/<chapter>/<page>/<PageName>.tsx` (the filename doesn't need the `Screen`/`Page` suffix — identity comes from the folder, not the file), add a step to `flowStories/<chapter>.ts`. `useWorkspaceHierarchy()` discovers pages automatically — no build step needed.

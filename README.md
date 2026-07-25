@@ -24,7 +24,7 @@ Flowkit gives you a live canvas with:
 - **Flow engine** — conditional navigation, local sandbox state, mock database mutations
 - **Simulator** — color-blind vision modes, connection/network conditions, blur
 - **Feedback** — per-page comment wall with tags, screenshots, export/import to cloud
-- **Debugger** — live view of flow state, transition history, db activity
+- **Debugger** — live view of chapter state, transition history, db activity
 - **FlowLens** — session replay, cursor heatmaps, funnel analytics, and multi-session reports
 - **Mobile canvas** — full feature parity on touch devices via a bottom-sheet layout
 
@@ -122,7 +122,7 @@ or inside a chapter — safe to call unconditionally, unlike wiring `useDashboar
 
 ## Flow config
 
-Chapters are defined as **flowStories** under `workspaces/<name>/flowStories/` (repo mode) or `flowStories/` at the workspace root (consumer mode). Each flowStory is a `FlowStoryDef` — a typed, ordered sequence of steps with optional db patches, forks, and entry guards. Step `pageId` values use the composite `${flowId}-${pageId}` form:
+Chapters are defined as **flowStories** under `workspaces/<name>/flowStories/` (repo mode) or `flowStories/` at the workspace root (consumer mode). Each flowStory is a `FlowStoryDef` — a typed, ordered sequence of steps with optional db patches, forks, and entry guards. Step `pageId` values use the composite `${chapterId}-${pageId}` form:
 
 ```ts
 // this repo (repo mode)
@@ -172,21 +172,21 @@ Full reference: [docs/CLI.md](docs/CLI.md)
 
 FlowLens is a built-in analytics mode that replays recorded user sessions and surfaces behavioral data without any external tooling.
 
-**Recording** — sessions are captured automatically when a flow starts (if enabled), or manually from the Sessions panel. The recorder tracks interactions, navigation events, db mutations, cursor position (optional), and flow lifecycle. Everything is stored locally in IndexedDB.
+**Recording** — sessions are captured automatically when a chapter starts (if enabled), or manually from the Sessions panel. The recorder tracks interactions, navigation events, db mutations, cursor position (optional), and chapter lifecycle. Everything is stored locally in IndexedDB.
 
-**Replay** — FlowLens mounts the real workspace inside a device mockup and scrubs through recorded events, restoring db state and screen position at each point in time. Cursor ghosts and interaction markers are overlaid on the live UI.
+**Replay** — FlowLens mounts the real workspace inside a device mockup and scrubs through recorded events, restoring db state and page position at each point in time. Cursor ghosts and interaction markers are overlaid on the live UI.
 
 **Analytics views:**
 
 | View     | What it shows                                     |
 | -------- | ------------------------------------------------- |
 | Timeline | Chronological event stream for a single session   |
-| Heatmap  | Cursor density and click concentration by screen  |
-| Paths    | Screen-to-screen navigation Sankey / flow diagram |
-| Funnel   | Drop-off rates across a defined screen sequence   |
+| Heatmap  | Cursor density and click concentration by page    |
+| Paths    | Page-to-page navigation Sankey / flow diagram     |
+| Funnel   | Drop-off rates across a defined page sequence     |
 | Metrics  | Duration, interaction counts, quality score, tags |
 
-**Reports** — generate aggregate reports across multiple sessions: funnel completion rates, avg session duration, top screens by dwell time, frustrated-click frequency. Export as CSV, JSON, or Markdown.
+**Reports** — generate aggregate reports across multiple sessions: funnel completion rates, avg session duration, top pages by dwell time, frustrated-click frequency. Export as CSV, JSON, or Markdown.
 
 **Session management** — sessions can be tagged, renamed, merged, filtered by quality score, and exported as `.flowkit-session.json` files (or `.bundle.flowkit-session.json` for multi-session exports). Bundles import cleanly and re-sequence events correctly on merge.
 
@@ -245,8 +245,8 @@ src/
     config/                    # defineConfig(), defineFlow() type-safe helpers
   features/
     feedback/                  # comment wall, cloud push via JSONBin, export/import
-    figma-export/              # FigmaExportView — multi-screen canvas grid (Cmd+Alt+Shift+P)
-    flow-debugger/             # db inspector, flow state viewer
+    figma-export/              # FigmaExportView — multi-page canvas grid (Cmd+Alt+Shift+P)
+    flow-debugger/             # db inspector, chapter state viewer
     flow-library/              # chapter/page hierarchy, flow canvas
     flowStory/                 # compileFlowStory, playback context, settings, element-check diagnostic
     flowTracer/                # session recorder, IndexedDB storage, FlowLens bridge

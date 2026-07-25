@@ -11,7 +11,7 @@ This folder is the platform knowledge base. Start with the one that fits your ta
 | Doc                        | Covers                                                                                                                                                     |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **FLOWKIT.md** (this file) | Platform architecture: structure, aliases, kit system, canvas, db, theming, feedback, entry guards, export vs build.                                       |
-| **FLOWMASTER.md**          | The flow engine: flowplan config (`defineFlow`), steps, forks, guards, animations, screen components, the recorded event stream.                           |
+| **FLOWMASTER.md**          | The chapter engine: flowStory config (`defineFlow`), steps, forks, guards, animations, page components, the recorded event stream.                         |
 | **FLOWLENS.md**            | FlowTracer (session recorder) + FlowLens (replay mode & analytics): event types, build gating, the committed session library.                              |
 | **FLOWLENS-GUIDE.md**      | FlowLens usage guide.                                                                                                                                      |
 | **AGENTS.md**              | How a coding agent works inside a workspace: cold-start sequence, common task recipes, the directive grammar, and the `agent:sync` source-of-truth system. |
@@ -33,8 +33,8 @@ flowkit/
     features/                   ← Isolated product features
       feedback/                 ← Comment wall, cloud push (cloud-sync/), export/import
       figma-export/             ← Figma handoff sidebar
-      flow-debugger/            ← Runtime flow state, db inspector
-      flow-library/             ← Flowplan browsing, hierarchy, compileFlowplan
+      flow-debugger/            ← Runtime chapter state, db inspector
+      flow-library/             ← FlowStory browsing, hierarchy, compileFlowStory
       flowTracer/               ← Session recorder + IndexedDB (WriteBatcher 300ms)
       simulator/                ← Accessibility settings, device settings, controls/ primitives
     modes/
@@ -53,12 +53,12 @@ flowkit/
   workspaces/                   ← One folder per workspace (repo mode only)
     <name>/
       flowStories/                ← FlowStory files (defineFlow) — was `flowplans/`
-        <flow>.ts
-      flowBook/              ← Flow screen folders — was `flows/`; variable depth, see below
-        <flow>/
+        <chapter>.ts
+      flowBook/              ← Chapter/page folders — was `flows/`; variable depth, see below
+        <chapter>/
           .../                  ← any number of cosmetic/organizational folders (optional)
-            <screen>/
-              <File>.tsx        ← Screen component — no "Screen" filename suffix required
+            <page>/
+              <File>.tsx        ← Page component — no "Screen" filename suffix required
       lib/
         data/db.ts              ← Mock database (named exports)
         data/simulator.tsx      ← Custom simulator controls
@@ -88,26 +88,26 @@ flowkit/
 
 ## Page authoring: folders, identity, and visibility
 
-Page identity is derived entirely from a page's **position** in `flowBook/`, never from its filename. The shared logic lives in `src/shared/utils/screenPathIdentity.js`, imported by both the repo-mode browser bundle and the flat/multi-workspace-mode Vite plugin so both contexts agree on the same rules.
+Page identity is derived entirely from a page's **position** in `flowBook/`, never from its filename. The shared logic lives in `src/shared/utils/pagePathIdentity.js`, imported by both the repo-mode browser bundle and the flat/multi-workspace-mode Vite plugin so both contexts agree on the same rules.
 
 ### Variable-depth folders
 
 ```
-flowBook/<flow>/.../<screen>/<File>.tsx
+flowBook/<chapter>/.../<page>/<File>.tsx
 flowBook/<File>.tsx                          ← 0 folders: chapter = "misc", page = filename
 ```
 
 - The **first** segment after `flowBook/` is always the chapter id.
 - The **last** folder before the file is always the page id.
-- Any folders in between are purely cosmetic/organizational — kept for on-disk display, ignored for identity. This replaces the old fixed 2-level requirement (`flowBook/<flow>/<screen>/`); a page can now live arbitrarily deep.
+- Any folders in between are purely cosmetic/organizational — kept for on-disk display, ignored for identity. This replaces the old fixed 2-level requirement (`flowBook/<chapter>/<page>/`); a page can now live arbitrarily deep.
 - A file with **zero** folders directly under `flowBook/` falls back to chapter id `"misc"`, with the page id taken from the filename (extension stripped).
 - The `Screen` filename suffix is no longer required anywhere — `create:page` generates `...Page.tsx` by convention, but hand-authored files don't need to follow it.
 
 ### Composite page ids
 
-The registered, cross-chapter-unique page id is `${flowId}-${pageId}` (built by `makePageId()`). This makes ids collision-proof: two different chapters can each have a page folder literally named the same thing without colliding, since the chapter id is baked into the composite.
+The registered, cross-chapter-unique page id is `${chapterId}-${pageId}` (built by `makePageId()`). This makes ids collision-proof: two different chapters can each have a page folder literally named the same thing without colliding, since the chapter id is baked into the composite.
 
-- **Flowplan step `pageId` values, and any other global/cross-chapter reference, use the composite form** (e.g. `onboarding-flow-welcome-screen`).
+- **FlowStory step `pageId` values, and any other global/cross-chapter reference, use the composite form** (e.g. `onboarding-flow-welcome-screen`).
 - **`workspace.ts`'s `pageOrder` map is the one exception — it stays bare.** Since `pageOrder` is already keyed per-chapter (`pageOrder['onboarding-flow'] = ['welcome-screen', ...]`), no composite prefix is needed there to avoid collisions.
 
 ### One real page per folder
@@ -271,7 +271,7 @@ Workspaces scaffolded by an older version of the platform in plain JavaScript/JS
 
 ## Router
 
-Workspaces have no `router.tsx`. Pages are discovered by `useWorkspaceHierarchy()` (`src/shared/utils/useWorkspaceHierarchy.ts`) via Vite glob from `flowBook/**`. The flowplan files (`defineFlow`) in `flowStories/*.ts` declare step sequences; no router file is generated or needed.
+Workspaces have no `router.tsx`. Pages are discovered by `useWorkspaceHierarchy()` (`src/shared/utils/useWorkspaceHierarchy.ts`) via Vite glob from `flowBook/**`. The flowStory files (`defineFlow`) in `flowStories/*.ts` declare step sequences; no router file is generated or needed.
 
 ---
 

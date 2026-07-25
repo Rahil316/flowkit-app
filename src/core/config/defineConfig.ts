@@ -38,11 +38,11 @@ export function defineConfig(config: FlowkitConfig): FlowkitConfig {
 /**
  * Author a FlowStory with full type-checking + autocomplete.
  *
- * Identity function — returns `flow` unchanged, same rationale as
+ * Identity function — returns `flowStory` unchanged, same rationale as
  * {@link defineConfig}.
  *
- * @param flow - The flowStory definition (id, name, steps, simulator, etc.)
- * @returns The same `flow` object, unmodified.
+ * @param flowStory - The flowStory definition (id, name, steps, simulator, etc.)
+ * @returns The same `flowStory` object, unmodified.
  *
  * @example
  * ```ts
@@ -51,8 +51,8 @@ export function defineConfig(config: FlowkitConfig): FlowkitConfig {
  * export default defineFlow({ id: "checkout", name: "Checkout", steps: [...] });
  * ```
  */
-export function defineFlow(flow: FlowStoryDef): FlowStoryDef {
-  return flow
+export function defineFlow(flowStory: FlowStoryDef): FlowStoryDef {
+  return flowStory
 }
 
 /**

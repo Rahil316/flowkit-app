@@ -69,11 +69,11 @@ Interactions & navigation are always on. Toggleable: `effects`, `stateChanges`,
 
 ### Lifecycle & safety
 
-- **Auto-start on flow entry** (`setAutoStartOnFlow`) — a `flow.entered` while
+- **Auto-start on flow entry** (`setAutoStartOnFlow`) — a `chapter.entered` while
   idle starts an `Auto · …` session.
 - **Quality gate** — on stop (and on idle auto-stop), sessions below
   `qualityThreshold` (auto-sessions: 40) are deleted. `computeQuality` scores
-  flow-entry (+40), ≥3 screens (+30), ≥30s (+30).
+  chapter-entry (+40), ≥3 pages (+30), ≥30s (+30).
 - **Inactivity auto-stop** — 5 min idle finalizes the session with the real
   cursor sample count and the same quality gate as an explicit stop.
 - **Crash recovery** — incomplete sessions (no `endTime`) are detected on mount;
@@ -95,13 +95,13 @@ Cleanup: the debounce timer (`recentFlushRef`) is cleared in the component's unm
 
 ### Event types
 
-See `EventType` in `src/features/flowTracer/types.ts`. Notable: `flow.entered/completed/
-exited-early/blocked`, **`flow.transition`** (emitted only when a navigation resolves
-_with a problem_ — a screen guard blocks it, or a `do()`/`goTo()` resolver throws/warns;
+See `EventType` in `src/features/flowTracer/types.ts`. Notable: `chapter.entered/completed/
+exited-early/blocked`, **`chapter.transition`** (emitted only when a navigation resolves
+_with a problem_ — a page guard blocks it, or a `do()`/`goTo()` resolver throws/warns;
 never fires on a clean, successful navigation — carries `action`, `from`, `to`, and
 `blocked`/`error`/`warnings` describing what went wrong; confirmed in
 `src/core/layout/FlowEngine.ts`, both emission sites are gated behind a
-blocked/`warnings.length > 0` check), `screen.visited/dwell-end/blocked`,
+blocked/`warnings.length > 0` check), `page.visited/dwell-end/blocked`,
 `interaction.tap/double-tap/hover/swipe/effect/frustrated-click`, `navigation.*`,
 `state.db-init/db-patch/db-reset`, `simulator.*`.
 
