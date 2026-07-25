@@ -6,7 +6,7 @@ import type { AnnotationTag, FlowkitConfig, FlowStoryDef } from '../../types/ind
 // at author time. They return their argument unchanged — no runtime cost.
 //
 // Usage:
-//   // workspaces/<ws>/workspace.ts
+//   // workspaces/<ws>/manifest.ts
 //   import { defineConfig } from "@flowkit-core/config";
 //   export default defineConfig({ projects: { shop: { label: "Shop" } } });
 //
@@ -18,7 +18,7 @@ import type { AnnotationTag, FlowkitConfig, FlowStoryDef } from '../../types/ind
  * Author a workspace manifest with full type-checking + autocomplete.
  *
  * Identity function — returns `config` unchanged. It exists purely so
- * `workspace.ts` gets type inference at the call site without an explicit
+ * `manifest.ts` gets type inference at the call site without an explicit
  * type annotation; there is no runtime behavior or validation.
  *
  * @param config - The workspace manifest (chapters, pageOrder, projects, etc.)
@@ -26,7 +26,7 @@ import type { AnnotationTag, FlowkitConfig, FlowStoryDef } from '../../types/ind
  *
  * @example
  * ```ts
- * // workspaces/<ws>/workspace.ts
+ * // workspaces/<ws>/manifest.ts
  * import { defineConfig } from "flowkit";
  * export default defineConfig({ chapters: ["onboarding", "checkout"] });
  * ```

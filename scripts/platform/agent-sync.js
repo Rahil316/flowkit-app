@@ -102,7 +102,7 @@ export function renderPlatform(ctx) {
     `Terse map of the platform surfaces you can reach. Each ends in a pointer to the full doc.\n\n` +
     `${surfaces}\n\n` +
     `## CLI\n\n| Command | What |\n|---|---|\n${cli}\n\n` +
-    `\n> **Chapter ordering** is set in \`workspace.ts\` → \`chapters[]\`/\`pageOrder{}\`. Use the **Manage tab** (right panel → Manage) to generate a terminal script for reordering.\n>\n> **Default page** (cold load / device home button / reset-to-first) is set in \`workspace.ts\` → \`startPage\`; a flowStory's \`homeScreen\` overrides it while that flowStory is playing.\n>\n> **To remove a chapter or page**, delete the folder manually: \`rm -rf workspaces/${ctx.name}/flowBook/<chapter>/\`\n\n` +
+    `\n> **Chapter ordering** is set in \`manifest.ts\` → \`chapters[]\`/\`pageOrder{}\`. Use the **Manage tab** (right panel → Manage) to generate a terminal script for reordering.\n>\n> **Default page** (cold load / device home button / reset-to-first) is set in \`manifest.ts\` → \`startPage\`; a flowStory's \`homeScreen\` overrides it while that flowStory is playing.\n>\n> **To remove a chapter or page**, delete the folder manually: \`rm -rf workspaces/${ctx.name}/flowBook/<chapter>/\`\n\n` +
     `_Generated (spec v${AGENT_SPEC_VERSION}). Facts mirror the platform source — \`flowkit agent:sync\` to refresh._\n`
   )
 }

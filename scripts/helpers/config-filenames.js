@@ -5,7 +5,7 @@
  */
 
 /** Per-workspace content registration (workspace identity, chapters, pageOrder). */
-export const WORKSPACE_CONFIG_FILENAME = 'workspace.ts'
+export const WORKSPACE_CONFIG_FILENAME = 'manifest.ts'
 
 /** Project-root export settings (exportDefaults, exportProfiles). Plain JSON. */
 export const PROJECT_CONFIG_FILENAME = 'flowkit.json'

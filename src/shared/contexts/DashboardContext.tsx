@@ -130,9 +130,9 @@ export function DashboardProvider({
 }: {
   children: ReactNode
   firstViewId: string
-  /** Author-set default device preset label (workspace.ts `defaultDevice`). Falls back to DEVICE_PRESETS[0]. */
+  /** Author-set default device preset label (manifest.ts `defaultDevice`). Falls back to DEVICE_PRESETS[0]. */
   initialDeviceLabel?: string
-  /** Author-set default orientation (workspace.ts `defaultOrientation`). Falls back to "portrait". */
+  /** Author-set default orientation (manifest.ts `defaultOrientation`). Falls back to "portrait". */
   initialOrientation?: Orientation
   workspaceConfig?: WorkspaceConfig
   onSwitchWorkspace?: (name?: string) => void

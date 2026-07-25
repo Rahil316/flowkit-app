@@ -44,7 +44,7 @@ const tokenModulesOld = import.meta.glob('/workspaces/*/design-system/tokens.css
   import: 'default',
 }) as Record<string, () => Promise<string>>
 
-const configModules = import.meta.glob('/workspaces/*/workspace.ts', {
+const configModules = import.meta.glob('/workspaces/*/manifest.ts', {
   eager: true,
 }) as Record<string, { default: FlowkitConfig }>
 
@@ -100,7 +100,7 @@ export function listWorkspaceNames(): string[] {
 
 export function getWorkspaceConfig(name: string): FlowkitConfig {
   if (isSingle) return _virtualConfig
-  const mod = configModules[`/workspaces/${name}/workspace.ts`]
+  const mod = configModules[`/workspaces/${name}/manifest.ts`]
   return mod?.default ?? {}
 }
 

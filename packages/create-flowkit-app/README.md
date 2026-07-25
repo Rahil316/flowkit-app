@@ -20,7 +20,7 @@ This scaffolds a new project with:
 
 - `flowBook/` — your pages, organized by chapter
 - `flowStories/` — playback scripts describing step-by-step chapters
-- `workspace.ts` — workspace config (`defineConfig`)
+- `manifest.ts` — workspace config (`defineConfig`)
 - `lib/` — shared workspace data/components
 - `vite.config.ts` pre-wired with the `flowkit/vite` plugin
 

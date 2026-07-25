@@ -20,7 +20,7 @@ This scaffolds a project with one initial workspace and a root `vite.config.ts` 
 
 - `flowBook/` — pages, organized by chapter
 - `flowStories/` — playback scripts
-- `workspace.ts` — workspace config (`defineConfig`)
+- `manifest.ts` — workspace config (`defineConfig`)
 - `lib/` — shared workspace data/components
 
 By default the initial workspace ships with a playable demo (a splash/welcome intro into

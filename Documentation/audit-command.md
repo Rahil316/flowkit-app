@@ -4,7 +4,7 @@ Status: planning, not built. Written 2026-07-25. Supersedes nothing; net-new com
 
 ## Origin
 
-`workspace.ts` and its `pageOrder`/`chapters` structures have no reconciliation
+`manifest.ts` and its `pageOrder`/`chapters` structures have no reconciliation
 against disk — only CLI-mediated incremental patches (`config-patch.js`'s
 `addPage`/`removePage`/etc.). Manual filesystem edits (hand-deleted folders,
 merge conflicts, copy-pasted page dirs) silently desync the ledger from
@@ -16,12 +16,12 @@ extends.
 
 ## Decided
 
-- **Rename**: `workspace.ts` → **`manifest.ts`**. Same shape, same
+- **Rename**: `manifest.ts` → **`manifest.ts`**. Same shape, same
   `defineConfig()` call, same file type (real `.ts`). Pure rename — every
   reader/writer of the literal filename needs updating in lockstep:
   - `scripts/authoring-support/config-patch.js` (`readConfig`/`writeConfig`)
   - `scripts/helpers/vite-plugin.js`'s `genConfig()` (esbuild bundle target)
-  - repo-mode's native import path (wherever `workspace.ts` is imported
+  - repo-mode's native import path (wherever `manifest.ts` is imported
     directly, e.g. `useWorkspaceHierarchy.ts` or its callers)
   - `scripts/helpers/flowkit-manifest.js` if it references the filename
   - both scaffolder templates (`packages/create-flowkit-app/index.js`,
@@ -52,7 +52,7 @@ extends.
   - Only defined for issue categories that have a real, unambiguous
     automated resolution. **If no safe auto-fix exists for a category, `fix`
     reports that explicitly ("no auto-fix available for X — see `rebuild
-    --confirm` or hand-edit") rather than guessing or silently skipping.**
+--confirm` or hand-edit") rather than guessing or silently skipping.**
   - Confirmed-safe fix today: drop ghost `pageOrder`/ledger entries
     (ledger says exists, disk doesn't); append orphaned disk pages
     (disk has it, ledger doesn't) to the end of their chapter's list.
@@ -62,7 +62,7 @@ extends.
 - **`rebuild` action** — `flowkit audit:<domain> rebuild`
   - Full regenerate-from-disk. Destructive to authored order by nature.
   - Refuses to run bare. Requires an explicit `--confirm` (or `--force`)
-    flag. Without it, prints what it *would* discard and exits non-zero.
+    flag. Without it, prints what it _would_ discard and exits non-zero.
 
 ## Open questions (blocking, need answers before scoping build work)
 
@@ -83,9 +83,9 @@ extends.
      nav calls instead of FlowStory steps).
    - Unreachable pages — pages that exist on disk/in the ledger but have no
      `navigateTo` call or FlowStory step anywhere that ever targets them.
-   Needs one more decision pass; not equivalent effort (the first is a
-   static-analysis grep-shaped check, the third requires building a full
-   reference graph across every page and every FlowStory).
+     Needs one more decision pass; not equivalent effort (the first is a
+     static-analysis grep-shaped check, the third requires building a full
+     reference graph across every page and every FlowStory).
 
 3. **`sessions` domain — structurally different, needs its own scoping
    pass.** Sessions are IndexedDB-backed recorded data (`WriteBatcher`, see
@@ -112,20 +112,20 @@ don't exist today. Circle back only if/when the underlying capability is
 built.
 
 - **Stable ids for chapters/pages that survive rename**, independent of the
-  file path. Considered and deliberately narrowed down to *not* building a
+  file path. Considered and deliberately narrowed down to _not_ building a
   path-independent id system right now — see reasoning trail in this same
   planning conversation (2026-07-25): a stable id needs a persistence
-  mechanism (frontmatter/sidecar/ledger field), and adopting one *inside*
+  mechanism (frontmatter/sidecar/ledger field), and adopting one _inside_
   `manifest.ts`'s ledger only (not exposed to FlowStory references) was the
   agreed minimal version. Making FlowStories reference a stable id instead
   of the current composite `chapter-page` string was explicitly rejected as
   a breaking change to every existing `.ts` FlowStory file, the compiler,
   and every check script — parked, not scheduled.
 - **`bookOrders` restructuring** (`{chapterID: {index, pages: {pageName:
-  {index, pageID}}}}`) — the explicit-index-over-array-position idea is
+{index, pageID}}}}`) — the explicit-index-over-array-position idea is
   sound (safer for programmatic edits, cleaner diffs) but was folded into
   "rename only, no shape change" for this pass per direct instruction
-  ("Forget it. just rename workspace.ts..."). Revisit if/when `manifest.ts`
+  ("Forget it. just rename manifest.ts..."). Revisit if/when `manifest.ts`
   needs a real shape change for another reason — don't reopen solely for
   this.
 - **Any auto-fix for the rename-vs-delete+add ambiguity** (open question 4

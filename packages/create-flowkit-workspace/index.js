@@ -11,7 +11,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // — this package must stay independently publishable with zero runtime deps on
 // the monorepo (see the standalone-prompt-helpers comment below). If flowkit's
 // own WORKSPACE_CONFIG_FILENAME ever changes again, update this too.
-const WORKSPACE_CONFIG_FILENAME = 'workspace.ts'
+const WORKSPACE_CONFIG_FILENAME = 'manifest.ts'
 // Same rationale as WORKSPACE_CONFIG_FILENAME above — mirrors
 // scripts/helpers/config-filenames.js's FLOW_BOOK_DIRNAME/FLOW_STORIES_DIRNAME.
 // Update these if those ever change.

@@ -67,7 +67,7 @@ export function directives(ctx) {
   const chaptersGroup = {
     group: 'Chapters & pages — FlowStory hierarchy',
     preamble:
-      "Pages live under `flowBook/<chapter>/.../<page>/` (any number of organizational folders between chapter and page are allowed — only the first and last segments count for identity). Journeys are declared in `flowStories/<chapter>.ts` using `defineFlow`. There is no `_playFlow.ts` and no `flowBook/router.tsx`. Registered page ids are the composite `<chapter>-<page>` form (e.g. `onboarding-welcome-screen`) everywhere EXCEPT `workspace.ts`'s `pageOrder` map, which stays bare/chapter-scoped.",
+      "Pages live under `flowBook/<chapter>/.../<page>/` (any number of organizational folders between chapter and page are allowed — only the first and last segments count for identity). Journeys are declared in `flowStories/<chapter>.ts` using `defineFlow`. There is no `_playFlow.ts` and no `flowBook/router.tsx`. Registered page ids are the composite `<chapter>-<page>` form (e.g. `onboarding-welcome-screen`) everywhere EXCEPT `manifest.ts`'s `pageOrder` map, which stays bare/chapter-scoped.",
     rules: [
       {
         kind: 'to',
@@ -89,7 +89,7 @@ export function directives(ctx) {
         kind: 'to',
         task: 'reorder chapters',
         action:
-          'edit the `chapters[]` array in `workspace.ts`, or use the **Manage tab** (right panel) to copy a terminal patch script',
+          'edit the `chapters[]` array in `manifest.ts`, or use the **Manage tab** (right panel) to copy a terminal patch script',
       },
       {
         kind: 'to',
@@ -242,7 +242,7 @@ export function indexRows(_ctx) {
     },
     {
       task: 'Reorder chapters',
-      action: 'edit `workspace.ts` → `chapters[]`, or use **Manage tab** in right panel',
+      action: 'edit `manifest.ts` → `chapters[]`, or use **Manage tab** in right panel',
       detail: 'platform.md → Chapters',
     },
     {
@@ -276,7 +276,7 @@ export function platformSurfaces(ctx) {
     area: 'Chapters (FlowStory hierarchy)',
     api: '`defineFlow({ id, name, steps[], homeScreen? })` — authored in `flowStories/<chapter>.ts`',
     from: '`@flowkit-core/config` → `defineFlow`',
-    note: "Page folders: `flowBook/<chapter>/.../<page>/` (variable depth — first/last segment count for identity, anything between is cosmetic). FlowStory step `pageId` values use the composite `<chapter>-<page>` id form; `workspace.ts`'s `pageOrder` stays bare. Ordering declared in `workspace.ts` → `chapters[]`/`pageOrder{}`. `homeScreen` overrides the device home button while that flowStory is playing; workspace-level default is `workspace.ts` → `startPage`.",
+    note: "Page folders: `flowBook/<chapter>/.../<page>/` (variable depth — first/last segment count for identity, anything between is cosmetic). FlowStory step `pageId` values use the composite `<chapter>-<page>` id form; `manifest.ts`'s `pageOrder` stays bare. Ordering declared in `manifest.ts` → `chapters[]`/`pageOrder{}`. `homeScreen` overrides the device home button while that flowStory is playing; workspace-level default is `manifest.ts` → `startPage`.",
     doc: 'FLOWMASTER.md',
   }
 
@@ -321,7 +321,7 @@ export function platformSurfaces(ctx) {
     },
     {
       area: 'Device & orientation defaults',
-      api: '`workspace.ts` → `defaultDevice` (a `DevicePreset.label`), `defaultOrientation` ("portrait" | "landscape")',
+      api: '`manifest.ts` → `defaultDevice` (a `DevicePreset.label`), `defaultOrientation` ("portrait" | "landscape")',
       from: '`@flowkit-core/config` → `defineConfig`',
       note: 'Both optional. `defaultDevice` must match a label in `src/shared/components/devices`; falls back to the platform default when unset/unrecognized. `defaultOrientation` is ignored if the resolved device lacks `supportsLandscape`.',
       doc: 'CLI.md',

@@ -163,7 +163,7 @@ export const pageMeta = { label: 'Welcome' }
     const cfgWs = fs.mkdtempSync(path.join(os.tmpdir(), 'flowkit-check-config-'))
     try {
       fs.writeFileSync(
-        path.join(cfgWs, 'workspace.ts'),
+        path.join(cfgWs, 'manifest.ts'),
         `export default {
   workspace: { name: 'test' },
   chapters: ['onboarding'],
@@ -326,7 +326,9 @@ export const pageMeta = { label: 'Root', id: '${makePageId('misc', 'RootScreen')
         findingFiles.some(f => f.includes('_hidden')),
         `single _-prefixed folder must still be checked, got findings: ${JSON.stringify(report.findings)}`
       )
-      assert.ok(report.findings.some(f => f.file.includes('_hidden') && f.ruleId === 'page/missing-meta'))
+      assert.ok(
+        report.findings.some(f => f.file.includes('_hidden') && f.ruleId === 'page/missing-meta')
+      )
 
       // Also verify checkFlowStories: a step referencing the __-hidden screen must fail invalid-screen
       // (as if the screen doesn't exist), while one referencing the _-hidden screen must resolve fine.
@@ -345,8 +347,14 @@ export const pageMeta = { label: 'Root', id: '${makePageId('misc', 'RootScreen')
       )
       const planReport = createReport()
       await checkFlowStories(hideWs, planReport)
-      const invalidScreenFindings = planReport.findings.filter(f => f.ruleId === 'flowStory/invalid-page')
-      assert.equal(invalidScreenFindings.length, 1, `expected exactly 1 invalid-screen finding (for __gone), got: ${JSON.stringify(planReport.findings)}`)
+      const invalidScreenFindings = planReport.findings.filter(
+        f => f.ruleId === 'flowStory/invalid-page'
+      )
+      assert.equal(
+        invalidScreenFindings.length,
+        1,
+        `expected exactly 1 invalid-screen finding (for __gone), got: ${JSON.stringify(planReport.findings)}`
+      )
       assert.match(invalidScreenFindings[0].message, /__gone/)
     } finally {
       fs.rmSync(hideWs, { recursive: true, force: true })

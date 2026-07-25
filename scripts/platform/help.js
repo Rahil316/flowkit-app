@@ -34,7 +34,7 @@ ${b('Workspaces (multi-workspace consumer projects only):')}
   ${c('rename:workspace')} ${d('<old> <new>')}       Rename a workspace
 
 ${b('Scaffold (authoring):')}
-  ${c('create:chapter')} ${d('--name:<id>')}            Add a chapter + register in workspace.ts
+  ${c('create:chapter')} ${d('--name:<id>')}            Add a chapter + register in manifest.ts
   ${c('create:page')} ${d('--chapter:<id> --name:<id>')}  Add a page to a chapter
   ${c('create:flowStory')} ${d('--name:<id>')}         Add a flowStory script
   ${c('create:component')} ${d('--name:<PascalName> --path:<lib/components/...>')}   Add a workspace component
@@ -58,7 +58,7 @@ ${b('Scaffold (authoring):')}
   ${c('promote:chapter')} ${d('--flowStory:<path> --fork:"<label>" [--as:<new-id>]')}   Extract a fork into its own flowStory
 
   ${d('All scaffold commands accept --workspace:<name> to target a non-active workspace.')}
-  ${d('pageOrder in workspace.ts controls display order; scaffold commands keep it in sync.')}
+  ${d('pageOrder in manifest.ts controls display order; scaffold commands keep it in sync.')}
 
 ${b('Projects:')}
   ${c('project:ls')} / ${c('pj:ls')}          List projects + flowStory counts

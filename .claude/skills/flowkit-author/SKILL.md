@@ -114,7 +114,7 @@ module also used by `create:workspace`/`create-flowkit-app`/`create-flowkit-work
 **No more `--lang:ts|js` flag** — scaffolding is TypeScript-only now (removed the same day as the
 game-demo rewrite). If you see `--lang:` referenced anywhere, it's stale.
 
-Full scaffold's exact file list (46 files under the workspace root, plus `workspace.ts`):
+Full scaffold's exact file list (46 files under the workspace root, plus `manifest.ts`):
 `flowBook/<chapter>/<page>/<PageName>.tsx` for all 18 pages across the 7 chapters,
 `flowStories/*.ts` (5 files: `intro-flow.ts` + 4 `journey-*.ts` named playback scripts),
 `lib/game-logic/*.ts` (7 files, pure logic), `lib/components/ui/*.tsx` (10 shared components,
@@ -153,7 +153,7 @@ flowkit create:chapter --name:checkout [--workspace:<name>]
 
 `--name:` required, kebab-case (auto-normalized by `assertKebab()` — see above) — prompts
 interactively if omitted.
-Creates `flowBook/<name>/` and registers it in `workspace.ts`'s `chapters[]` + initializes
+Creates `flowBook/<name>/` and registers it in `manifest.ts`'s `chapters[]` + initializes
 `pageOrder[name] = []` (`scripts/authoring/chapters.js`).
 
 Error messages (exact): `✗ Chapter name is required` (no name, prompt also empty), `✗ Chapter
@@ -205,12 +205,12 @@ missing-folder error.
 Registered composite id shown to the user is `${chapterId}-${pageId}` (e.g.
 `checkout-payment-form`), built by `makePageId()` — collision-proof across chapters (two chapters
 can each have a page folder literally named the same thing without colliding). Internally,
-`workspace.ts`'s `pageOrder` map still stores the **bare** page id (chapter-scoped already, no
+`manifest.ts`'s `pageOrder` map still stores the **bare** page id (chapter-scoped already, no
 collision risk there); the composite form is only used for flowStory step references and other
 cross-chapter/global contexts. Don't confuse the two: `pageOrder.<chapterId>[]` holds bare ids,
 flowStory `steps[].pageId` holds composite ids.
 
-Registration into `workspace.ts`'s `pageOrder.<chapterId>[]` is automatic — no manual config edit
+Registration into `manifest.ts`'s `pageOrder.<chapterId>[]` is automatic — no manual config edit
 needed.
 
 Generated template (TS mode) imports `PageProps` via the mode-aware helper (see Import correctness
@@ -289,7 +289,7 @@ always wins). Use `flowkit list:pages --hidden` / `--gone` / `--all` to see hidd
 every-tier pages respectively (default listing shows neither).
 
 `--gone` is the **only** listing mode that can find `__`-prefixed items — it's the sole mode that
-scans the filesystem directly instead of reading `workspace.ts`'s `pageOrder`, since non-existent
+scans the filesystem directly instead of reading `manifest.ts`'s `pageOrder`, since non-existent
 items are by definition never registered there at all.
 
 ### Ambiguous page folders
@@ -794,7 +794,7 @@ Flag syntax is `--name:value` or `--name:"quoted value"` (`scripts/helpers/args.
 strips only leading/trailing quote characters, not internal escapes).
 
 `--gone` on `list:pages` is the only way to see `__`-prefixed non-existent items — every other
-listing mode (default, `--hidden`, `--all`) walks the registered `workspace.ts` config, but
+listing mode (default, `--hidden`, `--all`) walks the registered `manifest.ts` config, but
 non-existent items are by definition never registered there, so `--gone` walks the filesystem
 directly instead.
 

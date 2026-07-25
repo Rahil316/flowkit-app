@@ -103,7 +103,7 @@ export function generateChapterOrderPatch(
 ): PatchScript {
   const script = `node << 'FLOWKIT_CHAPTER_ORDER'
 const fs = require('fs');
-const configPath = 'workspaces/${ws}/workspace.ts';
+const configPath = 'workspaces/${ws}/manifest.ts';
 let src = fs.readFileSync(configPath, 'utf8');
 const projectChapterMap = ${JSON.stringify(projectChapterMap, null, 2)};
 
@@ -131,7 +131,7 @@ Object.entries(projectChapterMap).forEach(([project, chapters]) => {
     src = replaced;
   } else {
     // Insert the projects block if absent.
-    console.warn('Could not auto-patch ' + project + '. Edit workspace.ts manually:');
+    console.warn('Could not auto-patch ' + project + '. Edit manifest.ts manually:');
     console.warn('  ' + project + ': { chapters: ' + chaptersStr + ' }');
   }
 });

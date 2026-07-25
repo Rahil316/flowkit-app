@@ -175,11 +175,11 @@ export interface WorkspaceHierarchyResult {
   hasHierarchy: boolean
   /** pageId → active annotation tags (expiresAt filtered). */
   tagsByPage: Map<string, AnnotationTag[]>
-  /** Author-set default screen id from workspace.ts (`startPage`), if any. */
+  /** Author-set default screen id from manifest.ts (`startPage`), if any. */
   startPageId?: string
-  /** Author-set default device preset label from workspace.ts (`defaultDevice`), if valid. */
+  /** Author-set default device preset label from manifest.ts (`defaultDevice`), if valid. */
   defaultDeviceLabel?: string
-  /** Author-set default orientation from workspace.ts (`defaultOrientation`), if any. */
+  /** Author-set default orientation from manifest.ts (`defaultOrientation`), if any. */
   defaultOrientation?: 'portrait' | 'landscape'
 }
 

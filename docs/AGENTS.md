@@ -98,7 +98,7 @@ The few hardest rules are inlined into the memory file so they're loaded before 
 
 ## Workspace format
 
-Workspaces use the **flowStory format**: `flowBook/<chapter>/<page>/<Page>.tsx` + `flowStories/*.ts` (directories renamed from `flows/`/`flowplans/`; the CLI verb `watch:flows` keeps its existing name regardless, but `check:flowplans` was itself renamed to `check:flowStories`). Page folders may nest to any depth under `flowBook/<chapter>/` — see FLOWKIT.md's page-authoring section for the full identity/visibility rules. There is no `_playFlow.ts`, no `router.tsx`, no `projects/` directory (unless you've deliberately opted into the nested-layout `projects` field in `workspace.ts` — see CLI.md).
+Workspaces use the **flowStory format**: `flowBook/<chapter>/<page>/<Page>.tsx` + `flowStories/*.ts` (directories renamed from `flows/`/`flowplans/`; the CLI verb `watch:flows` keeps its existing name regardless, but `check:flowplans` was itself renamed to `check:flowStories`). Page folders may nest to any depth under `flowBook/<chapter>/` — see FLOWKIT.md's page-authoring section for the full identity/visibility rules. There is no `_playFlow.ts`, no `router.tsx`, no `projects/` directory (unless you've deliberately opted into the nested-layout `projects` field in `manifest.ts` — see CLI.md).
 
 ---
 
@@ -142,11 +142,11 @@ export default function <ScreenName>Page({ db }: PageProps) {
 { pageId: '<flow>-<screen-slug>', on: 'primary-cta', actionNote: 'Taps Continue' },
 ```
 
-(`pageId` here is the composite `${chapterId}-${pageId}` form — see FLOWKIT.md's page-authoring section. `workspace.ts`'s `pageOrder` map, by contrast, stores the bare `<screen-slug>`.)
+(`pageId` here is the composite `${chapterId}-${pageId}` form — see FLOWKIT.md's page-authoring section. `manifest.ts`'s `pageOrder` map, by contrast, stores the bare `<screen-slug>`.)
 
 Or use the CLI, which handles both steps and works in all three modes: `flowkit create:page --chapter:<flow-id> --name:<screen-slug>` then `flowkit add:step --flowStory:<flow-id> --page:<screen-slug> --action:"..."`.
 
-> **To remove a page:** `flowkit remove:page --chapter:<flow-id> --name:<screen-slug>` (unregisters it and deletes the directory — safer than a manual `rm -rf`, since it also updates `workspace.ts`).
+> **To remove a page:** `flowkit remove:page --chapter:<flow-id> --name:<screen-slug>` (unregisters it and deletes the directory — safer than a manual `rm -rf`, since it also updates `manifest.ts`).
 
 ### Add a flowStory
 

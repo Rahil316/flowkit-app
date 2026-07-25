@@ -7,7 +7,7 @@ import { gameDemoScaffold, gameDemoWorkspaceConfig } from '../demoBooks/game-dem
 // or remove a demo page/chapter here, update it there too — both this file and
 // workspace-template.js pull demo content from the single shared
 // scripts/demoBooks/game-demo-scaffold.js module, so there is only one place to
-// change; only workspace.ts's own config differs (mode-correct defineConfig
+// change; only manifest.ts's own config differs (mode-correct defineConfig
 // import line).
 // scripts/tests/scaffold-consistency.test.js checks structural shape (page/chapter
 // counts), not full content or exact ids.

@@ -632,7 +632,7 @@ export interface FlowStoryDef {
 
 // ─── Workspace Config & Hierarchy (Phase 1) ────────────────────────────────────
 
-/** Per-project options in workspace.ts. All optional. */
+/** Per-project options in manifest.ts. All optional. */
 export interface FlowkitProjectConfig {
   /** Display name (defaults to folder name). */
   label?: string

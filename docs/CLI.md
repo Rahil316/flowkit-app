@@ -119,14 +119,14 @@ workspaces/<name>/
     project.md             ← hand-owned; never regenerated
     .agent-meta.json
   AGENTS.md                ← agent memory file (one agent-agnostic file, no per-tool choice)
-  workspace.ts
+  manifest.ts
   index.ts
 
 workspaces/<name>/lib/flowLens/       ← committed session library + studies.json (created alongside workspace)
 ```
 
 `--empty` skips `flowBook/`, `flowStories/`, `lib/game-logic/`, and `lib/components/ui/`
-entirely — `workspace.ts` declares zero chapters (an author's first `flowkit
+entirely — `manifest.ts` declares zero chapters (an author's first `flowkit
 create:chapter` populates it), and `lib/data/db.ts`/`lib/data/simulator.tsx` are minimal
 stubs. Still a fully valid, buildable workspace — `flowkit check` passes clean either way.
 
@@ -142,7 +142,7 @@ stubs. Still a fully valid, buildable workspace — `flowkit check` passes clean
 
 Kits are applied via the `@flowkit-kit` CSS alias — no files are copied into the workspace. The selected kit is stored in `src/workspaces.ts` and applied as a `data-kit` attribute on the preview canvas at runtime.
 
-### `workspace.ts` anatomy
+### `manifest.ts` anatomy
 
 The workspace manifest is authored with `defineConfig()` — imported from `@flowkit-core/config` in repo mode, or from `'flowkit'` in consumer mode (flat/multi-workspace):
 
@@ -268,7 +268,7 @@ flowkit convert:multi
 flowkit convert:multi --name:my-workspace
 ```
 
-Wraps the project root's `workspace.ts`/`index.ts`/`flowBook/`/`flowStories/`/`lib/` (plus `.flowkit/`, `.agent/`, `.flowkit-feedback.json` if present) into a new folder — `workspace-1/` by default, or `--name:<id>`. Rewrites `vite.config.ts` to the multi-workspace template and sets `package.json`'s `flowkit.mode`/`flowkit.workspaces` accordingly. Staged move with rollback — a failure partway through leaves the project exactly as it was before running the command, confirmed via induced-failure test.
+Wraps the project root's `manifest.ts`/`index.ts`/`flowBook/`/`flowStories/`/`lib/` (plus `.flowkit/`, `.agent/`, `.flowkit-feedback.json` if present) into a new folder — `workspace-1/` by default, or `--name:<id>`. Rewrites `vite.config.ts` to the multi-workspace template and sets `package.json`'s `flowkit.mode`/`flowkit.workspaces` accordingly. Staged move with rollback — a failure partway through leaves the project exactly as it was before running the command, confirmed via induced-failure test.
 
 Prints a hint for adding another workspace afterward; does **not** scaffold a second workspace itself.
 
@@ -307,7 +307,7 @@ Multi-workspace mode only. Requires typed confirmation (the workspace name, not 
 flowkit rename:workspace app-b app-c
 ```
 
-Multi-workspace mode only. Renames the folder and updates `flowkit.workspaces` in place; the workspace's own `workspace.ts` `workspace.name` field is not required to match and isn't auto-updated.
+Multi-workspace mode only. Renames the folder and updates `flowkit.workspaces` in place; the workspace's own `manifest.ts` `workspace.name` field is not required to match and isn't auto-updated.
 
 ---
 
@@ -334,7 +334,7 @@ export default defineFlow({
   tags: ['buyer', 'status:approved'], // optional — prefixes: role: type: state: status:
 
   // Screen the device home button targets while this flowStory is playing.
-  // Optional — falls back to the workspace's `startPage` (see workspace.ts) when unset.
+  // Optional — falls back to the workspace's `startPage` (see manifest.ts) when unset.
   homeScreen: 'product-detail',
 
   // Chapter-level db baseline — deep-copied on play, restored on exit.
@@ -428,7 +428,7 @@ Domain-specific linter for authored content — validates flowkit's own structur
 | Domain      | Command             | Checks                                                                                      |
 | ----------- | ------------------- | ------------------------------------------------------------------------------------------- |
 | Pages       | `check:pages`       | Default export shape, `pageMeta` presence/shape, id/directory match, ambiguous page folders |
-| Config      | `check:config`      | `workspace.ts`'s `chapters[]`/`pageOrder` consistency against `flowBook/` on disk           |
+| Config      | `check:config`      | `manifest.ts`'s `chapters[]`/`pageOrder` consistency against `flowBook/` on disk            |
 | Components  | `check:components`  | `.flowkit/components.json` registry vs. files on disk, barrel export consistency            |
 | DB          | `check:db`          | `lib/data/db.ts`/`db.js` has at least one export                                            |
 | FlowStories | `check:flowStories` | Parseable, `id` matches filename, non-empty `steps[]`, step `pageId`s exist, step guidance  |
@@ -466,7 +466,7 @@ Work identically across all three modes. "Active workspace" (the default when `-
 flowkit create:chapter --name:<flow-id>
 ```
 
-Creates `flowBook/<flow-id>/` and registers it in `workspace.ts` (`chapters[]` + an empty `pageOrder[flow-id]`). If `--name` is omitted, prompts interactively. Rolls back the created directory if registration fails.
+Creates `flowBook/<flow-id>/` and registers it in `manifest.ts` (`chapters[]` + an empty `pageOrder[flow-id]`). If `--name` is omitted, prompts interactively. Rolls back the created directory if registration fails.
 
 Prints `Next: flowkit create:page --chapter:<flow-id> --name:<first-page> --label:"Page Name"` on success.
 
@@ -476,7 +476,7 @@ Prints `Next: flowkit create:page --chapter:<flow-id> --name:<first-page> --labe
 flowkit remove:chapter --name:<flow-id> [--force]
 ```
 
-Unregisters the chapter from `workspace.ts` and deletes `flowBook/<flow-id>/`. Refuses if the chapter directory contains any pages unless `--force` is passed.
+Unregisters the chapter from `manifest.ts` and deletes `flowBook/<flow-id>/`. Refuses if the chapter directory contains any pages unless `--force` is passed.
 
 #### `list:chapters` — List chapters
 
@@ -504,7 +504,7 @@ flowBook/<flow>/.../<screen>/<File>.tsx
 - A file directly at `flowBook/<File>.tsx` (no folders at all) falls back to chapter id `"misc"`, with the page id taken from the filename minus extension.
 - Page files no longer need to end in a literal `Screen`/`Page` suffix — `create:page` still generates `...Page.tsx` by convention/default, but hand-authored files aren't required to follow it.
 
-The registered, globally-unique page id is a **composite**: `${chapterId}-${pageId}`. This makes ids collision-proof across chapters — two different chapters can each have a page folder literally named the same thing without colliding. FlowStory step `pageId` values (and any other cross-chapter/global reference) use this composite form. `workspace.ts`'s `pageOrder` map is the one exception — it stays **bare** (page id only, no chapter prefix), because that map is already chapter-scoped by its own outer key (`pageOrder['onboarding-flow'] = ['welcome-screen', ...]`).
+The registered, globally-unique page id is a **composite**: `${chapterId}-${pageId}`. This makes ids collision-proof across chapters — two different chapters can each have a page folder literally named the same thing without colliding. FlowStory step `pageId` values (and any other cross-chapter/global reference) use this composite form. `manifest.ts`'s `pageOrder` map is the one exception — it stays **bare** (page id only, no chapter prefix), because that map is already chapter-scoped by its own outer key (`pageOrder['onboarding-flow'] = ['welcome-screen', ...]`).
 
 **One real page per folder:** if 2+ unprefixed candidate `.tsx`/`.jsx` files exist in the same page folder, the alphabetically-first one is deterministically picked as the real page, and `flowkit check:pages` reports a non-blocking `page/ambiguous-folder` warning naming the winner and suggesting you `_`-prefix, remove, or rename the others. This never fails the build.
 
@@ -520,7 +520,7 @@ Visibility is resolved across the whole path, with parent dominance: if _any_ an
 flowkit create:page --chapter:<flow-id> --name:<screen-id> [--label:"Display Label"]
 ```
 
-Creates `flowBook/<flow-id>/<screen-id>/<PascalName>Page.tsx` from a template and registers it in `workspace.ts` (`pageOrder.<flow-id>[]`, storing the bare page id). The chapter must already exist. `--label` defaults to a Title Case version of the page id if omitted. The CLI always generates the standard 2-level shape (`<flow>/<screen>/`, no cosmetic folders in between) — variable-depth nesting with cosmetic folders is a hand-authoring capability, not something this command produces itself.
+Creates `flowBook/<flow-id>/<screen-id>/<PascalName>Page.tsx` from a template and registers it in `manifest.ts` (`pageOrder.<flow-id>[]`, storing the bare page id). The chapter must already exist. `--label` defaults to a Title Case version of the page id if omitted. The CLI always generates the standard 2-level shape (`<flow>/<screen>/`, no cosmetic folders in between) — variable-depth nesting with cosmetic folders is a hand-authoring capability, not something this command produces itself.
 
 Prints `Next: flowkit add:step --flowStory:<flow-id> --page:<screen-id> --action:"..."` on success.
 
@@ -557,7 +557,7 @@ flowkit list:pages --all              # show every visibility tier, labeled
 flowkit list:pages --gone             # show ONLY `__`-prefixed non-existent items
 ```
 
-Read-only. Lists pages grouped by chapter, or just the one chapter if `--flow` is given. By default, hidden (`_`-prefixed) pages are omitted from the list; `--hidden` includes them (tagged `(hidden)`); `--all` shows hidden pages plus a separate non-existent (`__`) section; `--gone` is the dedicated way to find non-existent items, since they're excluded from every other listing mode by design (they're not "registered" pages at all) — this flag scans the filesystem directly rather than reading `workspace.ts`.
+Read-only. Lists pages grouped by chapter, or just the one chapter if `--flow` is given. By default, hidden (`_`-prefixed) pages are omitted from the list; `--hidden` includes them (tagged `(hidden)`); `--all` shows hidden pages plus a separate non-existent (`__`) section; `--gone` is the dedicated way to find non-existent items, since they're excluded from every other listing mode by design (they're not "registered" pages at all) — this flag scans the filesystem directly rather than reading `manifest.ts`.
 
 #### `page:info` — Show page metadata
 
@@ -1011,7 +1011,7 @@ Output: `<name>-handoff-<date>.zip` at the project root.
 
 (Renamed from `@flowkit`/`@core`/`@features`/`@shared`/`@kit` on 2026-07-12; `@flowlens` and `@workspace` unchanged.)
 
-**Consumer mode (flat/multi-workspace):** no `@flowkit*`/`@workspace` aliases — screens and `workspace.ts` import directly from the `'flowkit'` package instead (`import { defineConfig } from 'flowkit'`, `import type { PageProps } from 'flowkit'`). The `flowkit/vite` plugin (`scripts/helpers/vite-plugin.js`) generates equivalent virtual modules (`virtual:flowkit/config|pages|flowStories|workspace`) from `workspace.ts` + filesystem globs, resolved relative to the active workspace folder in multi-workspace mode (the first entry in `flowkit.workspaces` by default) or project root in flat mode.
+**Consumer mode (flat/multi-workspace):** no `@flowkit*`/`@workspace` aliases — screens and `manifest.ts` import directly from the `'flowkit'` package instead (`import { defineConfig } from 'flowkit'`, `import type { PageProps } from 'flowkit'`). The `flowkit/vite` plugin (`scripts/helpers/vite-plugin.js`) generates equivalent virtual modules (`virtual:flowkit/config|pages|flowStories|workspace`) from `manifest.ts` + filesystem globs, resolved relative to the active workspace folder in multi-workspace mode (the first entry in `flowkit.workspaces` by default) or project root in flat mode.
 
 ---
 

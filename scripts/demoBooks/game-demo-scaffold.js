@@ -40,7 +40,7 @@ session tallies) persists to \`db\` at runtime via \`useDb()\`.
 ## File organization
 
 \`\`\`
-workspace.ts                 # chapters[], pageOrder{}, startPage: 'splash-screen'
+manifest.ts                 # chapters[], pageOrder{}, startPage: 'splash-screen'
 flowStories/                 # defineFlow() files — one per named journey
 flowBook/
   <chapter-name>/
@@ -2830,7 +2830,7 @@ export const pageMeta: PageMeta = {
 /**
  * Returns the full game-demo file map (relative path → content) for one
  * workspace, ready to be merged with each generator's own config/db output.
- * `name` interpolates into workspace.ts/tokens.css/overview.md only — every
+ * `name` interpolates into manifest.ts/tokens.css/overview.md only — every
  * other file is name-agnostic and copied verbatim. TypeScript only —
  * FlowKit scaffolding no longer offers a JavaScript output mode.
  *

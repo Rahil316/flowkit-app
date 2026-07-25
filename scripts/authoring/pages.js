@@ -294,7 +294,7 @@ export async function cmdRenamePage(_val, args = []) {
 
   // Steps below mutate the filesystem and then the config; if any step past
   // the first throws, roll back everything already applied so a failure never
-  // leaves the page file/dir renamed while workspace.ts still points at the
+  // leaves the page file/dir renamed while manifest.ts still points at the
   // old id (or vice versa).
   let fileContentPatched = false
   let filePatchedBackup = null

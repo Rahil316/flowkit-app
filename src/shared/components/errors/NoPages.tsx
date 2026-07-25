@@ -30,7 +30,7 @@ export default function NoPages({ workspaceName, onAction }: NoPagesProps) {
           <p className="max-w-xs text-ui-sm text-theme-text-muted">
             This workspace exists but has no pages registered. Check{' '}
             <code className="rounded bg-theme-elevated px-1 py-0.5 font-mono text-ui-xs text-theme-text-secondary">
-              workspace.ts
+              manifest.ts
             </code>
             's{' '}
             <code className="rounded bg-theme-elevated px-1 py-0.5 font-mono text-ui-xs text-theme-text-secondary">

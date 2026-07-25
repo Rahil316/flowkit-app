@@ -73,7 +73,7 @@ flowkit/
         project.md              ← living product brief (hand-owned, never regenerated)
         .agent-meta.json        ← formatter state for agent:sync
       AGENTS.md                 ← agent memory file (one agent-agnostic file, no per-tool choice)
-      workspace.ts         ← workspace manifest (defineConfig)
+      manifest.ts         ← workspace manifest (defineConfig)
       index.ts                  ← Workspace entry (optional shared exports)
   scripts/                      ← Node.js CLI (never bundled by Vite)
     flowkit.js                  ← CLI entry point
@@ -82,7 +82,7 @@ flowkit/
   Documentation/                 ← Dev-only docs, never shipped in the npm package
 ```
 
-> **Consumer mode (flat / multi-workspace)** has a different layout — no `workspaces/` directory, `workspace.ts`/`flowBook/`/`flowStories/`/`lib/` sit at the project root (flat) or at each sibling workspace folder's own root (multi-workspace). See [CLI.md](CLI.md) for the full breakdown.
+> **Consumer mode (flat / multi-workspace)** has a different layout — no `workspaces/` directory, `manifest.ts`/`flowBook/`/`flowStories/`/`lib/` sit at the project root (flat) or at each sibling workspace folder's own root (multi-workspace). See [CLI.md](CLI.md) for the full breakdown.
 
 ---
 
@@ -108,7 +108,7 @@ flowBook/<File>.tsx                          ← 0 folders: chapter = "misc", pa
 The registered, cross-chapter-unique page id is `${chapterId}-${pageId}` (built by `makePageId()`). This makes ids collision-proof: two different chapters can each have a page folder literally named the same thing without colliding, since the chapter id is baked into the composite.
 
 - **FlowStory step `pageId` values, and any other global/cross-chapter reference, use the composite form** (e.g. `onboarding-flow-welcome-screen`).
-- **`workspace.ts`'s `pageOrder` map is the one exception — it stays bare.** Since `pageOrder` is already keyed per-chapter (`pageOrder['onboarding-flow'] = ['welcome-screen', ...]`), no composite prefix is needed there to avoid collisions.
+- **`manifest.ts`'s `pageOrder` map is the one exception — it stays bare.** Since `pageOrder` is already keyed per-chapter (`pageOrder['onboarding-flow'] = ['welcome-screen', ...]`), no composite prefix is needed there to avoid collisions.
 
 ### One real page per folder
 
@@ -118,7 +118,7 @@ If a page folder contains 2+ unprefixed candidate `.tsx`/`.jsx` files, the syste
 
 A single underscore prefix on a file or folder segment (`_name`) marks it **Hidden**: fully real — parsed, compiled, checked, playable, referenceable by flowStories — just excluded from the default Screens-tab browsing UI. A double underscore prefix (`__name`) marks it **non-existent**: excluded from everything — parsing, checks, flowStory reference resolution, and `flowkit status` counts.
 
-Visibility resolves across the whole path with **parent dominance**: if any ancestor segment in the chain has a `__` prefix, the entire subtree is non-existent regardless of what's inside it; otherwise, if any ancestor has a single `_`, the whole subtree is hidden. `flowkit list:pages` exposes this via `--hidden` (include hidden), `--all` (show every tier, labeled), and `--gone` (show only non-existent items — the one listing mode that scans disk directly, since non-existent items are excluded from `workspace.ts`'s `pageOrder` by definition).
+Visibility resolves across the whole path with **parent dominance**: if any ancestor segment in the chain has a `__` prefix, the entire subtree is non-existent regardless of what's inside it; otherwise, if any ancestor has a single `_`, the whole subtree is hidden. `flowkit list:pages` exposes this via `--hidden` (include hidden), `--all` (show every tier, labeled), and `--gone` (show only non-existent items — the one listing mode that scans disk directly, since non-existent items are excluded from `manifest.ts`'s `pageOrder` by definition).
 
 ### Variant filenames
 
